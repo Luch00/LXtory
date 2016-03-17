@@ -1,0 +1,146 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ScreenShotterWPF.Settings"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        Title="Settings" Height="456" Width="495" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Icon="Resources/meh.ico">
+    <Grid>
+        <TabControl Height="390" VerticalAlignment="Top">
+            <TabItem Header="General">
+                <Grid Background="#FFE5E5E5">
+                    <GroupBox x:Name="groupBox" Header="General" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6">
+                        <StackPanel>
+                            
+                            <CheckBox x:Name="checkBoxLocal" Content="Save local copy" HorizontalAlignment="Left"  VerticalAlignment="Top" Unchecked="checkBoxLocal_Unchecked" Margin="4"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="textFilepath" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="163" Margin="4"/>
+                                <Button x:Name="settingsBrowse" Content="..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="27" Margin="4"/>
+                            </StackPanel>
+                            <CheckBox x:Name="checkUpload" Content="Auto-Upload Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Unchecked="checkUpload_Unchecked" Margin="4"/>
+                            <CheckBox x:Name="checkMinimizeTray" Content="Minimize to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                            <CheckBox x:Name="checkRunatStart" Content="Run at Windows startup" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                            <CheckBox x:Name="checkStartMinimized" Content="Start minimized" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                            <CheckBox x:Name="checkClosetoTray" Content="Close to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                            <CheckBox x:Name="checkOpeninBrowser" Content="Open in browser after upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                            <CheckBox x:Name="checkCopytoClipboard" Content="Copy last url to clipboard" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+
+                            <Label x:Name="lblAdmin" Content="Run LXtory as admin to enable" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,10,4,4" Visibility="Hidden"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Context menu:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
+                                <Button x:Name="btnRegister" Content="Enable" HorizontalAlignment="Left" VerticalAlignment="Center" Width="75" ToolTip="Add/remove Windows context menu shortcuts." Click="btnRegister_Click" IsEnabled="False" Margin="4"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox x:Name="groupBox1" Header="Gif" HorizontalAlignment="Left" Margin="229,6,0,0" VerticalAlignment="Top" Width="244">
+                        <StackPanel>
+                            <CheckBox x:Name="checkGifUpload" Content="Auto-Upload Gifs" Margin="4"/>
+                            <CheckBox x:Name="checkGifEditor" Content="Use Gif Editor" Margin="4"/>
+                            <CheckBox x:Name="checkGifCaptureCursor" Content="Capture Mouse Cursor" Margin="4"/>
+                            <DockPanel>
+                                <Label Content="Frame Rate (5-60)" Margin="4"/>
+                                <xctk:IntegerUpDown x:Name="gifFrameRate" VerticalAlignment="Center" Value="15" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                            </DockPanel>
+                            <DockPanel>
+                                <Label Content="Duration (1-30s)" Margin="4"/>
+                                <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="5" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                            </DockPanel>
+                            <!--<DockPanel>
+                                <Label Content="Quality (1-20)" Margin="4"/>
+                                <xctk:IntegerUpDown x:Name="gifQuality" VerticalAlignment="Center" Value="5" Minimum="1" Maximum="20" Margin="4" HorizontalAlignment="Right" AllowTextInput="False" ToolTip="1 = Higher Quality, Slower Encoding &#xA;20 = Lower Quality, Faster Encoding"/>
+                            </DockPanel>-->
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox x:Name="groupBox2" Header="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="229,170,0,0" VerticalAlignment="Top" Width="244" Height="113">
+                        <StackPanel>
+                            <CheckBox x:Name="detectExclusive" Content="Try to Autodetect" Margin="4" ToolTip="Tries to detect if an application is running in exclusive fullscreen mode and automatically use directx to capture the screen(s)."/>
+                                <CheckBox x:Name="fullscreenD3D" Content="Capture All Screens" Margin="4"/>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Hotkeys">
+                <Grid Background="#FFE5E5E5">
+                    <StackPanel>
+                        <Label Content="Fullscreen" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="ctrl_fullscreen" Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding FullscreenCtrl}"/>
+                            <Label Content="+"/>
+                            <CheckBox x:Name="shift_fullscreen" Content="Shift" VerticalAlignment="Center" IsChecked="{Binding FullscreenShift}"/>
+                            <Label Content="+"/>
+                            <CheckBox x:Name="alt_fullscreen" Content="Alt" VerticalAlignment="Center" IsChecked="{Binding FullscreenAlt}"/>
+                            <Label Content="+"/>
+                            <TextBox x:Name="textFullscreen" HorizontalAlignment="Left" Height="23" Text="{Binding FullscreenString}" TextWrapping="Wrap" VerticalAlignment="Center" Width="215" IsReadOnlyCaretVisible="True" PreviewKeyDown="textFullscreen_PreviewKeyDown" PreviewKeyUp="textFullscreen_PreviewKeyUp"/>
+                        </StackPanel>
+                        
+                        <Label Content="Current Window" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding CurrentwindowCtrl}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Shift" VerticalAlignment="Center" IsChecked="{Binding CurrentwindowShift}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Alt" VerticalAlignment="Center" IsChecked="{Binding CurrentwindowAlt}"/>
+                            <Label Content="+"/>
+                            <TextBox x:Name="textCurrentWindow" HorizontalAlignment="Left" Height="23" Text="{Binding CurrentwindowString}" TextWrapping="Wrap" VerticalAlignment="Center" Width="215" PreviewKeyDown="textCurrentWindow_PreviewKeyDown" PreviewKeyUp="textCurrentWindow_PreviewKeyUp"/>
+                        </StackPanel>
+
+                        <Label Content="Select Area" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding SelectedareaCtrl}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Shift" VerticalAlignment="Center" IsChecked="{Binding SelectedareaShift}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Alt" VerticalAlignment="Center" IsChecked="{Binding SelectedareaAlt}"/>
+                            <Label Content="+"/>
+                            <TextBox x:Name="textSelectedArea" HorizontalAlignment="Left" Height="23" Text="{Binding SelectedareaString}" TextWrapping="Wrap" VerticalAlignment="Center" Width="215" PreviewKeyDown="textSelectedArea_PreviewKeyDown" PreviewKeyUp="textSelectedArea_PreviewKeyUp"/>
+                        </StackPanel>
+                        
+                        <Label Content="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding D3dCtrl}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Shift" VerticalAlignment="Center" IsChecked="{Binding D3dShift}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Alt" VerticalAlignment="Center" IsChecked="{Binding D3dAlt}"/>
+                            <Label Content="+"/>
+                            <TextBox x:Name="textD3DCapture" HorizontalAlignment="Left" Height="23" Text="{Binding D3dString}" TextWrapping="Wrap" VerticalAlignment="Center" Width="215" PreviewKeyDown="textD3DCapture_PreviewKeyDown" PreviewKeyUp="textD3DCapture_PreviewKeyUp"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Uploading">
+                <Grid Background="#FFE5E5E5">
+                    <Label x:Name="lblStatus" Content="" HorizontalAlignment="Left" Margin="10,230,0,0" VerticalAlignment="Top" Width="177"/>
+                    <ProgressBar x:Name="authProgress" HorizontalAlignment="Left" Height="18" Margin="10,261,0,0" VerticalAlignment="Top" Width="177" Visibility="Hidden"/>
+                    <GroupBox Header="Imgur" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Height="209" Width="226">
+                        <StackPanel>
+                            <RadioButton x:Name="radioImgur" Content="Upload to Imgur" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection"/>
+                            <RadioButton x:Name="radioAnon" Content="Use anonymous upload" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload"/>
+                            <RadioButton x:Name="radioAccount" Content="Upload to Imgur account" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload"/>
+                            <Button x:Name="btnLogin" Content="Login" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Click="btnLogin_Click"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Logged in as:" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                                <Label x:Name="labelUsername" Content="" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Gyazo" HorizontalAlignment="Left" Margin="239,4,0,0" VerticalAlignment="Top" Height="88" Width="228">
+                        <StackPanel>
+                            <RadioButton x:Name="radioGyazo" Content="Upload to Gyazo" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection"/>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Puush" HorizontalAlignment="Left" Margin="241,94,0,0" VerticalAlignment="Top" Height="121" Width="226">
+                        <StackPanel>
+                            <RadioButton x:Name="radioPuush" Content="Upload to Puush" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection"/>
+                            <Label Content="Puush API key" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top"/>
+                            <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Left" Height="23" Margin="4" VerticalAlignment="Top" Width="194" AcceptsReturn="False" TextWrapping="NoWrap"/>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <DockPanel>
+            <Button x:Name="settingsApply" Content="Ok" HorizontalAlignment="Left" Margin="310,394,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+            <Button x:Name="settingsCancel" Content="Cancel" HorizontalAlignment="Left" Margin="15,394,0,0" VerticalAlignment="Top" Width="75" IsCancel="True"/>
+        </DockPanel>
+    </Grid>
+</Window>

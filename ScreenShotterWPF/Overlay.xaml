@@ -1,0 +1,10 @@
+﻿<Window x:Class="ScreenShotterWPF.Overlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Overlay" Height="300" Width="300" Topmost="True" ResizeMode="NoResize" WindowStyle="None" Opacity="0.35" AllowsTransparency="True" KeyUp="Window_KeyUp">
+    <Canvas x:Name="PaintSurface" MouseMove="PaintSurface_MouseMove" Opacity="1" MouseLeftButtonDown="PaintSurface_MouseLeftButtonDown" MouseLeftButtonUp="PaintSurface_MouseLeftButtonUp" MouseRightButtonUp="PaintSurface_MouseRightButtonUp">
+        <Canvas.Background>
+            <SolidColorBrush Color="White" Opacity="1" />
+        </Canvas.Background>
+    </Canvas>
+</Window>
