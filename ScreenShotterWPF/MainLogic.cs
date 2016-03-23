@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,10 +14,13 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+using Prism.Interactivity.InteractionRequest;
+using Prism.Mvvm;
+using ScreenShotterWPF.Notifications;
 
 namespace ScreenShotterWPF
 {
-    class MainLogic : INotifyPropertyChanged
+    class MainLogic : BindableBase
     {
         private ObservableCollection<XImage> ximages = new ObservableCollection<XImage>();
 
@@ -32,7 +34,7 @@ namespace ScreenShotterWPF
         // Imgur is imgur
         readonly Imgur imgur;
         
-        readonly Action<string> statusChange;
+        //readonly Action<string> statusChange;
         readonly Action<int> progressBarUpdate;
         readonly Action<XImage, string> addXImageToList;
 
@@ -44,8 +46,6 @@ namespace ScreenShotterWPF
 
         private bool overlay_created;
         private bool editorEnabled;
-        
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private int progressValue;
         private string statusText;
@@ -57,17 +57,19 @@ namespace ScreenShotterWPF
 
         private readonly bool windows8;
 
+        public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; } 
+
         public MainLogic()
         {
             EditorEnabled = false;
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
-            statusChange = SetStatusBarText;
+            //statusChange = SetStatusBarText;
             progressBarUpdate = SetProgressBarValue;
             addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             imgur = new Imgur(progressBarUpdate);
-
+            ImageEditorRequest = new InteractionRequest<IConfirmation>();
             if (Properties.Settings.Default.filePath == "")
             {
                 SetDefaults();
@@ -79,12 +81,6 @@ namespace ScreenShotterWPF
         {
             Version win8 = new Version(6, 2, 9200, 0);
             return Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version >= win8;
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public bool ReadCommandLineArgs(IList<string> args)
@@ -310,28 +306,34 @@ namespace ScreenShotterWPF
             TrayIcon = s;
         }
 
+        public ObservableCollection<XImage> Ximages
+        {
+            get { return ximages; }
+            set { ximages = value; OnPropertyChanged("Ximages"); }
+        }
+
         public int ProgressValue
         {
             get { return progressValue; }
-            private set { progressValue = value; RaisePropertyChanged("ProgressValue"); }
+            private set { progressValue = value; OnPropertyChanged("ProgressValue"); }
         }
 
         public string StatusText
         {
             get { return statusText; }
-            private set { statusText = value; RaisePropertyChanged("StatusText"); }
+            private set { statusText = value; OnPropertyChanged("StatusText"); }
         }
 
         public string TrayIcon
         {
             get { return trayIcon; }
-            private set { trayIcon = value; RaisePropertyChanged("TrayIcon"); }
+            private set { trayIcon = value; OnPropertyChanged("TrayIcon"); }
         }
 
         public bool EditorEnabled
         {
             get { return editorEnabled; }
-            set { editorEnabled = value; RaisePropertyChanged("EditorEnabled"); }
+            set { editorEnabled = value; OnPropertyChanged("EditorEnabled"); }
         }
 
         private void HookMouseAction(bool b)
@@ -473,66 +475,102 @@ namespace ScreenShotterWPF
             }
         }
 
-        public async Task CapGif(int x, int y, int w, int h, int f, int d, int q)
+        public async void Gifferino(InteractionRequest<IConfirmation> req, Gif gif, List<string> frames)
         {
-            Gif gif = new Gif(f, d, w, h, x, y);
-            List<string> frames = await gif.StartCapture();
+            GifProgressNotification gpn = new GifProgressNotification();
+            gpn.Title = "Encoding Gif..";
+            gpn.Progress = 0;
+            gpn.Gif = gif;
+            gpn.Frames = frames;
+            var a = await req.RaiseAsync(gpn);
             
-            if (frames.Count > 0)
+            Console.WriteLine(gpn.Name);
+        }
+
+        public void AddGif(string filename)
+        {
+            if (filename != string.Empty)
             {
-                string name = string.Empty;
-                EncodingProgressViewModel epvm = new EncodingProgressViewModel();
-                EncodingProgressWindow epw = new EncodingProgressWindow();
-                epw.DataContext = epvm;
-                if (Properties.Settings.Default.gifEditorEnabled)
+                XImage img = new XImage();
+                img.filename = filename;
+                img.filepath = Path.Combine(Properties.Settings.Default.filePath, filename);
+                string p = "dd.MM.yy HH:mm:ss";
+                img.datetime = DateTime.Now;
+                string date = DateTime.Now.ToString(p);
+                img.date = date;
+
+                if (Properties.Settings.Default.gifUpload)
                 {
-                    GifEditorViewModel gev = new GifEditorViewModel(frames);
-                    GifEditor editor = new GifEditor();
-                    
-                    editor.DataContext = gev;
-                    editor.ShowDialog();
-                    if (editor.DialogResult.HasValue && editor.DialogResult.Value)
-                    {
-                        List<string> selectedFiles = new List<string>();
-                        foreach (int index in gev.selectedIndexes)
-                        {
-                            selectedFiles.Add(frames[index]);
-                        }
-                        epw.Show();
-                        name = await gif.EncodeGif2(selectedFiles, /*gev.GifQuality,*/ epvm);
-                        epw.Close();
-                    }
+                    img.anonupload = Properties.Settings.Default.anonUpload;
+                    AddToQueue(img);
                 }
                 else
                 {
-                    epw.Show();
-                    name = await gif.EncodeGif2(frames, /*Properties.Settings.Default.gifQuality,*/ epvm);
-                    epw.Close();
-                }
-                epw = null;
-                epvm = null;
-                if (name != string.Empty)
-                {
-                    XImage img = new XImage();
-                    img.filename = name;
-                    img.filepath = Path.Combine(Properties.Settings.Default.filePath, name);
-                    string p = "dd.MM.yy HH:mm:ss";
-                    img.datetime = DateTime.Now;
-                    string date = DateTime.Now.ToString(p);
-                    img.date = date;
-
-                    if (Properties.Settings.Default.gifUpload)
-                    {
-                        img.anonupload = Properties.Settings.Default.anonUpload;
-                        AddToQueue(img);
-                    }
-                    else
-                    {
-                        addXImageToList(img, "");
-                    }  
+                    addXImageToList(img, "");
                 }
             }
-            gif = null;
+        }
+
+        public async Task CapGif(int x, int y, int w, int h, int f, int d, int q)
+        {
+            //Gif gif = new Gif(f, d, w, h, x, y);
+            //List<string> frames = await gif.StartCapture();
+            
+            //if (frames.Count > 0)
+            //{
+            //    string name = string.Empty;
+            //    EncodingProgressViewModel epvm = new EncodingProgressViewModel();
+            //    EncodingProgressWindow epw = new EncodingProgressWindow();
+            //    epw.DataContext = epvm;
+            //    if (Properties.Settings.Default.gifEditorEnabled)
+            //    {
+            //        GifEditorViewModel gev = new GifEditorViewModel();
+            //        GifEditor editor = new GifEditor();
+                    
+            //        editor.DataContext = gev;
+            //        editor.ShowDialog();
+            //        if (editor.DialogResult.HasValue && editor.DialogResult.Value)
+            //        {
+            //            List<string> selectedFiles = new List<string>();
+            //            foreach (int index in gev.selectedIndexes)
+            //            {
+            //                selectedFiles.Add(frames[index]);
+            //            }
+            //            epw.Show();
+            //            name = await gif.EncodeGif2(selectedFiles, /*gev.GifQuality,*/ epvm);
+            //            epw.Close();
+            //        }
+            //    }
+            //    else
+            //    {
+            //        epw.Show();
+            //        name = await gif.EncodeGif2(frames, /*Properties.Settings.Default.gifQuality,*/ epvm);
+            //        epw.Close();
+            //    }
+            //    epw = null;
+            //    epvm = null;
+            //    if (name != string.Empty)
+            //    {
+            //        XImage img = new XImage();
+            //        img.filename = name;
+            //        img.filepath = Path.Combine(Properties.Settings.Default.filePath, name);
+            //        string p = "dd.MM.yy HH:mm:ss";
+            //        img.datetime = DateTime.Now;
+            //        string date = DateTime.Now.ToString(p);
+            //        img.date = date;
+
+            //        if (Properties.Settings.Default.gifUpload)
+            //        {
+            //            img.anonupload = Properties.Settings.Default.anonUpload;
+            //            AddToQueue(img);
+            //        }
+            //        else
+            //        {
+            //            addXImageToList(img, "");
+            //        }  
+            //    }
+            //}
+            //gif = null;
         }
 
         // Capture an area of the screen, save as PNG
@@ -599,7 +637,8 @@ namespace ScreenShotterWPF
                 }
                 catch (Exception e)
                 {
-                    statusChange(e.Message);
+                    //statusChange(e.Message);
+                    StatusText = e.Message;
                     return string.Empty;
                 }
             }
@@ -619,7 +658,8 @@ namespace ScreenShotterWPF
             }
             catch (Exception e)
             {
-                statusChange(e.Message);
+                //statusChange(e.Message);
+                StatusText = e.Message;
                 return string.Empty;
             }
 
@@ -666,15 +706,25 @@ namespace ScreenShotterWPF
             }
         }
 
-        private static void OpenEditor(XImage img)
+        private void OpenEditor(XImage img)
         {
-            Editor editor = new Editor(img.image);
-            editor.ShowDialog();
-            if (editor.DialogResult.HasValue && editor.DialogResult.Value)
-            {
-                img.image = editor.editedImage;
-                editor.editedImage = null;
-            }
+            ImageEditorNotification ien = new ImageEditorNotification();
+            ien.Title = "Editor";
+            this.ImageEditorRequest.Raise(
+                ien, returned =>
+                {
+                    if (returned != null && returned.Confirmed)
+                    {
+                        //img.image = edited
+                    }
+                });
+            //Editor editor = new Editor(img.image);
+            //editor.ShowDialog();
+            //if (editor.DialogResult.HasValue && editor.DialogResult.Value)
+            //{
+            //    img.image = editor.editedImage;
+            //    editor.editedImage = null;
+            //}
         }
 
         // Add image to list
@@ -747,7 +797,8 @@ namespace ScreenShotterWPF
                 {
                 }
             }
-            statusChange("Clipboard copy failed.");
+            //statusChange("Clipboard copy failed.");
+            StatusText = "Clipboard copy failed.";
         }
 
         // Set picturebox image

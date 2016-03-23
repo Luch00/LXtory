@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ScreenShotterWPF.Notifications;
 
 namespace ScreenShotterWPF
 {
@@ -172,7 +173,7 @@ namespace ScreenShotterWPF
             return img;
         }
 
-        public Task<string> EncodeGif2(List<string> filePaths, EncodingProgressViewModel vm)
+        public Task<string> EncodeGif2(List<string> filePaths, GifProgressNotification gpn)
         {
             return Task.Run(() =>
             {
@@ -197,7 +198,7 @@ namespace ScreenShotterWPF
                             
                             for (int i = 0; i < filePaths.Count; i++)
                             {
-                                if (vm.CancelRequested)
+                                if (gpn.Cancelled)
                                 {
                                     Console.WriteLine("CANCEL REQUESTED");
                                     break;
@@ -210,7 +211,7 @@ namespace ScreenShotterWPF
                                         encoder.AddFrame(quantImage, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
                                     }
                                 }
-                                vm.ProgressValue = (int)(((i + 1.0) / filePaths.Count) * 100.0);
+                                gpn.Progress = (int)(((i + 1.0) / filePaths.Count) * 100.0);
                             }
                             filePaths.Clear();
                         }
@@ -222,7 +223,7 @@ namespace ScreenShotterWPF
                     throw ex;
                 }
 
-                if (vm.CancelRequested)
+                if (gpn.Cancelled)
                 {
                     Console.WriteLine("DELETE UNFINISHED");
                     File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));

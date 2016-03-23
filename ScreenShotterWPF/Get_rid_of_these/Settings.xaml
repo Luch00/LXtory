@@ -4,7 +4,7 @@
         x:Class="ScreenShotterWPF.Settings"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Settings" Height="456" Width="495" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Icon="Resources/meh.ico">
-    <Grid>
+    <!--<Grid>
         <TabControl Height="390" VerticalAlignment="Top">
             <TabItem Header="General">
                 <Grid Background="#FFE5E5E5">
@@ -44,10 +44,10 @@
                                 <Label Content="Duration (1-30s)" Margin="4"/>
                                 <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="5" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
                             </DockPanel>
-                            <!--<DockPanel>
+                            --><!--<DockPanel>
                                 <Label Content="Quality (1-20)" Margin="4"/>
                                 <xctk:IntegerUpDown x:Name="gifQuality" VerticalAlignment="Center" Value="5" Minimum="1" Maximum="20" Margin="4" HorizontalAlignment="Right" AllowTextInput="False" ToolTip="1 = Higher Quality, Slower Encoding &#xA;20 = Lower Quality, Faster Encoding"/>
-                            </DockPanel>-->
+                            </DockPanel>--><!--
                         </StackPanel>
                     </GroupBox>
                     <GroupBox x:Name="groupBox2" Header="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="229,170,0,0" VerticalAlignment="Top" Width="244" Height="113">
@@ -142,5 +142,5 @@
             <Button x:Name="settingsApply" Content="Ok" HorizontalAlignment="Left" Margin="310,394,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
             <Button x:Name="settingsCancel" Content="Cancel" HorizontalAlignment="Left" Margin="15,394,0,0" VerticalAlignment="Top" Width="75" IsCancel="True"/>
         </DockPanel>
-    </Grid>
+    </Grid>-->
 </Window>

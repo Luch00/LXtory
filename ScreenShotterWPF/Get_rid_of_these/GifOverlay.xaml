@@ -1,0 +1,40 @@
+﻿<Window x:Name="GifOverlayWindow" x:Class="ScreenShotterWPF.GifOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:local="clr-namespace:ScreenShotterWPF"
+        mc:Ignorable="d"
+        Title="GifOverlay" Height="{Binding WindowHeight, Mode=TwoWay}" Width="{Binding WindowWidth, Mode=TwoWay}" WindowStyle="None" Opacity="0.75" AllowsTransparency="True" MinWidth="170" MinHeight="170">
+    <!--<Window.DataContext>
+        <local:GifOverlayViewModel/>
+    </Window.DataContext>-->
+    <!--<Border BorderBrush="Transparent"
+              BorderThickness="2"
+              CornerRadius="0">
+        --><!-- The inner border --><!--
+        <Border BorderBrush="Black"
+                BorderThickness="1"
+                CornerRadius="0">
+            <StackPanel VerticalAlignment="Center" Margin="10">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <xctk:IntegerUpDown x:Name="windowSizeWidth" VerticalAlignment="Center" Value="{Binding WindowWidth, Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
+                    <Label Content="X"/>
+                    <xctk:IntegerUpDown x:Name="windowSizeHeigth" VerticalAlignment="Center" Value="{Binding WindowHeight, Mode=TwoWay}" Minimum="50" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Label Margin="0,0,25,0">Duration</Label>
+                    <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Label Margin="0,0,52,0">FPS</Label>
+                    <xctk:IntegerUpDown x:Name="gifFramerate" VerticalAlignment="Center" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
+                </StackPanel>
+                <Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}" CommandParameter="{Binding ElementName=GifOverlayWindow}">Start</Button>
+                <Button Width="100" Command="{Binding CancelCaptureCommand}" CommandParameter="{Binding ElementName=GifOverlayWindow}">Cancel</Button>
+            </StackPanel>
+        </Border>
+    </Border>-->
+
+</Window>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,19 +7,23 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using Prism.Mvvm;
+using Prism.Commands;
+using Prism.Interactivity.InteractionRequest;
+using ScreenShotterWPF.Notifications;
 
-namespace ScreenShotterWPF
+namespace ScreenShotterWPF.ViewModels
 {
-    class MainViewModel : INotifyPropertyChanged
+    class MainViewModel : BindableBase
     {
-        ObservableCollection<XImage> ximages = new ObservableCollection<XImage>();
+        //ObservableCollection<XImage> ximages = new ObservableCollection<XImage>();
         BitmapImage displayImage;
         XImage selectedItem;
-        private int progressValue;
-        private string statusText;
+        //private int progressValue;
+        //private string statusText;
         private string areaButtonText;
         private string windowButtonText;
-        private bool editorEnabled;
+        //private bool editorEnabled;
         private bool gifButtonEnabled;
         
         private object taskbarIcon2;
@@ -28,18 +31,26 @@ namespace ScreenShotterWPF
         private HwndSource _source;
         readonly System.Timers.Timer timer = new System.Timers.Timer();
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private readonly MainLogic main;
+        //public event PropertyChangedEventHandler PropertyChanged;
+        public MainLogic Main { get; private set; }
 
-        private ICommand exitCommand;
-        private ICommand openCommand;
-        private ICommand openSettingsCommand;
-        
-        private ICommand captureFullscreenCommand;
-        private ICommand captureWindowCommand;
-        private ICommand captureAreaCommand;
-        private ICommand captureGifCommand;
-        private ICommand captureD3DImageCommand;
+        public ICommand ExitCommand { get; private set; }
+        public ICommand OpenCommand { get; private set; }
+        //public ICommand OpenSettingsCommand { get; private set; }
+
+        public ICommand CaptureFullscreenCommand { get; private set; }
+        public ICommand CaptureWindowCommand { get; private set; }
+        public ICommand CaptureAreaCommand { get; private set; }
+        //public ICommand CaptureGifCommand { get; private set; }
+        public ICommand CaptureD3DImageCommand { get; private set; }
+
+        public InteractionRequest<IConfirmation> SettingsRequest { get; private set; } 
+        public InteractionRequest<IConfirmation> GifOverlayRequest { get; private set; }
+        public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
+        public InteractionRequest<IConfirmation> GifProgressRequest { get; private set; } 
+
+        public ICommand RaiseSettingsCommand { get; private set; }
+        public ICommand RaiseGifOverlayCommand { get; private set; }
 
         private const int HOTKEY_1 = 0;
         private const int HOTKEY_2 = 1;
@@ -51,112 +62,159 @@ namespace ScreenShotterWPF
 
         public MainViewModel()
         {
-            main = new MainLogic();
+            Main = new MainLogic();
             GetContent();
             TaskbarIcon2 = Properties.Resources.Default;
             
             areaButtonText = "Select Area";
             windowButtonText = "Select Window";
             gifButtonEnabled = true;
-            exitCommand = new RelayCommand(ExitApplication, param => true);
-            openCommand = new RelayCommand(OpenImageFolder, param => true);
-            openSettingsCommand = new RelayCommand(OpenSettings, param => true);
+            this.ExitCommand = new DelegateCommand(ExitApplication);
+            this.OpenCommand = new DelegateCommand(OpenImageFolder);
+            //this.OpenSettingsCommand = new DelegateCommand(OpenSettings);
             
-            captureFullscreenCommand = new RelayCommand(CaptureFullscreen, param => true);
-            captureWindowCommand = new RelayCommand(CaptureWindow, param => true);
-            captureAreaCommand = new RelayCommand(CaptureArea, param => true);
-            captureGifCommand = new RelayCommand(CaptureGif, param => true);
-            captureD3DImageCommand = new RelayCommand(CaptureD3DImage, param => true);
-            main.PropertyChanged += Main_PropertyChanged;
+            this.CaptureFullscreenCommand = new DelegateCommand(CaptureFullscreen);
+            this.CaptureWindowCommand = new DelegateCommand(CaptureWindow);
+            this.CaptureAreaCommand = new DelegateCommand(CaptureArea);
+            //this.CaptureGifCommand = new DelegateCommand(CaptureGif);
+            this.CaptureD3DImageCommand = new DelegateCommand(CaptureD3DImage);
+
+            this.RaiseSettingsCommand = new DelegateCommand(RaiseSettings);
+            this.RaiseGifOverlayCommand = new DelegateCommand(RaiseGifOverlay);
+
+            this.SettingsRequest = new InteractionRequest<IConfirmation>();
+            this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
+            this.GifEditorRequest = new InteractionRequest<IConfirmation>();
+            this.GifProgressRequest = new InteractionRequest<IConfirmation>();
+
+            Main.PropertyChanged += Main_PropertyChanged;
             mouseAction = HookMouseAction;
             timer.Interval = 5000;
             timer.Elapsed += timerTick_DelayIconChange;
         }
 
+        private void RaiseSettings()
+        {
+            SettingsNotification notification = new SettingsNotification();
+            notification.Title = "Settings";
+            this.SettingsRequest.Raise(
+                notification, returned =>
+                {
+                    if (returned != null && returned.Confirmed)
+                    {
+                        Properties.Settings.Default.Save();
+                        RegisterHotkeys();
+                    }
+                });
+        }
+
+        private async void RaiseGifOverlay()
+        {
+            GifOverlayNotification notification = new GifOverlayNotification();
+            notification.Title = "GifOverlay";
+            var returned = await this.GifOverlayRequest.RaiseAsync(notification);
+            if (returned != null && returned.Confirmed)
+            {
+                Console.WriteLine("TEST");
+                GifButtonEnabled = false;
+                int x = notification.WindowLeft;
+                int y = notification.WindowTop;
+                int w = notification.WindowWidth;
+                int h = notification.WindowHeight;
+                int f = notification.GifFramerate;
+                int d = notification.GifDuration;
+                Gif gif = new Gif(f, d, w, h, x, y);
+                List<string> frames = await gif.StartCapture();
+                if (frames.Count > 0)
+                {
+                    List<string> selected = new List<string>();
+                    if (Properties.Settings.Default.gifEditorEnabled)
+                    {
+                        GifEditorNotification gen = new GifEditorNotification();
+                        gen.Title = "Gif Editor";
+                        gen.Frames = frames;
+                        var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
+                        if (gen_returned != null && gen_returned.Confirmed)
+                        {
+                            Console.WriteLine(gen.SelectedIndexes.Count.ToString());
+                            foreach (int i in gen.SelectedIndexes)
+                            {
+                                selected.Add(frames[i]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        selected = frames;
+                    }
+                    //main.Gifferino(GifProgressRequest, gif, selected);
+                    GifProgressNotification gpn = new GifProgressNotification();
+                    gpn.Title = "Encoding Gif..";
+                    gpn.Progress = 0;
+                    gpn.Gif = gif;
+                    gpn.Frames = selected;
+                    var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
+                    if (gpn_returned != null && gpn_returned.Confirmed)
+                    {
+                        Main.AddGif(gpn.Name);
+                    }
+                    
+                    //string name = await gif.EncodeGif2(selected, gpn);
+                    /*if (name != string.Empty)
+                    {
+                        Console.WriteLine(name);
+                    }*/
+
+                }
+                GifButtonEnabled = true;
+            }
+            /*this.GifOverlayRequest.Raise(
+                notification, async returned =>
+                {
+                    if (returned != null && returned.Confirmed)
+                    {
+                        //do gif stuff
+                        GifButtonEnabled = false;
+                        int x = notification.WindowLeft;
+                        int y = notification.WindowTop;
+                        int w = notification.WindowWidth;
+                        int h = notification.WindowHeight;
+                        int f = notification.GifFramerate;
+                        int d = notification.GifDuration;
+                        await main.CapGif(x, y, w, h, f, d, 0);
+                        GifButtonEnabled = true;
+                        //Console.WriteLine(notification.WindowTop + " " + notification.WindowLeft);
+                    }
+                });*/
+        }
+
         private void Main_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ProgressValue")
+            /*if (e.PropertyName == "ProgressValue")
             {
-                ProgressAndIconChange(main.ProgressValue);
+                ProgressAndIconChange(Main.ProgressValue);
             }
             if (e.PropertyName == "StatusText")
             {
-                StatusText = main.StatusText;
-            }
+                StatusText = Main.StatusText;
+            }*/
             if (e.PropertyName == "TrayIcon")
             {
-                ChangeTrayIcon(main.TrayIcon);
+                ChangeTrayIcon(Main.TrayIcon);
             }
         }
 
-        protected void RaisePropertyChanged(string propertyName)
+        private void CaptureD3DImage()
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            Main.D3DCapPrimaryScreen();
         }
 
-        public ICommand ExitCommand
+        private void CaptureFullscreen()
         {
-            get { return exitCommand; }
-            set { exitCommand = value; }
+            Main.CapFullscreen();
         }
 
-        public ICommand OpenCommand
-        {
-            get { return openCommand; }
-            set { openCommand = value; }
-        }
-
-        public ICommand OpenSettingsCommand
-        {
-            get { return openSettingsCommand; }
-            set { openSettingsCommand = value; }
-        }
-
-        public ICommand CaptureFullscreenCommand
-        {
-            get { return captureFullscreenCommand; }
-            set { captureFullscreenCommand = value; }
-        }
-
-        public ICommand CaptureWindowCommand
-        {
-            get { return captureWindowCommand; }
-            set { captureWindowCommand = value; }
-        }
-
-        public ICommand CaptureAreaCommand
-        {
-            get { return captureAreaCommand; }
-            set { captureAreaCommand = value; }
-        }
-
-        public ICommand CaptureGifCommand
-        {
-            get { return captureGifCommand; }
-            set { captureGifCommand = value; }
-        }
-
-        public ICommand CaptureD3DImageCommand
-        {
-            get { return captureD3DImageCommand; }
-            set { captureD3DImageCommand = value; }
-        }
-
-        private void CaptureD3DImage(object param)
-        {
-            main.D3DCapPrimaryScreen();
-        }
-
-        private void CaptureFullscreen(object param)
-        {
-            main.CapFullscreen();
-        }
-
-        private void CaptureWindow(object param)
+        private void CaptureWindow()
         {
             // mouse hook and such
             WindowButtonText = "Click a Window..";
@@ -170,20 +228,20 @@ namespace ScreenShotterWPF
             {
                 NativeMethods.POINT p;
                 NativeMethods.GetCursorPos(out p);
-                main.CapWindowFromPoint(p.X, p.Y);
+                Main.CapWindowFromPoint(p.X, p.Y);
             }
             KeyHook.Unhook();
             WindowButtonText = "Select Window";
         }
 
-        private void CaptureArea(object param)
+        private void CaptureArea()
         {
             AreaButtonText = "Esc to cancel..";
-            main.CapArea();
+            Main.CapArea();
             AreaButtonText = "Select Area";
         }
 
-        private async void CaptureGif(object param)
+        /*private async void CaptureGif()
         {
             GifButtonEnabled = false;
             GifOverlayViewModel gv = new GifOverlayViewModel();
@@ -210,19 +268,19 @@ namespace ScreenShotterWPF
                 gv = null;
             }
             GifButtonEnabled = true;
-        }
-
-        private static void ExitApplication(object param)
+        }*/
+        
+        private static void ExitApplication()
         {
             Application.Current.Shutdown();
         }
 
-        private void OpenImageFolder(object param)
+        private void OpenImageFolder()
         {
             Process.Start(Properties.Settings.Default.filePath);
         }
 
-        private void OpenSettings(object param)
+        /*private void OpenSettings()
         {
             Settings settings = new Settings();
             settings.ShowDialog();
@@ -231,24 +289,24 @@ namespace ScreenShotterWPF
                 Properties.Settings.Default.Save();
                 RegisterHotkeys();
             }
-        }
+        }*/
 
         public string WindowButtonText
         {
             get { return windowButtonText; }
-            set { windowButtonText = value; RaisePropertyChanged("WindowButtonText"); }
+            set { windowButtonText = value; OnPropertyChanged("WindowButtonText"); }
         }
 
         public bool GifButtonEnabled
         {
             get { return gifButtonEnabled; }
-            set { gifButtonEnabled = value; RaisePropertyChanged("GifButtonEnabled"); }
+            set { gifButtonEnabled = value; OnPropertyChanged("GifButtonEnabled"); }
         }
 
         public string AreaButtonText
         {
             get { return areaButtonText; }
-            set { areaButtonText = value; RaisePropertyChanged("AreaButtonText"); }
+            set { areaButtonText = value; OnPropertyChanged("AreaButtonText"); }
         }
 
         public IntPtr WindowHandle
@@ -257,16 +315,16 @@ namespace ScreenShotterWPF
             set { windowHandle = value; InitializeHotkeys(); }
         }
 
-        public ObservableCollection<XImage> Ximages
+        /*public ObservableCollection<XImage> Ximages
         {
             get { return ximages; }
-            set { ximages = value; RaisePropertyChanged("Ximages"); }
-        }
+            set { ximages = value; OnPropertyChanged("Ximages"); }
+        }*/
 
         public BitmapImage DisplayImage
         {
             get { return displayImage; }
-            set { displayImage = value; RaisePropertyChanged("DisplayImage"); }
+            set { displayImage = value; OnPropertyChanged("DisplayImage"); }
         }
 
         public XImage SelectedIndex
@@ -277,47 +335,48 @@ namespace ScreenShotterWPF
                 selectedItem = value;
                 CheckContextMenuItems();
                 DisplayImage = MainLogic.GetPicture(selectedItem);
-                RaisePropertyChanged("SelectedIndex");
+                OnPropertyChanged("SelectedIndex");
             }
         }
 
-        public int ProgressValue
+        /*public int ProgressValue
         {
             get { return progressValue; }
-            set { progressValue = value; RaisePropertyChanged("ProgressValue"); }
-        }
+            set { progressValue = value; OnPropertyChanged("ProgressValue"); }
+        }*/
 
-        public string StatusText
+        /*public string StatusText
         {
             get { return statusText; }
-            set { statusText = value; RaisePropertyChanged("StatusText"); }
-        }
+            set { statusText = value; OnPropertyChanged("StatusText"); }
+        }*/
 
-        public MainLogic GetMainLogic
+        /*private MainLogic GetMainLogic
         {
-            get { return main; }
-        }
+            get { return Main; }
+        }*/
 
-        public bool EditorEnabled
+        /*public bool EditorEnabled
         {
             get { return editorEnabled; }
             set
             {
                 editorEnabled = value;
-                main.EditorEnabled = value;
-                RaisePropertyChanged("EditorEnabled");
+                Main.EditorEnabled = value;
+                OnPropertyChanged("EditorEnabled");
             }
-        }
+        }*/
 
         public object TaskbarIcon2
         {
             get { return taskbarIcon2; }
-            set { taskbarIcon2 = value; RaisePropertyChanged("TaskbarIcon2"); }
+            set { taskbarIcon2 = value; OnPropertyChanged("TaskbarIcon2"); }
         }
 
         private void GetContent()
         {
-            Ximages = main.ReadXML();
+            //Ximages = Main.ReadXML();
+            Main.ReadXML();
         }
 
         private void CheckContextMenuItems()
@@ -329,7 +388,7 @@ namespace ScreenShotterWPF
 
         private void ProgressAndIconChange(int pctComplete)
         {
-            ProgressValue = pctComplete;
+            //ProgressValue = pctComplete;
             if (pctComplete >= 10 && pctComplete < 20)
             {
                 ChangeTrayIcon("10");
@@ -436,7 +495,7 @@ namespace ScreenShotterWPF
 
         public bool PassCommandLineArgs(IList<string> args)
         {
-            return main.ReadCommandLineArgs(args);
+            return Main.ReadCommandLineArgs(args);
         }
 
         private void RegisterHotkeys()
@@ -505,21 +564,21 @@ namespace ScreenShotterWPF
                     switch (wParam.ToInt32())
                     {
                         case HOTKEY_1:
-                            main.CapFullscreen();
+                            Main.CapFullscreen();
                             handled = true;
                             break;
 
                         case HOTKEY_2:
-                            main.CapWindow();
+                            Main.CapWindow();
                             handled = true;
                             break;
 
                         case HOTKEY_3:
-                            main.CapArea();
+                            Main.CapArea();
                             handled = true;
                             break;
                        case HOTKEY_4:
-                            main.D3DCapPrimaryScreen();
+                            Main.D3DCapPrimaryScreen();
                             handled = true;
                             break;
                     }
@@ -532,81 +591,8 @@ namespace ScreenShotterWPF
         {
             _source.RemoveHook(HwndHook);
             _source = null;
-            main.SetAsComplete();
+            Main.SetAsComplete();
             UnregisterHotKey();
-        }
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private Action<object> execute;
-
-        private Predicate<object> canExecute;
-
-        private event EventHandler CanExecuteChangedInternal;
-
-        public RelayCommand(Action<object> execute)
-            : this(execute, DefaultCanExecute)
-        {
-        }
-
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute)
-        {
-            if (execute == null)
-            {
-                throw new ArgumentNullException("execute");
-            }
-
-            if (canExecute == null)
-            {
-                throw new ArgumentNullException("canExecute");
-            }
-
-            this.execute = execute;
-            this.canExecute = canExecute;
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add
-            {
-                CommandManager.RequerySuggested += value;
-                this.CanExecuteChangedInternal += value;
-            }
-
-            remove
-            {
-                CommandManager.RequerySuggested -= value;
-                this.CanExecuteChangedInternal -= value;
-            }
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return this.canExecute != null && this.canExecute(parameter);
-        }
-
-        public void Execute(object parameter)
-        {
-            this.execute(parameter);
-        }
-
-        public void OnCanExecuteChanged()
-        {
-            EventHandler handler = this.CanExecuteChangedInternal;
-            //DispatcherHelper.BeginInvokeOnUIThread(() => handler.Invoke(this, EventArgs.Empty));
-            handler?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void Destroy()
-        {
-            this.canExecute = _ => false;
-            this.execute = _ => { return; };
-        }
-
-        private static bool DefaultCanExecute(object parameter)
-        {
-            return true;
         }
     }
 }
