@@ -21,16 +21,7 @@ namespace ScreenShotterWPF
             InitializeComponent();
             //view = new MainViewModel();
             //this.DataContext = view;
-            //view.PropertyChanged += View_PropertyChanged;
             //this.Closed += view.OnWindowClosed;
-        }
-
-        private void View_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "TaskbarIcon2")
-            {
-                //tbi.Icon = view.TaskbarIcon2 as Icon;
-            }
         }
 
         public bool ReadCommandLineArgs(IList<string> args)

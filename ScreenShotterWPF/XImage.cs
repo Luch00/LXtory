@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using Prism.Commands;
 using Prism.Mvvm;
 
 namespace ScreenShotterWPF
@@ -46,9 +47,9 @@ namespace ScreenShotterWPF
             openLocalEnabled = false;
             openBrowserEnabled = false;
             copyClipboardEnabled = false;
-            openLocalCommand = new RelayCommand(OpenLocalImage, param => true);
-            openBrowserCommand = new RelayCommand(OpenInBrowser, param => true);
-            copyClipboardCommand = new RelayCommand(CopyToClipboard, param => true);
+            openLocalCommand = new DelegateCommand(OpenLocalImage);
+            openBrowserCommand = new DelegateCommand(OpenInBrowser);
+            copyClipboardCommand = new DelegateCommand(CopyToClipboard);
         }
 
         [XmlIgnore]
@@ -88,17 +89,17 @@ namespace ScreenShotterWPF
             set { copyClipboardEnabled = value; OnPropertyChanged("CopyClipboardEnabled"); }
         }
 
-        private void OpenInBrowser(object param)
+        private void OpenInBrowser()
         {
             Process.Start(this.url);
         }
 
-        private void OpenLocalImage(object param)
+        private void OpenLocalImage()
         {
             Process.Start(this.filepath);
         }
 
-        private void CopyToClipboard(object param)
+        private void CopyToClipboard()
         {
             try
             {

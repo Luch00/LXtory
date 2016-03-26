@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
 using Prism.Interactivity.InteractionRequest;
@@ -49,7 +50,7 @@ namespace ScreenShotterWPF
 
         private int progressValue;
         private string statusText;
-        private string trayIcon;
+        //private string trayIcon;
 
         private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
 
@@ -57,19 +58,25 @@ namespace ScreenShotterWPF
 
         private readonly bool windows8;
 
-        public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; } 
+        public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; }
+        public InteractionRequest<IConfirmation> OverlayRequest { get; private set; }
+
+        readonly System.Timers.Timer timer = new System.Timers.Timer();
 
         public MainLogic()
         {
             EditorEnabled = false;
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
-            //statusChange = SetStatusBarText;
-            progressBarUpdate = SetProgressBarValue;
+            progressBarUpdate = ProgressAndIconChange;
             addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             imgur = new Imgur(progressBarUpdate);
             ImageEditorRequest = new InteractionRequest<IConfirmation>();
+            OverlayRequest = new InteractionRequest<IConfirmation>();
+            SetIcon("default");
+            timer.Interval = 5000;
+            timer.Elapsed += timerTick_DelayIconChange;
             if (Properties.Settings.Default.filePath == "")
             {
                 SetDefaults();
@@ -81,6 +88,15 @@ namespace ScreenShotterWPF
         {
             Version win8 = new Version(6, 2, 9200, 0);
             return Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version >= win8;
+        }
+
+        private void timerTick_DelayIconChange(object sender, EventArgs e)
+        {
+            lock (timer)
+            {
+                timer.Stop();
+                ChangeTrayIcon("default");
+            }
         }
 
         public bool ReadCommandLineArgs(IList<string> args)
@@ -280,30 +296,10 @@ namespace ScreenShotterWPF
             Properties.Settings.Default.Save();
         }
 
-        //public static ImageSource ToImageSource(Icon icon)
-        //{
-        //    ImageSource imageSource = Imaging.CreateBitmapSourceFromHIcon(
-        //        icon.Handle,
-        //        Int32Rect.Empty,
-        //        BitmapSizeOptions.FromEmptyOptions());
-
-        //    return imageSource;
-        //}
-
         // Put some text in that statusbar
         private void SetStatusBarText(string s)
         {
             StatusText = s;
-        }
-
-        private void SetProgressBarValue(int value)
-        {
-            ProgressValue = value;
-        }
-
-        private void ChangeTrayIcon(string s)
-        {
-            TrayIcon = s;
         }
 
         public ObservableCollection<XImage> Ximages
@@ -324,16 +320,131 @@ namespace ScreenShotterWPF
             private set { statusText = value; OnPropertyChanged("StatusText"); }
         }
 
-        public string TrayIcon
-        {
-            get { return trayIcon; }
-            private set { trayIcon = value; OnPropertyChanged("TrayIcon"); }
-        }
-
         public bool EditorEnabled
         {
             get { return editorEnabled; }
             set { editorEnabled = value; OnPropertyChanged("EditorEnabled"); }
+        }
+
+        private ImageSource icon;
+        private string currentIcon;
+        public ImageSource Icon
+        {
+            get { return icon; }
+            set { icon = value; OnPropertyChanged("Icon"); }
+        }
+
+        private void SetIcon(string s)
+        {
+            if (!string.IsNullOrEmpty(s) && s != currentIcon)
+            {
+                var yourImage = new BitmapImage(new Uri($"pack://application:,,,/Resources/{s}.ico", UriKind.Absolute));
+                yourImage.Freeze(); // -> to prevent error: "Must create DependencySource on same Thread as the DependencyObject"
+                currentIcon = s;
+                Icon = yourImage;
+            }
+            else
+            {
+                Icon = null;
+            }
+        }
+
+        private void ChangeTrayIcon(string ico)
+        {
+            lock (timer)
+            {
+                timer.Stop();
+            }
+            switch (ico)
+            {
+                case "R":
+                    SetIcon("R");
+                    break;
+                case "F":
+                    SetIcon("F");
+                    lock (timer)
+                    {
+                        timer.Start();
+                    }
+                    break;
+                case "E":
+                    SetIcon("E");
+                    break;
+                case "default":
+                    SetIcon("default");
+                    break;
+                case "00":
+                    SetIcon("00");
+                    break;
+                case "10":
+                    SetIcon("10");
+                    break;
+                case "20":
+                    SetIcon("20");
+                    break;
+                case "30":
+                    SetIcon("30");
+                    break;
+                case "40":
+                    SetIcon("40");
+                    break;
+                case "50":
+                    SetIcon("50");
+                    break;
+                case "60":
+                    SetIcon("60");
+                    break;
+                case "70":
+                    SetIcon("70");
+                    break;
+                case "80":
+                    SetIcon("80");
+                    break;
+                case "90":
+                    SetIcon("90");
+                    break;
+            }
+        }
+
+        private void ProgressAndIconChange(int pctComplete)
+        {
+            ProgressValue = pctComplete;
+            if (pctComplete >= 10 && pctComplete < 20)
+            {
+                ChangeTrayIcon("10");
+            }
+            else if (pctComplete >= 20 && pctComplete < 30)
+            {
+                ChangeTrayIcon("20");
+            }
+            else if (pctComplete >= 30 && pctComplete < 40)
+            {
+                ChangeTrayIcon("30");
+            }
+            else if (pctComplete >= 40 && pctComplete < 50)
+            {
+                ChangeTrayIcon("40");
+            }
+            else if (pctComplete >= 50 && pctComplete < 60)
+            {
+                ChangeTrayIcon("50");
+            }
+            else if (pctComplete >= 60 && pctComplete < 70)
+            {
+                ChangeTrayIcon("60");
+            }
+            else if (pctComplete >= 70 && pctComplete < 80)
+            {
+                ChangeTrayIcon("70");
+            }
+            else if (pctComplete >= 80 && pctComplete < 90)
+            {
+                ChangeTrayIcon("80");
+            }
+            else if (pctComplete >= 90)
+            {
+                ChangeTrayIcon("90");
+            }
         }
 
         private void HookMouseAction(bool b)
@@ -441,6 +552,7 @@ namespace ScreenShotterWPF
         // Create an overlay, draw a rectangle on the overlay to cap that area
         public void CapArea()
         {
+            
             if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
@@ -450,41 +562,23 @@ namespace ScreenShotterWPF
 
             if (!overlay_created)
             {
-                Overlay o = new Overlay();
                 overlay_created = true;
-                o.Top = SystemParameters.VirtualScreenTop;
-                o.Left = SystemParameters.VirtualScreenLeft;
-                o.Width = SystemParameters.VirtualScreenWidth;
-                o.Height = SystemParameters.VirtualScreenHeight;
-                o.ShowDialog();
-                if (o.DialogResult.HasValue && o.DialogResult.Value)
-                {
-                    var x = Math.Min(o.start.X, o.end.X);
-                    var y = Math.Min(o.start.Y, o.end.Y);
-
-                    var w = Math.Max(o.start.X, o.end.X) - x;
-                    var h = Math.Max(o.start.Y, o.end.Y) - y;
-                    overlay_created = false;
-                    ScreenCap((int)w, (int)h, (int)x, (int)y, "AreaCap");
-                }
-                else
-                {
-                    overlay_created = false;
-                }
-                o = null;
+                OverlayNotification notification = new OverlayNotification();
+                notification.Title = "Overlay";
+                notification.WindowTop = SystemParameters.VirtualScreenTop;
+                notification.WindowLeft = SystemParameters.VirtualScreenLeft;
+                notification.WindowWidth = SystemParameters.VirtualScreenWidth;
+                notification.WindowHeight = SystemParameters.VirtualScreenHeight;
+                this.OverlayRequest.Raise(
+                    notification, returned =>
+                    {
+                        if (returned != null && returned.Confirmed)
+                        {
+                            ScreenCap((int)notification.Rect.Width, (int)notification.Rect.Height, (int)notification.Rect.X, (int)notification.Rect.Y, "AreaCap");
+                        }
+                        overlay_created = false;
+                    });
             }
-        }
-
-        public async void Gifferino(InteractionRequest<IConfirmation> req, Gif gif, List<string> frames)
-        {
-            GifProgressNotification gpn = new GifProgressNotification();
-            gpn.Title = "Encoding Gif..";
-            gpn.Progress = 0;
-            gpn.Gif = gif;
-            gpn.Frames = frames;
-            var a = await req.RaiseAsync(gpn);
-            
-            Console.WriteLine(gpn.Name);
         }
 
         public void AddGif(string filename)
@@ -506,13 +600,14 @@ namespace ScreenShotterWPF
                 }
                 else
                 {
-                    addXImageToList(img, "");
+                    //addXImageToList(img, "");
+                    AddXimageToList(img, "");
                 }
             }
         }
 
-        public async Task CapGif(int x, int y, int w, int h, int f, int d, int q)
-        {
+        //public async Task CapGif(int x, int y, int w, int h, int f, int d, int q)
+        //{
             //Gif gif = new Gif(f, d, w, h, x, y);
             //List<string> frames = await gif.StartCapture();
             
@@ -571,7 +666,7 @@ namespace ScreenShotterWPF
             //    }
             //}
             //gif = null;
-        }
+        //}
 
         // Capture an area of the screen, save as PNG
         private void ScreenCap(int width, int height, int rX, int rY, string filename)
@@ -609,7 +704,7 @@ namespace ScreenShotterWPF
         }
 
         // Strip illegal characters from filename
-        public string MakeValidFileName(string name)
+        private string MakeValidFileName(string name)
         {
             var builder = new StringBuilder();
             var invalid = Path.GetInvalidFileNameChars();
@@ -715,7 +810,7 @@ namespace ScreenShotterWPF
                 {
                     if (returned != null && returned.Confirmed)
                     {
-                        //img.image = edited
+                        //img.image = edited // TODO EVERYTHING HERE
                     }
                 });
             //Editor editor = new Editor(img.image);
@@ -850,7 +945,7 @@ namespace ScreenShotterWPF
         }
 
         // Read the history xml
-        public ObservableCollection<XImage> ReadXML()
+        public void ReadXML()
         {
             string f = Path.Combine((Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), @"Luch\LxTory\images.xml");
             XmlSerializer s = new XmlSerializer(typeof(ObservableCollection<XImage>));
@@ -862,7 +957,6 @@ namespace ScreenShotterWPF
                     fs.Close();
                 }
             }
-            return ximages;
         }
 
         private static NativeMethods.USERNOTIFICATIONSTATE NotificationState()

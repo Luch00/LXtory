@@ -7,7 +7,7 @@
         prism:ViewModelLocator.AutoWireViewModel="True"
         xmlns:local="clr-namespace:ScreenShotterWPF"
         mc:Ignorable="d"
-        Title="Encoding Gif.." Height="70" Width="335" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="Resources/meh.ico">
+        Title="Encoding Gif.." Height="70" Width="335" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo ProgressValue="{Binding ProgressValue}"/>
     </Window.TaskbarItemInfo>

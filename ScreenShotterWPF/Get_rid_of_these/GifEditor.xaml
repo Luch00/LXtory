@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ScreenShotterWPF"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="Gif Editor" Height="380" Width="520" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Resources/meh.ico">
+        Title="Gif Editor" Height="380" Width="520" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen">
     <!--<Window.Resources>
         <ContextMenu x:Key="itemsContextMenu">
             <MenuItem x:Name="menuCB" Header="Check From Beginning" Command="{Binding CheckBeginningCommand}"/>

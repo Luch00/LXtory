@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -16,20 +15,14 @@ namespace ScreenShotterWPF.ViewModels
 {
     class MainViewModel : BindableBase
     {
-        //ObservableCollection<XImage> ximages = new ObservableCollection<XImage>();
         BitmapImage displayImage;
         XImage selectedItem;
-        //private int progressValue;
-        //private string statusText;
         private string areaButtonText;
         private string windowButtonText;
-        //private bool editorEnabled;
         private bool gifButtonEnabled;
         
-        private object taskbarIcon2;
         private IntPtr windowHandle;
         private HwndSource _source;
-        readonly System.Timers.Timer timer = new System.Timers.Timer();
 
         //public event PropertyChangedEventHandler PropertyChanged;
         public MainLogic Main { get; private set; }
@@ -64,7 +57,6 @@ namespace ScreenShotterWPF.ViewModels
         {
             Main = new MainLogic();
             GetContent();
-            TaskbarIcon2 = Properties.Resources.Default;
             
             areaButtonText = "Select Area";
             windowButtonText = "Select Window";
@@ -86,11 +78,8 @@ namespace ScreenShotterWPF.ViewModels
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
             this.GifProgressRequest = new InteractionRequest<IConfirmation>();
-
-            Main.PropertyChanged += Main_PropertyChanged;
+            
             mouseAction = HookMouseAction;
-            timer.Interval = 5000;
-            timer.Elapsed += timerTick_DelayIconChange;
         }
 
         private void RaiseSettings()
@@ -147,7 +136,6 @@ namespace ScreenShotterWPF.ViewModels
                     {
                         selected = frames;
                     }
-                    //main.Gifferino(GifProgressRequest, gif, selected);
                     GifProgressNotification gpn = new GifProgressNotification();
                     gpn.Title = "Encoding Gif..";
                     gpn.Progress = 0;
@@ -158,49 +146,8 @@ namespace ScreenShotterWPF.ViewModels
                     {
                         Main.AddGif(gpn.Name);
                     }
-                    
-                    //string name = await gif.EncodeGif2(selected, gpn);
-                    /*if (name != string.Empty)
-                    {
-                        Console.WriteLine(name);
-                    }*/
-
                 }
                 GifButtonEnabled = true;
-            }
-            /*this.GifOverlayRequest.Raise(
-                notification, async returned =>
-                {
-                    if (returned != null && returned.Confirmed)
-                    {
-                        //do gif stuff
-                        GifButtonEnabled = false;
-                        int x = notification.WindowLeft;
-                        int y = notification.WindowTop;
-                        int w = notification.WindowWidth;
-                        int h = notification.WindowHeight;
-                        int f = notification.GifFramerate;
-                        int d = notification.GifDuration;
-                        await main.CapGif(x, y, w, h, f, d, 0);
-                        GifButtonEnabled = true;
-                        //Console.WriteLine(notification.WindowTop + " " + notification.WindowLeft);
-                    }
-                });*/
-        }
-
-        private void Main_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            /*if (e.PropertyName == "ProgressValue")
-            {
-                ProgressAndIconChange(Main.ProgressValue);
-            }
-            if (e.PropertyName == "StatusText")
-            {
-                StatusText = Main.StatusText;
-            }*/
-            if (e.PropertyName == "TrayIcon")
-            {
-                ChangeTrayIcon(Main.TrayIcon);
             }
         }
 
@@ -315,12 +262,6 @@ namespace ScreenShotterWPF.ViewModels
             set { windowHandle = value; InitializeHotkeys(); }
         }
 
-        /*public ObservableCollection<XImage> Ximages
-        {
-            get { return ximages; }
-            set { ximages = value; OnPropertyChanged("Ximages"); }
-        }*/
-
         public BitmapImage DisplayImage
         {
             get { return displayImage; }
@@ -339,43 +280,8 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        /*public int ProgressValue
-        {
-            get { return progressValue; }
-            set { progressValue = value; OnPropertyChanged("ProgressValue"); }
-        }*/
-
-        /*public string StatusText
-        {
-            get { return statusText; }
-            set { statusText = value; OnPropertyChanged("StatusText"); }
-        }*/
-
-        /*private MainLogic GetMainLogic
-        {
-            get { return Main; }
-        }*/
-
-        /*public bool EditorEnabled
-        {
-            get { return editorEnabled; }
-            set
-            {
-                editorEnabled = value;
-                Main.EditorEnabled = value;
-                OnPropertyChanged("EditorEnabled");
-            }
-        }*/
-
-        public object TaskbarIcon2
-        {
-            get { return taskbarIcon2; }
-            set { taskbarIcon2 = value; OnPropertyChanged("TaskbarIcon2"); }
-        }
-
         private void GetContent()
         {
-            //Ximages = Main.ReadXML();
             Main.ReadXML();
         }
 
@@ -386,112 +292,11 @@ namespace ScreenShotterWPF.ViewModels
             SelectedIndex.OpenBrowserEnabled = SelectedIndex.CopyClipboardEnabled = (SelectedIndex.url != string.Empty);
         }
 
-        private void ProgressAndIconChange(int pctComplete)
-        {
-            //ProgressValue = pctComplete;
-            if (pctComplete >= 10 && pctComplete < 20)
-            {
-                ChangeTrayIcon("10");
-            }
-            else if (pctComplete >= 20 && pctComplete < 30)
-            {
-                ChangeTrayIcon("20");
-            }
-            else if (pctComplete >= 30 && pctComplete < 40)
-            {
-                ChangeTrayIcon("30");
-            }
-            else if (pctComplete >= 40 && pctComplete < 50)
-            {
-                ChangeTrayIcon("40");
-            }
-            else if (pctComplete >= 50 && pctComplete < 60)
-            {
-                ChangeTrayIcon("50");
-            }
-            else if (pctComplete >= 60 && pctComplete < 70)
-            {
-                ChangeTrayIcon("60");
-            }
-            else if (pctComplete >= 70 && pctComplete < 80)
-            {
-                ChangeTrayIcon("70");
-            }
-            else if (pctComplete >= 80 && pctComplete < 90)
-            {
-                ChangeTrayIcon("80");
-            }
-            else if (pctComplete >= 90)
-            {
-                ChangeTrayIcon("90");
-            }
-        }
+        
 
-        private void ChangeTrayIcon(string ico)
-        {
-            lock (timer)
-            {
-                timer.Stop();
-            }
-            switch (ico)
-            {
-                case "R":
-                    TaskbarIcon2 = Properties.Resources.R;
-                    break;
-                case "F":
-                    TaskbarIcon2 = Properties.Resources.F;
-                    lock (timer)
-                    {
-                        timer.Start();
-                    }
-                    break;
-                case "E":
-                    TaskbarIcon2 = Properties.Resources.E;
-                    break;
-                case "Default":
-                    TaskbarIcon2 = Properties.Resources.Default;
-                    break;
-                case "00":
-                    TaskbarIcon2 = Properties.Resources._00;
-                    break;
-                case "10":
-                    TaskbarIcon2 = Properties.Resources._10;
-                    break;
-                case "20":
-                    TaskbarIcon2 = Properties.Resources._20;
-                    break;
-                case "30":
-                    TaskbarIcon2 = Properties.Resources._30;
-                    break;
-                case "40":
-                    TaskbarIcon2 = Properties.Resources._40;
-                    break;
-                case "50":
-                    TaskbarIcon2 = Properties.Resources._50;
-                    break;
-                case "60":
-                    TaskbarIcon2 = Properties.Resources._60;
-                    break;
-                case "70":
-                    TaskbarIcon2 = Properties.Resources._70;
-                    break;
-                case "80":
-                    TaskbarIcon2 = Properties.Resources._80;
-                    break;
-                case "90":
-                    TaskbarIcon2 = Properties.Resources._90;
-                    break;
-            }
-        }
+        
 
-        private void timerTick_DelayIconChange(object sender, EventArgs e)
-        {
-            lock (timer)
-            {
-                timer.Stop();
-                ChangeTrayIcon("Default");
-            }
-        }
+        
 
         public bool PassCommandLineArgs(IList<string> args)
         {

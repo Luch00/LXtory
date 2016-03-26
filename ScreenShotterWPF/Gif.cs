@@ -125,7 +125,6 @@ namespace ScreenShotterWPF
                         img = ImageBuffer.Take();
                         if (img != null)
                         {
-                            //string f = cachedir + "\\frame" + filename + ".png"; // RANDOM FILENAME INTO LIST 
                             string f = Path.Combine(cachedir, $"frame{filename}.png");
                             img.Save(f, ImageFormat.Png);
                             frames.Add(f);

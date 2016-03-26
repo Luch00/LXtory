@@ -27,7 +27,7 @@ namespace ScreenShotterWPF
         {
             progressValue = 0;
             cancelRequested = false;
-            cancelCommand = new RelayCommand(SetCancel, param => true);
+            //cancelCommand = new RelayCommand(SetCancel, param => true);
         }
 
         public int ProgressValue

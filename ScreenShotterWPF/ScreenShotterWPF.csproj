@@ -141,9 +141,11 @@
     <Compile Include="Notifications\GifOverlayNotification.cs" />
     <Compile Include="Notifications\GifProgressNotification.cs" />
     <Compile Include="Notifications\ImageEditorNotification.cs" />
+    <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
-    <Compile Include="RelayCommand.cs" />
+    <Compile Include="Get_rid_of_these\RelayCommand.cs" />
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
+    <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Views\GifEditorView.xaml.cs">
       <DependentUpon>GifEditorView.xaml</DependentUpon>
@@ -159,6 +161,9 @@
     </Compile>
     <Compile Include="Views\MainView.xaml.cs">
       <DependentUpon>MainView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OverlayView.xaml.cs">
+      <DependentUpon>OverlayView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
@@ -195,7 +200,7 @@
     <Compile Include="MainLogic.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="Overlay.xaml.cs">
+    <Compile Include="Get_rid_of_these\Overlay.xaml.cs">
       <DependentUpon>Overlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="PortableSettings1.cs" />
@@ -225,7 +230,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Get_rid_of_these\MainWindow.xaml">
+    <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -233,10 +238,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Get_rid_of_these\MainWindow.xaml.cs">
+    <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Overlay.xaml">
+    <Page Include="Get_rid_of_these\Overlay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -261,6 +266,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\MainView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\OverlayView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
