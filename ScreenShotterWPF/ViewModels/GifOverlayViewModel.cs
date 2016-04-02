@@ -138,5 +138,14 @@ namespace ScreenShotterWPF.ViewModels
                 OnPropertyChanged("WindowHeight");
             }
         }
+
+        public void Control_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.NewSize != e.PreviousSize)
+            {
+                WindowHeight = (int)e.NewSize.Height;
+                WindowWidth = (int)e.NewSize.Width;
+            }
+        }
     }
 }

@@ -53,7 +53,7 @@
                     </Style>
                 </prism:PopupWindowAction.WindowStyle>
                 <prism:PopupWindowAction.WindowContent>
-                    <views:OverlayView />
+                    <views:GifOverlayView />
                 </prism:PopupWindowAction.WindowContent>
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>

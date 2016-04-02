@@ -7,6 +7,8 @@
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:prism="http://prismlibrary.com/"
              prism:ViewModelLocator.AutoWireViewModel="True"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" MouseDown="Border_PreviewMouseDown" Loaded="UserControl_Loaded">
     <UserControl.Background>
@@ -33,9 +35,14 @@
                     <Label Margin="0,0,52,0">FPS</Label>
                     <xctk:IntegerUpDown x:Name="gifFramerate" VerticalAlignment="Center" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
                 </StackPanel>
-                <Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}" CommandParameter="{Binding ElementName=GifOverlayWindow}">Start</Button>
-                <Button Width="100" Command="{Binding CancelCaptureCommand}" CommandParameter="{Binding ElementName=GifOverlayWindow}">Cancel</Button>
+                <Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">Start</Button>
+                <Button Width="100" Command="{Binding CancelCaptureCommand}">Cancel</Button>
             </StackPanel>
         </Border>
     </Border>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="SizeChanged">
+            <ei:CallMethodAction MethodName="Control_SizeChanged" TargetObject="{Binding}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
 </UserControl>

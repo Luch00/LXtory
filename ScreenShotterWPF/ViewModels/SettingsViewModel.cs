@@ -691,7 +691,7 @@ namespace ScreenShotterWPF.ViewModels
                     if (authCode != string.Empty)
                     {
                         //get tokens
-                        await Imgur.GetToken(authCode);
+                        await Uploader.GetToken(authCode);
                         Username = Properties.Settings.Default.username;
                         StatusLabelText = "Authorization complete";
                         LoginButtonText = "Logout";

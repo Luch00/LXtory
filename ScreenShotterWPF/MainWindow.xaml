@@ -5,8 +5,8 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:views="clr-namespace:ScreenShotterWPF.Views"
-        Title="LXtory 0.92" Height="500" Width="380" MinWidth="380" MinHeight="500" Closing="Window_Closing" Icon="Resources/Hoshimemo5.ico" StateChanged="UI_StateChanged" Loaded="UI_Loaded" Margin="0" Padding="0">
-    <views:MainView />
+        Title="LXtory 0.92" Height="500" Width="380" MinWidth="380" MinHeight="500" Closing="Window_Closing" Icon="Resources/Hoshimemo5.ico" StateChanged="UI_StateChanged" Loaded="UI_Loaded" Margin="0" Padding="0" DataContextChanged="UI_DataContextChanged">
+    <views:MainView x:Name="MainView" Loaded="MainView_Loaded" />
     <!--
     <Window.Resources>
         <ContextMenu x:Key="rowContextMenu">

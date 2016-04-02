@@ -33,11 +33,11 @@ namespace ScreenShotterWPF
         private bool refreshing = false;
 
         // Imgur is imgur
-        readonly Imgur imgur;
+        readonly Uploader imgur;
         
         //readonly Action<string> statusChange;
         readonly Action<int> progressBarUpdate;
-        readonly Action<XImage, string> addXImageToList;
+        //readonly Action<XImage, string> addXImageToList;
 
         // For selecting window to capture
         private KeyHook mHook;
@@ -69,9 +69,9 @@ namespace ScreenShotterWPF
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
             progressBarUpdate = ProgressAndIconChange;
-            addXImageToList = AddXimageToList;
+            //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
-            imgur = new Imgur(progressBarUpdate);
+            imgur = new Uploader(progressBarUpdate);
             ImageEditorRequest = new InteractionRequest<IConfirmation>();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             SetIcon("default");
@@ -231,6 +231,7 @@ namespace ScreenShotterWPF
                             if (result.Item1)
                             {
                                 uiContext.Post(x => AddXimageToList(currentUpload, result.Item2), null);
+                                //AddXimageToList(currentUpload, result.Item2);
                                 ChangeTrayIcon("F");
                             }
                             else

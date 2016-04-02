@@ -143,7 +143,6 @@
     <Compile Include="Notifications\ImageEditorNotification.cs" />
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
-    <Compile Include="Get_rid_of_these\RelayCommand.cs" />
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
     <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
@@ -182,27 +181,17 @@
     <Compile Include="Get_rid_of_these\Editor.xaml.cs">
       <DependentUpon>Editor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Get_rid_of_these\EncodingProgressViewModel.cs" />
-    <Compile Include="Get_rid_of_these\EncodingProgressWindow.xaml.cs">
-      <DependentUpon>EncodingProgressWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Gif.cs" />
     <Compile Include="Get_rid_of_these\GifEditor.xaml.cs">
       <DependentUpon>GifEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\GifEditorViewModel.cs" />
-    <Compile Include="Get_rid_of_these\GifOverlay.xaml.cs">
-      <DependentUpon>GifOverlay.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModels\GifOverlayViewModel.cs" />
-    <Compile Include="Imgur.cs" />
+    <Compile Include="Uploader.cs" />
     <Compile Include="KeyHook.cs" />
     <Compile Include="MainLogic.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="Get_rid_of_these\Overlay.xaml.cs">
-      <DependentUpon>Overlay.xaml</DependentUpon>
-    </Compile>
     <Compile Include="PortableSettings1.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -218,15 +207,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Get_rid_of_these\EncodingProgressWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Get_rid_of_these\GifEditor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Get_rid_of_these\GifOverlay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -241,10 +222,6 @@
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Get_rid_of_these\Overlay.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Get_rid_of_these\Settings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

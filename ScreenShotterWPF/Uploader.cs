@@ -9,7 +9,7 @@ using System.Web.Script.Serialization;
 
 namespace ScreenShotterWPF
 {
-    public class Imgur
+    public class Uploader
     {
         // For imgur
         private const string ClientID = "83c1c8bf9f4d2b1";
@@ -20,10 +20,9 @@ namespace ScreenShotterWPF
         // Actions to main form
         private static Action<int> progressBarUpdate;
 
-        public Imgur(Action<int> p)
+        public Uploader(Action<int> p)
         {
             progressBarUpdate = p;
-            Console.WriteLine(@"Imgur Init complete");
         }
 
         // Use pin to get auth token

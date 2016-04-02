@@ -27,7 +27,7 @@
                     <xctk:IntegerUpDown x:Name="gifQuality" VerticalAlignment="Center" Value="{Binding GifQuality, Mode=TwoWay}" Minimum="1" Maximum="20" Margin="4" AllowTextInput="True" Width="58"/>
                 </StackPanel>-->
                 <DockPanel>
-                    <Button x:Name="btnEncode" Content="Encode" HorizontalAlignment="Left" Margin="15,4,0,0" VerticalAlignment="Top" Width="75" Command="{Binding EncodeCommand}" CommandParameter="{Binding ElementName=gifEditorWindow}"/>
+                    <Button x:Name="btnEncode" Content="Encode" HorizontalAlignment="Left" Margin="15,4,0,0" VerticalAlignment="Top" Width="75" Command="{Binding EncodeCommand}"/>
                     <Button x:Name="btnCancel" Content="Cancel" HorizontalAlignment="Right" Margin="4,4,15,0" VerticalAlignment="Top" Width="75" Command="{Binding CancelCommand}"/>
                 </DockPanel>
             </StackPanel>

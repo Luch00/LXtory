@@ -292,12 +292,6 @@ namespace ScreenShotterWPF.ViewModels
             SelectedIndex.OpenBrowserEnabled = SelectedIndex.CopyClipboardEnabled = (SelectedIndex.url != string.Empty);
         }
 
-        
-
-        
-
-        
-
         public bool PassCommandLineArgs(IList<string> args)
         {
             return Main.ReadCommandLineArgs(args);
