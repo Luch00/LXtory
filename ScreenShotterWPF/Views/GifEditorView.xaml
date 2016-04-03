@@ -31,7 +31,7 @@
                     <Button x:Name="btnCancel" Content="Cancel" HorizontalAlignment="Right" Margin="4,4,15,0" VerticalAlignment="Top" Width="75" Command="{Binding CancelCommand}"/>
                 </DockPanel>
             </StackPanel>
-            <ListBox x:Name="listBox" HorizontalAlignment="Right" Width="194" Margin="2,2,4,4" ScrollViewer.VerticalScrollBarVisibility="Auto" Height="336" SelectionChanged="listBox_SelectionChanged" VerticalAlignment="Top" ItemsSource="{Binding Items}" ContextMenu="{StaticResource itemsContextMenu}" SelectedIndex="{Binding SelectedIndex}">
+            <ListBox x:Name="listBox" HorizontalAlignment="Right" Width="194" Margin="2,2,4,4" ScrollViewer.VerticalScrollBarVisibility="Auto" Height="336" SelectionChanged="listBox_SelectionChanged" VerticalAlignment="Top" ItemsSource="{Binding Notification.Gif.Frames}" ContextMenu="{StaticResource itemsContextMenu}" SelectedIndex="{Binding SelectedIndex}">
 
                 <!--<ListBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">

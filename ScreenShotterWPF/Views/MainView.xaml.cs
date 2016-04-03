@@ -1,17 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace ScreenShotterWPF.Views
 {
@@ -20,9 +9,44 @@ namespace ScreenShotterWPF.Views
     /// </summary>
     public partial class MainView : UserControl
     {
+        MainWindow mainwindow;
         public MainView()
         {
             InitializeComponent();
+            mainwindow = (MainWindow)Application.Current.MainWindow;
+        }
+
+        private void tbi_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            if (mainwindow.Visibility != Visibility.Hidden)
+                return;
+
+            mainwindow.Visibility = Visibility.Visible;
+            mainwindow.ShowInTaskbar = true;
+            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(delegate
+            {
+                mainwindow.WindowState = WindowState.Normal;
+                mainwindow.Activate();
+            }));
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (mainwindow.Visibility != Visibility.Hidden)
+                return;
+
+            mainwindow.Visibility = Visibility.Visible;
+            mainwindow.ShowInTaskbar = true;
+            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(delegate
+            {
+                mainwindow.WindowState = WindowState.Normal;
+                mainwindow.Activate();
+            }));
+        }
+
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }

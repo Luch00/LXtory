@@ -15,11 +15,8 @@ namespace ScreenShotterWPF.ViewModels
         public Action FinishInteraction { get; set; }
 
         public ICommand EscapeCommand { get; private set; }
-
-        //Rectangle r;
-        //TextBlock textBlock;
+        
         private Point start;
-        //private Point end;
         private double rectHeight;
         private double rectWidth;
         private Thickness rectMargin;

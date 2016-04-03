@@ -20,10 +20,6 @@ namespace ScreenShotterWPF
         public MainWindow()
         {   
             InitializeComponent();
-            
-            //view = new MainViewModel();
-            //this.DataContext = view;
-            //this.Closed += view.OnWindowClosed;
         }
 
         public bool ReadCommandLineArgs(IList<string> args)
@@ -61,39 +57,6 @@ namespace ScreenShotterWPF
             }
         }
 
-        private void tbi_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
-        {
-            if (this.Visibility != Visibility.Hidden)
-                return;
-
-            this.Visibility = Visibility.Visible;
-            this.ShowInTaskbar = true;
-            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(delegate
-            {
-                this.WindowState = WindowState.Normal;
-                this.Activate();
-            }));
-        }
-
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.Visibility != Visibility.Hidden)
-                return;
-
-            this.Visibility = Visibility.Visible;
-            this.ShowInTaskbar = true;
-            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(delegate
-            {
-                this.WindowState = WindowState.Normal;
-                this.Activate();
-            }));
-        }
-
-        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
         private void UI_StateChanged(object sender, EventArgs e)
         {
             if (this.WindowState != WindowState.Minimized || !Properties.Settings.Default.minimizeToTray)
@@ -108,18 +71,13 @@ namespace ScreenShotterWPF
             Startup_Minimize();
         }
 
-        #endregion
-
-        private void UI_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            
-        }
-
         private void MainView_Loaded(object sender, RoutedEventArgs e)
         {
             mainview = MainView.DataContext as MainViewModel;
             WindowInteropHelper helper = new WindowInteropHelper(this);
             mainview.WindowHandle = helper.Handle;
         }
+
+        #endregion
     }
 }

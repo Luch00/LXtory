@@ -31,11 +31,9 @@ namespace ScreenShotterWPF
         private int uploading = 0;
         private int totalUploading = 0;
         private bool refreshing = false;
-
-        // Imgur is imgur
-        readonly Uploader imgur;
         
-        //readonly Action<string> statusChange;
+        readonly Uploader uploader;
+        
         readonly Action<int> progressBarUpdate;
         //readonly Action<XImage, string> addXImageToList;
 
@@ -50,7 +48,6 @@ namespace ScreenShotterWPF
 
         private int progressValue;
         private string statusText;
-        //private string trayIcon;
 
         private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
 
@@ -71,7 +68,7 @@ namespace ScreenShotterWPF
             progressBarUpdate = ProgressAndIconChange;
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
-            imgur = new Uploader(progressBarUpdate);
+            uploader = new Uploader(progressBarUpdate);
             ImageEditorRequest = new InteractionRequest<IConfirmation>();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             SetIcon("default");
@@ -179,7 +176,7 @@ namespace ScreenShotterWPF
                             {
                                 SetStatusBarText("Refreshing Imgur login..");
                                 ChangeTrayIcon("R");
-                                await imgur.RefreshToken();
+                                await uploader.RefreshToken();
                             }
                             if (currentUpload.image == null)
                             {
@@ -204,7 +201,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = imgur.HttpWebRequestUpload(currentUpload);
+                                    result = uploader.HttpWebRequestUpload(currentUpload);
                                     break;
                                 case 1:
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
@@ -214,7 +211,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = imgur.HttpGyazoWebRequestUpload(currentUpload);
+                                    result = uploader.HttpGyazoWebRequestUpload(currentUpload);
                                     break;
                                 case 2:
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
@@ -224,7 +221,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = imgur.PuushHttpWebRequestUpload(currentUpload);
+                                    result = uploader.PuushHttpWebRequestUpload(currentUpload);
                                     break;
                             }
 
@@ -340,7 +337,7 @@ namespace ScreenShotterWPF
             if (!string.IsNullOrEmpty(s) && s != currentIcon)
             {
                 var yourImage = new BitmapImage(new Uri($"pack://application:,,,/Resources/{s}.ico", UriKind.Absolute));
-                yourImage.Freeze(); // -> to prevent error: "Must create DependencySource on same Thread as the DependencyObject"
+                yourImage.Freeze();
                 currentIcon = s;
                 Icon = yourImage;
             }
@@ -607,68 +604,6 @@ namespace ScreenShotterWPF
             }
         }
 
-        //public async Task CapGif(int x, int y, int w, int h, int f, int d, int q)
-        //{
-            //Gif gif = new Gif(f, d, w, h, x, y);
-            //List<string> frames = await gif.StartCapture();
-            
-            //if (frames.Count > 0)
-            //{
-            //    string name = string.Empty;
-            //    EncodingProgressViewModel epvm = new EncodingProgressViewModel();
-            //    EncodingProgressWindow epw = new EncodingProgressWindow();
-            //    epw.DataContext = epvm;
-            //    if (Properties.Settings.Default.gifEditorEnabled)
-            //    {
-            //        GifEditorViewModel gev = new GifEditorViewModel();
-            //        GifEditor editor = new GifEditor();
-                    
-            //        editor.DataContext = gev;
-            //        editor.ShowDialog();
-            //        if (editor.DialogResult.HasValue && editor.DialogResult.Value)
-            //        {
-            //            List<string> selectedFiles = new List<string>();
-            //            foreach (int index in gev.selectedIndexes)
-            //            {
-            //                selectedFiles.Add(frames[index]);
-            //            }
-            //            epw.Show();
-            //            name = await gif.EncodeGif2(selectedFiles, /*gev.GifQuality,*/ epvm);
-            //            epw.Close();
-            //        }
-            //    }
-            //    else
-            //    {
-            //        epw.Show();
-            //        name = await gif.EncodeGif2(frames, /*Properties.Settings.Default.gifQuality,*/ epvm);
-            //        epw.Close();
-            //    }
-            //    epw = null;
-            //    epvm = null;
-            //    if (name != string.Empty)
-            //    {
-            //        XImage img = new XImage();
-            //        img.filename = name;
-            //        img.filepath = Path.Combine(Properties.Settings.Default.filePath, name);
-            //        string p = "dd.MM.yy HH:mm:ss";
-            //        img.datetime = DateTime.Now;
-            //        string date = DateTime.Now.ToString(p);
-            //        img.date = date;
-
-            //        if (Properties.Settings.Default.gifUpload)
-            //        {
-            //            img.anonupload = Properties.Settings.Default.anonUpload;
-            //            AddToQueue(img);
-            //        }
-            //        else
-            //        {
-            //            addXImageToList(img, "");
-            //        }  
-            //    }
-            //}
-            //gif = null;
-        //}
-
         // Capture an area of the screen, save as PNG
         private void ScreenCap(int width, int height, int rX, int rY, string filename)
         {
@@ -733,7 +668,6 @@ namespace ScreenShotterWPF
                 }
                 catch (Exception e)
                 {
-                    //statusChange(e.Message);
                     StatusText = e.Message;
                     return string.Empty;
                 }
@@ -754,7 +688,6 @@ namespace ScreenShotterWPF
             }
             catch (Exception e)
             {
-                //statusChange(e.Message);
                 StatusText = e.Message;
                 return string.Empty;
             }
@@ -897,7 +830,7 @@ namespace ScreenShotterWPF
             StatusText = "Clipboard copy failed.";
         }
 
-        // Set picturebox image
+        // Set picturebox image only for local and imgur hosted images
         public static BitmapImage GetPicture(XImage x)
         {
             string url;

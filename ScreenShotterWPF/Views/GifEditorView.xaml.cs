@@ -1,6 +1,4 @@
 ﻿using System.Windows.Controls;
-//using System.Windows.Documents;
-using ScreenShotterWPF.ViewModels;
 
 namespace ScreenShotterWPF.Views
 {

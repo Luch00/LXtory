@@ -16,7 +16,7 @@
     <i:Interaction.Triggers>
         <!-- Open Settings -->
         <prism:InteractionRequestTrigger SourceObject="{Binding SettingsRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterOwner">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
@@ -32,15 +32,10 @@
         </prism:InteractionRequestTrigger>
         <!-- Open Gif recorder-->
         <prism:InteractionRequestTrigger SourceObject="{Binding GifOverlayRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="WindowStyle" Value="None"/>
-                        <!--<Setter Property="WindowChrome.CaptionHeight" Value="5"/>
-                        <Setter Property="WindowChrome.GlassFrameThickness" Value="0"/>
-                        <Setter Property="WindowChrome.CornerRadius" Value="0"/>
-                        <Setter Property="WindowChrome.ResizeBorderThickness" Value="1"/>
-                        <Setter Property="ResizeMode" Value="CanResize"/>-->
                         <Setter Property="Width" Value="{Binding WindowWidth, Mode=TwoWay}"/>
                         <Setter Property="Height" Value="{Binding WindowHeight, Mode=TwoWay}"/>
                         <Setter Property="Top" Value="{Binding WindowTop, Mode=TwoWay}"/>
@@ -59,7 +54,7 @@
         </prism:InteractionRequestTrigger>
         <!-- Open Gif editor -->
         <prism:InteractionRequestTrigger SourceObject="{Binding GifEditorRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
@@ -75,7 +70,7 @@
         </prism:InteractionRequestTrigger>
         <!-- Open Gif Encoding progress -->
         <prism:InteractionRequestTrigger SourceObject="{Binding GifProgressRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True" CenterOverAssociatedObject="True">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
@@ -91,7 +86,7 @@
         </prism:InteractionRequestTrigger>
         <!-- Open image editor -->
         <prism:InteractionRequestTrigger SourceObject="{Binding Main.ImageEditorRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
@@ -112,10 +107,6 @@
             <prism:PopupWindowAction IsModal="True">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
-                        <!--<Setter Property="Icon" Value="../Resources/meh.ico"/>-->
-                        <!--<Setter Property="ResizeMode" Value="NoResize"/>-->
-                        <!--<Setter Property="MinHeight" Value="500"/>
-                        <Setter Property="MinWidth" Value="600"/>-->
                         <Setter Property="WindowStyle" Value="None"/>
                         <Setter Property="Topmost" Value="False"/>
                         <Setter Property="Width" Value="{Binding WindowWidth, Mode=TwoWay}"/>
@@ -228,12 +219,12 @@
             </StatusBar>
         </Grid>
 
-        <tb:TaskbarIcon x:Name="tbi" IconSource="{Binding Main.Icon}" ToolTipText="LXtory"><!--TrayMouseDoubleClick=""-->
+        <tb:TaskbarIcon x:Name="tbi" IconSource="{Binding Main.Icon}" ToolTipText="LXtory" TrayMouseDoubleClick="tbi_TrayMouseDoubleClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Restore"/><!--Click="{Binding RestoreClick}"-->
+                    <MenuItem Header="Restore" Click="MenuItem_Click"/>
                     <Separator></Separator>
-                    <MenuItem Header="Exit"/><!--Click="{Binding ExitClick}"-->
+                    <MenuItem Header="Exit" Click="MenuItem_Click_1"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

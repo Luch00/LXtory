@@ -38,7 +38,7 @@
             </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <Rectangle Height="{Binding RectHeight}" Width="{Binding RectWidth}" Margin="{Binding RectMargin}" Stroke="Red" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <TextBlock Text="{Binding Text}" Foreground="Red" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{Binding TextMargin}" Visibility="{Binding TextVisible}"/>
+        <TextBlock Text="{Binding Text}" Foreground="Red" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{Binding TextMargin}"/>
     </ItemsControl>
     
 </UserControl>

@@ -79,7 +79,7 @@
   <PropertyGroup />
   <ItemGroup>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.6\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.8\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -96,7 +96,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Prism.Wpf, Version=6.1.0.0, Culture=neutral, PublicKeyToken=91a96d2a154366d8, processorArchitecture=MSIL">
-      <HintPath>..\packages\Prism.Wpf.6.1.0\lib\net45\Prism.Wpf.dll</HintPath>
+      <HintPath>..\packages\Prism.Wpf.6.1.1-pre2\lib\net45\Prism.Wpf.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpDX, Version=3.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
@@ -182,9 +182,6 @@
       <DependentUpon>Editor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Gif.cs" />
-    <Compile Include="Get_rid_of_these\GifEditor.xaml.cs">
-      <DependentUpon>GifEditor.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModels\GifEditorViewModel.cs" />
     <Compile Include="ViewModels\GifOverlayViewModel.cs" />
     <Compile Include="Uploader.cs" />
@@ -204,10 +201,6 @@
     </Compile>
     <Compile Include="SingleInstance.cs" />
     <Page Include="Get_rid_of_these\Editor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Get_rid_of_these\GifEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

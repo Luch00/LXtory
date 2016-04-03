@@ -11,10 +11,12 @@ namespace ScreenShotterWPF
 
         public ICommand ItemDoubleClickCommand { get; private set; }
         public string Name { get; set; }
+        public string Filepath { get; set; }
         public BitmapImage Image { get; set; }
 
         public GifFrame()
         {
+            selected = true;
             ItemDoubleClickCommand = new DelegateCommand(CheckUncheckItem);
         }
 

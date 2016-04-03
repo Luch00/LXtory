@@ -23,8 +23,7 @@ namespace ScreenShotterWPF.ViewModels
         
         private IntPtr windowHandle;
         private HwndSource _source;
-
-        //public event PropertyChangedEventHandler PropertyChanged;
+        
         public MainLogic Main { get; private set; }
 
         public ICommand ExitCommand { get; private set; }
@@ -113,38 +112,31 @@ namespace ScreenShotterWPF.ViewModels
                 int f = notification.GifFramerate;
                 int d = notification.GifDuration;
                 Gif gif = new Gif(f, d, w, h, x, y);
-                List<string> frames = await gif.StartCapture();
-                if (frames.Count > 0)
+                await gif.StartCapture();
+                if (gif.Frames.Count > 0)
                 {
-                    List<string> selected = new List<string>();
+                    bool cancelled = false;
                     if (Properties.Settings.Default.gifEditorEnabled)
                     {
                         GifEditorNotification gen = new GifEditorNotification();
                         gen.Title = "Gif Editor";
-                        gen.Frames = frames;
+                        gen.Gif = gif;
                         var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
-                        if (gen_returned != null && gen_returned.Confirmed)
+                        if (gen_returned != null && !gen_returned.Confirmed)
                         {
-                            Console.WriteLine(gen.SelectedIndexes.Count.ToString());
-                            foreach (int i in gen.SelectedIndexes)
-                            {
-                                selected.Add(frames[i]);
-                            }
+                            cancelled = true;
                         }
                     }
-                    else
+                    if (!cancelled)
                     {
-                        selected = frames;
-                    }
-                    GifProgressNotification gpn = new GifProgressNotification();
-                    gpn.Title = "Encoding Gif..";
-                    gpn.Progress = 0;
-                    gpn.Gif = gif;
-                    gpn.Frames = selected;
-                    var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
-                    if (gpn_returned != null && gpn_returned.Confirmed)
-                    {
-                        Main.AddGif(gpn.Name);
+                        GifProgressNotification gpn = new GifProgressNotification();
+                        gpn.Title = "Encoding Gif..";
+                        gpn.Gif = gif;
+                        var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
+                        if (gpn_returned != null && gpn_returned.Confirmed)
+                        {
+                            Main.AddGif(gpn.Name);
+                        } 
                     }
                 }
                 GifButtonEnabled = true;
@@ -227,17 +219,6 @@ namespace ScreenShotterWPF.ViewModels
             Process.Start(Properties.Settings.Default.filePath);
         }
 
-        /*private void OpenSettings()
-        {
-            Settings settings = new Settings();
-            settings.ShowDialog();
-            if (settings.DialogResult.HasValue && settings.DialogResult.Value)
-            {
-                Properties.Settings.Default.Save();
-                RegisterHotkeys();
-            }
-        }*/
-
         public string WindowButtonText
         {
             get { return windowButtonText; }
@@ -308,7 +289,6 @@ namespace ScreenShotterWPF.ViewModels
 
         private void RegisterHotKey(int hotkey_id, HotKey hk)
         {
-            //var helper = new WindowInteropHelper(UI);
             if (WindowHandle != null && hk != null)
             {
                 uint VK_KEY = Convert.ToUInt32(hk.vkKey);
@@ -335,7 +315,6 @@ namespace ScreenShotterWPF.ViewModels
 
         private void UnregisterHotKey()
         {
-            //var helper = new WindowInteropHelper(this);
             if (WindowHandle != null)
             {
                 NativeMethods.UnregisterHotKey(WindowHandle, HOTKEY_1);
@@ -348,7 +327,6 @@ namespace ScreenShotterWPF.ViewModels
 
         private void InitializeHotkeys()
         {
-            //var helper = new WindowInteropHelper(this);
             _source = HwndSource.FromHwnd(WindowHandle);
             _source.AddHook(HwndHook);
             RegisterHotkeys();

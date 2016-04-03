@@ -7,13 +7,13 @@
              prism:ViewModelLocator.AutoWireViewModel="True"
              xmlns:local="clr-namespace:ScreenShotterWPF.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="70" d:DesignWidth="335" Loaded="UserControl_Loaded" >
+             d:DesignHeight="70" d:DesignWidth="335">
     <!--<UserControl.TaskbarItemInfo>
         <TaskbarItemInfo ProgressValue="{Binding ProgressValue}"/>
     </UserControl.TaskbarItemInfo>-->
     <Grid>
         <StackPanel Orientation="Horizontal">
-            <ProgressBar Name="encodingProgress" Value="{Binding Notification.Progress}" Width="250" Margin="4"/>
+            <ProgressBar Name="encodingProgress" Value="{Binding Notification.Gif.EncodingProgress}" Width="250" Margin="4"/>
             <Button Name="btnCancel" Margin="8,4,4,4" Width="50" Command="{Binding CancelCommand}">Cancel</Button>
         </StackPanel>
     </Grid>

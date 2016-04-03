@@ -3,11 +3,7 @@ using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace ScreenShotterWPF.ViewModels
 {
@@ -16,8 +12,7 @@ namespace ScreenShotterWPF.ViewModels
         private GifEditorNotification notification;
 
         public Action FinishInteraction { get; set; }
-
-        private ObservableCollection<GifFrame> items;
+        
         private int selectedIndex;
         private ICommand checkBeginningCommand;
         private ICommand checkEndCommand;
@@ -28,7 +23,6 @@ namespace ScreenShotterWPF.ViewModels
 
         public GifEditorViewModel()
         {
-            items = new ObservableCollection<GifFrame>();
             checkBeginningCommand = new DelegateCommand(CheckFromBeginning, CanCheckUncheck);
             checkEndCommand = new DelegateCommand(CheckFromEnd, CanCheckUncheck);
             uncheckBeginningCommand = new DelegateCommand(UncheckFromBeginning, CanCheckUncheck);
@@ -49,7 +43,7 @@ namespace ScreenShotterWPF.ViewModels
                 if (value is GifEditorNotification)
                 {
                     this.notification = value as GifEditorNotification;
-                    PopulateListBox(notification.Frames);
+                    notification.Gif.LoadThumbnails();
                     this.OnPropertyChanged(() => this.Notification);
                 }
             }
@@ -81,12 +75,6 @@ namespace ScreenShotterWPF.ViewModels
             set { encodeCommand = value; }
         }
 
-        public ObservableCollection<GifFrame> Items
-        {
-            get { return items; }
-            set { items = value; }
-        }
-
         public int SelectedIndex
         {
             get { return selectedIndex; }
@@ -106,13 +94,6 @@ namespace ScreenShotterWPF.ViewModels
         {
             if (notification != null)
             {
-                for (int i = 0; i < items.Count; i++)
-                {
-                    if (items[i].Selected)
-                    {
-                        notification.SelectedIndexes.Add(i);
-                    }
-                }
                 notification.Confirmed = true;
             }
             this.FinishInteraction();
@@ -143,16 +124,16 @@ namespace ScreenShotterWPF.ViewModels
             int selected = SelectedIndex;
             if (fromEnd)
             {
-                for (int i = items.Count - 1; i >= selected; i--)
+                for (int i = notification.Gif.Frames.Count - 1; i >= selected; i--)
                 {
-                    items[i].Selected = check;
+                    notification.Gif.Frames[i].Selected = check;
                 }
             }
             else
             {
                 for (int i = 0; i <= selected; i++)
                 {
-                    items[i].Selected = check;
+                    notification.Gif.Frames[i].Selected = check;
                 }
             }
         }
@@ -160,34 +141,6 @@ namespace ScreenShotterWPF.ViewModels
         private bool CanCheckUncheck()
         {
             return (SelectedIndex > -1) ? true : false;
-        }
-
-        private void PopulateListBox(List<string> images)
-        {
-            int index = 0;
-
-            foreach (string s in images)
-            {
-                using (FileStream fs = new FileStream(s, FileMode.Open, FileAccess.Read))
-                {
-                    BitmapImage img = new BitmapImage();
-                    img.BeginInit();
-                    img.CacheOption = BitmapCacheOption.OnLoad;
-                    img.DecodePixelWidth = 300;
-                    //img.UriSource = new Uri(s, UriKind.Absolute);
-                    img.StreamSource = fs;
-                    img.EndInit();
-                    img.Freeze();
-                    GifFrame i = new GifFrame
-                    {
-                        Name = $"Frame{index}",
-                        Selected = true,
-                        Image = img
-                    };
-                    items.Add(i);
-                    index++;
-                }
-            }
         }
     }
 }

@@ -515,6 +515,10 @@ namespace ScreenShotterWPF.ViewModels
             {
                 RegisterButtonText = "Unregister";
             }
+            else
+            {
+                RegisterButtonText = "Register";
+            }
             RegisterEnabled = true;
         }
 
@@ -828,7 +832,7 @@ namespace ScreenShotterWPF.ViewModels
 
             foreach (string key in keys)
             {
-                Registry.CurrentUser.DeleteSubKeyTree(key);
+                Registry.CurrentUser.DeleteSubKeyTree(key, false);
             }
         }
 
