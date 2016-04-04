@@ -31,7 +31,7 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
         <!-- Open Gif recorder-->
-        <prism:InteractionRequestTrigger SourceObject="{Binding GifOverlayRequest, Mode=OneWay}">
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifOverlayRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
@@ -53,7 +53,7 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
         <!-- Open Gif editor -->
-        <prism:InteractionRequestTrigger SourceObject="{Binding GifEditorRequest, Mode=OneWay}">
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifEditorRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
@@ -69,7 +69,7 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
         <!-- Open Gif Encoding progress -->
-        <prism:InteractionRequestTrigger SourceObject="{Binding GifProgressRequest, Mode=OneWay}">
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifProgressRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
@@ -85,12 +85,11 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
         <!-- Open image editor -->
-        <prism:InteractionRequestTrigger SourceObject="{Binding Main.ImageEditorRequest, Mode=OneWay}">
+        <!--<prism:InteractionRequestTrigger SourceObject="{Binding Main.ImageEditorRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
-                        <!--<Setter Property="ResizeMode" Value="NoResize"/>-->
                         <Setter Property="MinHeight" Value="500"/>
                         <Setter Property="MinWidth" Value="600"/>
                         <Setter Property="Width" Value="627"/>
@@ -101,7 +100,7 @@
                     <views:ImageEditorView/>
                 </prism:PopupWindowAction.WindowContent>
             </prism:PopupWindowAction>
-        </prism:InteractionRequestTrigger>
+        </prism:InteractionRequestTrigger>-->
         <!-- Open overlay -->
         <prism:InteractionRequestTrigger SourceObject="{Binding Main.OverlayRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True">
@@ -163,8 +162,8 @@
                     <TextBlock x:Name="btnText" TextWrapping="Wrap" Text="{Binding AreaButtonText}" TextAlignment="Center"/>
                 </Button>
 
-                <Button x:Name="btnGif" Content="GIF" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding RaiseGifOverlayCommand}" IsEnabled="{Binding GifButtonEnabled}"/>
-                <StackPanel Orientation="Vertical">
+                <Button x:Name="btnGif" Content="GIF" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureGifCommand}" IsEnabled="{Binding GifButtonEnabled}"/>
+                <!--<StackPanel Orientation="Vertical"> // EDITOR DISABLED UNTIL REWORKED
                     <Label Content="Editor:" HorizontalAlignment="Left" Margin="4,0,0,-3" VerticalAlignment="Top" Height="24"/>
                     <ToggleButton x:Name="editorToggle" Margin="4,0,0,0" VerticalAlignment="Top" Width="70" Height="23" HorizontalAlignment="Left" IsChecked="{Binding Main.EditorEnabled}">
                         <ToggleButton.Style>
@@ -178,7 +177,7 @@
                             </Style>
                         </ToggleButton.Style>
                     </ToggleButton>
-                </StackPanel>
+                </StackPanel>-->
             </StackPanel>
         </StackPanel>
 

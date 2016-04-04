@@ -144,6 +144,7 @@
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
+    <Compile Include="ViewModels\ImageEditorViewModel.cs" />
     <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Views\GifEditorView.xaml.cs">
@@ -178,14 +179,11 @@
     <Compile Include="Arrow\ArrowPolyline.cs" />
     <Compile Include="BumpkitEncoder.cs" />
     <Compile Include="DesktopDuplication.cs" />
-    <Compile Include="Get_rid_of_these\Editor.xaml.cs">
-      <DependentUpon>Editor.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Gif.cs" />
     <Compile Include="ViewModels\GifEditorViewModel.cs" />
     <Compile Include="ViewModels\GifOverlayViewModel.cs" />
     <Compile Include="Uploader.cs" />
-    <Compile Include="KeyHook.cs" />
+    <Compile Include="MouseKeyHook.cs" />
     <Compile Include="MainLogic.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="NativeMethods.cs" />
@@ -196,14 +194,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
-    <Compile Include="Get_rid_of_these\Settings.xaml.cs">
-      <DependentUpon>Settings.xaml</DependentUpon>
-    </Compile>
     <Compile Include="SingleInstance.cs" />
-    <Page Include="Get_rid_of_these\Editor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -215,10 +206,6 @@
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Get_rid_of_these\Settings.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\GifEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -52,11 +52,18 @@ namespace ScreenShotterWPF.ViewModels
         private int selectedareaKey;
         private string selectedareaString;
 
+        private bool gifcaptureCtrl;
+        private bool gifcaptureShift;
+        private bool gifcaptureAlt;
+        private int gifcaptureKey;
+        private string gifcaptureString;
+
         private bool d3dCtrl;
         private bool d3dShift;
         private bool d3dAlt;
         private int d3dKey;
         private string d3dString;
+
         private string textFilepath;
         private bool localEnabled;
         private bool uploadEnabled;
@@ -224,6 +231,24 @@ namespace ScreenShotterWPF.ViewModels
             set { selectedareaAlt = value; OnPropertyChanged("SelectedareaAlt"); }
         }
 
+        public bool GifCaptureCtrl
+        {
+            get { return gifcaptureCtrl; }
+            set { gifcaptureCtrl = value; OnPropertyChanged("GifCaptureCtrl"); }
+        }
+
+        public bool GifCaptureShift
+        {
+            get { return gifcaptureShift; }
+            set { gifcaptureShift = value; OnPropertyChanged("GifCaptureShift"); }
+        }
+
+        public bool GifCaptureAlt
+        {
+            get { return gifcaptureAlt; }
+            set { gifcaptureAlt = value; OnPropertyChanged("GifCaptureAlt"); }
+        }
+
         public bool D3dCtrl
         {
             get { return d3dCtrl; }
@@ -260,6 +285,12 @@ namespace ScreenShotterWPF.ViewModels
             set { selectedareaKey = value; SelectedareaString = KeyInterop.KeyFromVirtualKey(selectedareaKey).ToString(); }
         }
 
+        public int GifCaptureKey
+        {
+            get { return gifcaptureKey; }
+            set { gifcaptureKey = value; GifCaptureString = KeyInterop.KeyFromVirtualKey(gifcaptureKey).ToString(); }
+        }
+
         public int D3dKey
         {
             get { return d3dKey; }
@@ -282,6 +313,12 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return selectedareaString; }
             set { selectedareaString = value; OnPropertyChanged("SelectedareaString"); }
+        }
+
+        public string GifCaptureString
+        {
+            get { return gifcaptureString; }
+            set { gifcaptureString = value; OnPropertyChanged("GifCaptureString"); }
         }
 
         public string D3dString
@@ -539,6 +576,7 @@ namespace ScreenShotterWPF.ViewModels
                 FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
                 FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
             }
+
             if (Properties.Settings.Default.hkCurrentwindow != null)
             {
                 CurrentwindowCtrl = Properties.Settings.Default.hkCurrentwindow.ctrl;
@@ -549,11 +587,12 @@ namespace ScreenShotterWPF.ViewModels
             else
             {
                 Properties.Settings.Default.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
-                FullscreenCtrl = Properties.Settings.Default.hkFullscreen.ctrl;
-                FullscreenShift = Properties.Settings.Default.hkFullscreen.shift;
-                FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
-                FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
+                CurrentwindowCtrl = Properties.Settings.Default.hkCurrentwindow.ctrl;
+                CurrentwindowShift = Properties.Settings.Default.hkCurrentwindow.shift;
+                CurrentwindowAlt = Properties.Settings.Default.hkCurrentwindow.alt;
+                CurrentwindowKey = Properties.Settings.Default.hkCurrentwindow.vkKey;
             }
+
             if (Properties.Settings.Default.hkSelectedarea != null)
             {
                 SelectedareaCtrl = Properties.Settings.Default.hkSelectedarea.ctrl;
@@ -564,11 +603,28 @@ namespace ScreenShotterWPF.ViewModels
             else
             {
                 Properties.Settings.Default.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
-                FullscreenCtrl = Properties.Settings.Default.hkFullscreen.ctrl;
-                FullscreenShift = Properties.Settings.Default.hkFullscreen.shift;
-                FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
-                FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
+                SelectedareaCtrl = Properties.Settings.Default.hkSelectedarea.ctrl;
+                SelectedareaShift = Properties.Settings.Default.hkSelectedarea.shift;
+                SelectedareaAlt = Properties.Settings.Default.hkSelectedarea.alt;
+                SelectedareaKey = Properties.Settings.Default.hkSelectedarea.vkKey;
             }
+
+            if (Properties.Settings.Default.hkGifcapture != null)
+            {
+                GifCaptureCtrl = Properties.Settings.Default.hkGifcapture.ctrl;
+                GifCaptureShift = Properties.Settings.Default.hkGifcapture.shift;
+                GifCaptureAlt = Properties.Settings.Default.hkGifcapture.alt;
+                GifCaptureKey = Properties.Settings.Default.hkGifcapture.vkKey;
+            }
+            else
+            {
+                Properties.Settings.Default.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
+                GifCaptureCtrl = Properties.Settings.Default.hkGifcapture.ctrl;
+                GifCaptureShift = Properties.Settings.Default.hkGifcapture.shift;
+                GifCaptureAlt = Properties.Settings.Default.hkGifcapture.alt;
+                GifCaptureKey = Properties.Settings.Default.hkGifcapture.vkKey;
+            }
+
             if (Properties.Settings.Default.hkD3DCap != null)
             {
                 D3dCtrl = Properties.Settings.Default.hkD3DCap.ctrl;
@@ -578,11 +634,11 @@ namespace ScreenShotterWPF.ViewModels
             }
             else
             {
-                Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
-                FullscreenCtrl = Properties.Settings.Default.hkFullscreen.ctrl;
-                FullscreenShift = Properties.Settings.Default.hkFullscreen.shift;
-                FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
-                FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
+                Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));
+                D3dCtrl = Properties.Settings.Default.hkD3DCap.ctrl;
+                D3dShift = Properties.Settings.Default.hkD3DCap.shift;
+                D3dAlt = Properties.Settings.Default.hkD3DCap.alt;
+                D3dKey = Properties.Settings.Default.hkD3DCap.vkKey;
             }
         }
 

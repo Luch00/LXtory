@@ -33,23 +33,22 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand CaptureFullscreenCommand { get; private set; }
         public ICommand CaptureWindowCommand { get; private set; }
         public ICommand CaptureAreaCommand { get; private set; }
-        //public ICommand CaptureGifCommand { get; private set; }
+        public ICommand CaptureGifCommand { get; private set; }
         public ICommand CaptureD3DImageCommand { get; private set; }
 
         public InteractionRequest<IConfirmation> SettingsRequest { get; private set; } 
-        public InteractionRequest<IConfirmation> GifOverlayRequest { get; private set; }
-        public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
-        public InteractionRequest<IConfirmation> GifProgressRequest { get; private set; } 
+        
 
         public ICommand RaiseSettingsCommand { get; private set; }
-        public ICommand RaiseGifOverlayCommand { get; private set; }
+        //public ICommand RaiseGifOverlayCommand { get; private set; }
 
         private const int HOTKEY_1 = 0;
         private const int HOTKEY_2 = 1;
         private const int HOTKEY_3 = 2;
         private const int HOTKEY_4 = 3;
+        private const int HOTKEY_5 = 4;
 
-        private KeyHook mHook;
+        private MouseKeyHook mHook;
         private readonly Action<bool> mouseAction;
 
         public MainViewModel()
@@ -67,16 +66,13 @@ namespace ScreenShotterWPF.ViewModels
             this.CaptureFullscreenCommand = new DelegateCommand(CaptureFullscreen);
             this.CaptureWindowCommand = new DelegateCommand(CaptureWindow);
             this.CaptureAreaCommand = new DelegateCommand(CaptureArea);
-            //this.CaptureGifCommand = new DelegateCommand(CaptureGif);
+            this.CaptureGifCommand = new DelegateCommand(CaptureGif);
             this.CaptureD3DImageCommand = new DelegateCommand(CaptureD3DImage);
 
             this.RaiseSettingsCommand = new DelegateCommand(RaiseSettings);
-            this.RaiseGifOverlayCommand = new DelegateCommand(RaiseGifOverlay);
+            //this.RaiseGifOverlayCommand = new DelegateCommand(RaiseGifOverlay);
 
             this.SettingsRequest = new InteractionRequest<IConfirmation>();
-            this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
-            this.GifEditorRequest = new InteractionRequest<IConfirmation>();
-            this.GifProgressRequest = new InteractionRequest<IConfirmation>();
             
             mouseAction = HookMouseAction;
         }
@@ -96,51 +92,11 @@ namespace ScreenShotterWPF.ViewModels
                 });
         }
 
-        private async void RaiseGifOverlay()
+        private void CaptureGif()
         {
-            GifOverlayNotification notification = new GifOverlayNotification();
-            notification.Title = "GifOverlay";
-            var returned = await this.GifOverlayRequest.RaiseAsync(notification);
-            if (returned != null && returned.Confirmed)
-            {
-                Console.WriteLine("TEST");
-                GifButtonEnabled = false;
-                int x = notification.WindowLeft;
-                int y = notification.WindowTop;
-                int w = notification.WindowWidth;
-                int h = notification.WindowHeight;
-                int f = notification.GifFramerate;
-                int d = notification.GifDuration;
-                Gif gif = new Gif(f, d, w, h, x, y);
-                await gif.StartCapture();
-                if (gif.Frames.Count > 0)
-                {
-                    bool cancelled = false;
-                    if (Properties.Settings.Default.gifEditorEnabled)
-                    {
-                        GifEditorNotification gen = new GifEditorNotification();
-                        gen.Title = "Gif Editor";
-                        gen.Gif = gif;
-                        var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
-                        if (gen_returned != null && !gen_returned.Confirmed)
-                        {
-                            cancelled = true;
-                        }
-                    }
-                    if (!cancelled)
-                    {
-                        GifProgressNotification gpn = new GifProgressNotification();
-                        gpn.Title = "Encoding Gif..";
-                        gpn.Gif = gif;
-                        var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
-                        if (gpn_returned != null && gpn_returned.Confirmed)
-                        {
-                            Main.AddGif(gpn.Name);
-                        } 
-                    }
-                }
-                GifButtonEnabled = true;
-            }
+            GifButtonEnabled = false;
+            Main.CapGif();
+            GifButtonEnabled = true;
         }
 
         private void CaptureD3DImage()
@@ -157,8 +113,8 @@ namespace ScreenShotterWPF.ViewModels
         {
             // mouse hook and such
             WindowButtonText = "Click a Window..";
-            mHook = new KeyHook();
-            KeyHook.SetAction(mouseAction);
+            mHook = new MouseKeyHook();
+            MouseKeyHook.SetAction(mouseAction);
         }
 
         private void HookMouseAction(bool b)
@@ -169,7 +125,7 @@ namespace ScreenShotterWPF.ViewModels
                 NativeMethods.GetCursorPos(out p);
                 Main.CapWindowFromPoint(p.X, p.Y);
             }
-            KeyHook.Unhook();
+            MouseKeyHook.Unhook();
             WindowButtonText = "Select Window";
         }
 
@@ -179,35 +135,6 @@ namespace ScreenShotterWPF.ViewModels
             Main.CapArea();
             AreaButtonText = "Select Area";
         }
-
-        /*private async void CaptureGif()
-        {
-            GifButtonEnabled = false;
-            GifOverlayViewModel gv = new GifOverlayViewModel();
-            GifOverlay go = new GifOverlay
-            {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                Topmost = true,
-                DataContext = gv
-            };
-            go.ShowDialog();
-            if (go.DialogResult.HasValue && go.DialogResult.Value)
-            {
-                int x = (int)go.Left;
-                int y = (int)go.Top;
-                int w = gv.WindowWidth;
-                int h = gv.WindowHeight;
-                int f = gv.GifFramerate;
-                int d = gv.GifDuration;
-                await main.CapGif(x, y, w, h, f, d, 0);
-            }
-            else
-            {
-                go = null;
-                gv = null;
-            }
-            GifButtonEnabled = true;
-        }*/
         
         private static void ExitApplication()
         {
@@ -285,6 +212,7 @@ namespace ScreenShotterWPF.ViewModels
             RegisterHotKey(HOTKEY_2, Properties.Settings.Default.hkCurrentwindow);
             RegisterHotKey(HOTKEY_3, Properties.Settings.Default.hkSelectedarea);
             RegisterHotKey(HOTKEY_4, Properties.Settings.Default.hkD3DCap);
+            RegisterHotKey(HOTKEY_5, Properties.Settings.Default.hkGifcapture);
         }
 
         private void RegisterHotKey(int hotkey_id, HotKey hk)
@@ -356,6 +284,10 @@ namespace ScreenShotterWPF.ViewModels
                             break;
                        case HOTKEY_4:
                             Main.D3DCapPrimaryScreen();
+                            handled = true;
+                            break;
+                        case HOTKEY_5:
+                            Main.CapGif();
                             handled = true;
                             break;
                     }

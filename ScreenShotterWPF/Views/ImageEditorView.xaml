@@ -23,13 +23,16 @@
                     <MenuItem Name="toolEllipse" Header="_Ellipse" IsCheckable="True" Command="{Binding EllipseCommand}"/>
                     <MenuItem Name="toolArrow" Header="_Arrow" IsCheckable="True" Command="{Binding ArrowCommand}"/>
                 </MenuItem>
-                <xctk:ColorPicker Name="colorPicker" Height="17" ShowDropDownButton="False" ColorMode="ColorCanvas" Width="25"/><!--SelectedColorChanged="colorPicker_SelectedColorChanged" -->
-                <xctk:IntegerUpDown Name="strokeThickness" DisplayDefaultValueOnEmptyText="True" Maximum="20" Minimum="1"/><!--ValueChanged="strokeThickness_ValueChanged"-->
+                <xctk:ColorPicker Name="colorPicker" Height="17" ShowDropDownButton="False" ColorMode="ColorCanvas" Width="25" SelectedColor="{Binding SelectedColor}"/><!--SelectedColorChanged="colorPicker_SelectedColorChanged" -->
+                <xctk:IntegerUpDown Name="strokeThickness" DisplayDefaultValueOnEmptyText="True" Maximum="20" Minimum="1" Value="{Binding StrokeThickness}"/><!--ValueChanged="strokeThickness_ValueChanged"-->
                 <MenuItem x:Name="clearEdits" Header="_Clear Edits" Command="{Binding ClearCommand}"/>
             </Menu>
         </DockPanel>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="1,1,1,1">
             <InkCanvas Name="EditorCanvas" Cursor="Cross" MoveEnabled="False" UseCustomCursor="True"><!--MouseLeftButtonDown="EditorCanvas_MouseLeftButtonDown" MouseMove="EditorCanvas_MouseMove" MouseLeftButtonUp="EditorCanvas_MouseLeftButtonUp"-->
+                <InkCanvas.Children>
+                    
+                </InkCanvas.Children>
                 <InkCanvas.DefaultDrawingAttributes>
                     <DrawingAttributes Color="Black" Height="2" IsHighlighter="False" StylusTip="Ellipse" StylusTipTransform="Identity" Width="2.0031496062992127"/>
                 </InkCanvas.DefaultDrawingAttributes>

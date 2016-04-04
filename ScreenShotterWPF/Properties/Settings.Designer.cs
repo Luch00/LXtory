@@ -432,5 +432,16 @@ namespace ScreenShotterWPF.Properties {
                 this["imgurTokenExpire"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::ScreenShotterWPF.HotKey hkGifcapture {
+            get {
+                return ((global::ScreenShotterWPF.HotKey)(this["hkGifcapture"]));
+            }
+            set {
+                this["hkGifcapture"] = value;
+            }
+        }
     }
 }

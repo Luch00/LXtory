@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace ScreenShotterWPF
 {
-    internal class KeyHook
+    internal class MouseKeyHook
     {
         // Imported stuff from system DLL
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -29,7 +29,7 @@ namespace ScreenShotterWPF
         // Action to send the button presses to
         private static Action<bool> action;
 
-        public KeyHook()
+        public MouseKeyHook()
         {
             _hookID = SetHook(_proc);
         }
@@ -43,10 +43,8 @@ namespace ScreenShotterWPF
                 return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
             }
         }
-
-        // I'm not 100% sure but I think this is like a thread type thing
-        private delegate IntPtr LowLevelKeyboardProc(
-        int nCode, IntPtr wParam, IntPtr lParam);
+        
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
         // Read what button was pressed
         private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)

@@ -38,7 +38,7 @@ namespace ScreenShotterWPF
         //readonly Action<XImage, string> addXImageToList;
 
         // For selecting window to capture
-        private KeyHook mHook;
+        private MouseKeyHook mHook;
         private readonly Action<bool> mouseAction;
 
         protected Thread clipboardThread;
@@ -55,8 +55,11 @@ namespace ScreenShotterWPF
 
         private readonly bool windows8;
 
-        public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; }
+        //public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; }
         public InteractionRequest<IConfirmation> OverlayRequest { get; private set; }
+        public InteractionRequest<IConfirmation> GifOverlayRequest { get; private set; }
+        public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
+        public InteractionRequest<IConfirmation> GifProgressRequest { get; private set; }
 
         readonly System.Timers.Timer timer = new System.Timers.Timer();
 
@@ -69,8 +72,11 @@ namespace ScreenShotterWPF
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             uploader = new Uploader(progressBarUpdate);
-            ImageEditorRequest = new InteractionRequest<IConfirmation>();
+            //ImageEditorRequest = new InteractionRequest<IConfirmation>();
             OverlayRequest = new InteractionRequest<IConfirmation>();
+            this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
+            this.GifEditorRequest = new InteractionRequest<IConfirmation>();
+            this.GifProgressRequest = new InteractionRequest<IConfirmation>();
             SetIcon("default");
             timer.Interval = 5000;
             timer.Elapsed += timerTick_DelayIconChange;
@@ -287,10 +293,11 @@ namespace ScreenShotterWPF
         private static void SetDefaults()
         {
             Properties.Settings.Default.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            Properties.Settings.Default.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
+            /*Properties.Settings.Default.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
             Properties.Settings.Default.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
             Properties.Settings.Default.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
-            Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
+            Properties.Settings.Default.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
+            Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));*/
             Properties.Settings.Default.Save();
         }
 
@@ -453,7 +460,7 @@ namespace ScreenShotterWPF
                 NativeMethods.GetCursorPos(out p);
                 CapWindowFromPoint(p.X, p.Y);
             }
-            KeyHook.Unhook();
+            MouseKeyHook.Unhook();
         }
 
         public void D3DCapPrimaryScreen()
@@ -550,7 +557,6 @@ namespace ScreenShotterWPF
         // Create an overlay, draw a rectangle on the overlay to cap that area
         public void CapArea()
         {
-            
             if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
@@ -579,27 +585,69 @@ namespace ScreenShotterWPF
             }
         }
 
-        public void AddGif(string filename)
+        public async void CapGif()
         {
-            if (filename != string.Empty)
+            GifOverlayNotification notification = new GifOverlayNotification();
+            notification.Title = "GifOverlay";
+            var returned = await this.GifOverlayRequest.RaiseAsync(notification);
+            if (returned != null && returned.Confirmed)
             {
-                XImage img = new XImage();
-                img.filename = filename;
-                img.filepath = Path.Combine(Properties.Settings.Default.filePath, filename);
-                string p = "dd.MM.yy HH:mm:ss";
-                img.datetime = DateTime.Now;
-                string date = DateTime.Now.ToString(p);
-                img.date = date;
+                Console.WriteLine("TEST");
 
-                if (Properties.Settings.Default.gifUpload)
+                int x = notification.WindowLeft;
+                int y = notification.WindowTop;
+                int w = notification.WindowWidth;
+                int h = notification.WindowHeight;
+                int f = notification.GifFramerate;
+                int d = notification.GifDuration;
+                Gif gif = new Gif(f, d, w, h, x, y);
+                await gif.StartCapture();
+                if (gif.Frames.Count > 0)
                 {
-                    img.anonupload = Properties.Settings.Default.anonUpload;
-                    AddToQueue(img);
-                }
-                else
-                {
-                    //addXImageToList(img, "");
-                    AddXimageToList(img, "");
+                    bool cancelled = false;
+                    if (Properties.Settings.Default.gifEditorEnabled)
+                    {
+                        GifEditorNotification gen = new GifEditorNotification();
+                        gen.Title = "Gif Editor";
+                        gen.Gif = gif;
+                        var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
+                        if (gen_returned != null && !gen_returned.Confirmed)
+                        {
+                            cancelled = true;
+                        }
+                    }
+                    if (!cancelled)
+                    {
+                        GifProgressNotification gpn = new GifProgressNotification();
+                        gpn.Title = "Encoding Gif..";
+                        gpn.Gif = gif;
+                        var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
+                        if (gpn_returned != null && gpn_returned.Confirmed)
+                        {
+                            var filename = gpn.Name;
+                            if (filename != string.Empty)
+                            {
+                                XImage img = new XImage();
+                                img.filename = filename;
+                                img.filepath = Path.Combine(Properties.Settings.Default.filePath, filename);
+                                string p = "dd.MM.yy HH:mm:ss";
+                                img.datetime = DateTime.Now;
+                                string date = DateTime.Now.ToString(p);
+                                img.date = date;
+
+                                if (Properties.Settings.Default.gifUpload)
+                                {
+                                    img.anonupload = Properties.Settings.Default.anonUpload;
+                                    AddToQueue(img);
+                                }
+                                else
+                                {
+                                    //addXImageToList(img, "");
+                                    AddXimageToList(img, "");
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -712,10 +760,10 @@ namespace ScreenShotterWPF
             x.datetime = DateTime.Now;
             string d = DateTime.Now.ToString(p);
             x.date = d;
-            if (editorEnabled)
+            /*if (editorEnabled) // EDITOR DISABLED UNTIL REWORKED OR JUST REMOVED ¯\_(ツ)_/¯
             {
                 OpenEditor(x);
-            }
+            }*/
             if (Properties.Settings.Default.saveLocal)
             {
                 x.filepath = SaveImageToDisk(x.image, filename);
@@ -735,26 +783,26 @@ namespace ScreenShotterWPF
             }
         }
 
-        private void OpenEditor(XImage img)
-        {
-            ImageEditorNotification ien = new ImageEditorNotification();
-            ien.Title = "Editor";
-            this.ImageEditorRequest.Raise(
-                ien, returned =>
-                {
-                    if (returned != null && returned.Confirmed)
-                    {
-                        //img.image = edited // TODO EVERYTHING HERE
-                    }
-                });
-            //Editor editor = new Editor(img.image);
-            //editor.ShowDialog();
-            //if (editor.DialogResult.HasValue && editor.DialogResult.Value)
-            //{
-            //    img.image = editor.editedImage;
-            //    editor.editedImage = null;
-            //}
-        }
+        //private void OpenEditor(XImage img)
+        //{
+        //    ImageEditorNotification ien = new ImageEditorNotification();
+        //    ien.Title = "Editor";
+        //    this.ImageEditorRequest.Raise(
+        //        ien, returned =>
+        //        {
+        //            if (returned != null && returned.Confirmed)
+        //            {
+        //                //img.image = edited // TODO EVERYTHING HERE
+        //            }
+        //        });
+        //    //Editor editor = new Editor(img.image);
+        //    //editor.ShowDialog();
+        //    //if (editor.DialogResult.HasValue && editor.DialogResult.Value)
+        //    //{
+        //    //    img.image = editor.editedImage;
+        //    //    editor.editedImage = null;
+        //    //}
+        //}
 
         // Add image to list
         private void AddXimageToList(XImage x, string url)

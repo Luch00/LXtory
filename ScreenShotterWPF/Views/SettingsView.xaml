@@ -123,6 +123,26 @@
                             </TextBox>
                         </StackPanel>
 
+                        <Label Content="Gif Capture" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding GifCaptureCtrl}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Shift" VerticalAlignment="Center" IsChecked="{Binding GifCaptureShift}"/>
+                            <Label Content="+"/>
+                            <CheckBox Content="Alt" VerticalAlignment="Center" IsChecked="{Binding GifCaptureAlt}"/>
+                            <Label Content="+"/>
+                            <TextBox x:Name="textGifCapture" HorizontalAlignment="Left" Height="23" Text="{Binding GifCaptureString}" TextWrapping="Wrap" VerticalAlignment="Center" Width="215">
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="PreviewKeyDown">
+                                        <ei:CallMethodAction MethodName="PreviewKeyDown" TargetObject="{Binding}" />
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="PreviewKeyUp">
+                                        <ei:CallMethodAction MethodName="PreviewKeyUp_Gifcapture" TargetObject="{Binding}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBox>
+                        </StackPanel>
+
                         <Label Content="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox Content="Ctrl" VerticalAlignment="Center" Margin="4,0,0,0" IsChecked="{Binding D3dCtrl}"/>
