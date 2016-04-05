@@ -4,12 +4,15 @@ using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
 using System;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ScreenShotterWPF.ViewModels
 {
     internal class GifEditorViewModel : BindableBase, IInteractionRequestAware
     {
         private GifEditorNotification notification;
+
+        private ImageSource previewImage;
 
         public Action FinishInteraction { get; set; }
         
@@ -44,6 +47,7 @@ namespace ScreenShotterWPF.ViewModels
                 {
                     this.notification = value as GifEditorNotification;
                     notification.Gif.LoadThumbnails();
+                    SelectedIndex = 0;
                     this.OnPropertyChanged(() => this.Notification);
                 }
             }
@@ -78,7 +82,22 @@ namespace ScreenShotterWPF.ViewModels
         public int SelectedIndex
         {
             get { return selectedIndex; }
-            set { selectedIndex = value; OnPropertyChanged("SelectedIndex"); }
+            set { selectedIndex = value; SetPreviewImage(); OnPropertyChanged("SelectedIndex"); }
+        }
+
+        public ImageSource PreviewImage
+        {
+            get { return previewImage; }
+            set { previewImage = value; OnPropertyChanged("PreviewImage"); }
+        }
+
+        private void SetPreviewImage()
+        {
+            if (previewImage != null)
+            {
+                previewImage = null;
+            }
+            PreviewImage = notification.Gif.Frames[selectedIndex].Image;
         }
 
         private void Cancel()

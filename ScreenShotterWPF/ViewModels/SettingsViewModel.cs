@@ -163,6 +163,16 @@ namespace ScreenShotterWPF.ViewModels
             e.Handled = true;
         }
 
+        public void PreviewKeyUp_Gifcapture(object sender, KeyEventArgs e)
+        {
+            Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
+            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift)
+                return;
+
+            GifCaptureKey = KeyInterop.VirtualKeyFromKey(key);
+            e.Handled = true;
+        }
+
         public void PreviewKeyUp_D3DCapture(object sender, KeyEventArgs e)
         {
             Key key = (e.Key == Key.System ? e.SystemKey : e.Key);
@@ -670,6 +680,10 @@ namespace ScreenShotterWPF.ViewModels
             if (selectedareaKey != 0)
             {
                 Properties.Settings.Default.hkSelectedarea = new HotKey(selectedareaCtrl, selectedareaAlt, selectedareaShift, selectedareaKey);
+            }
+            if (gifcaptureKey != 0)
+            {
+                Properties.Settings.Default.hkGifcapture = new HotKey(gifcaptureCtrl, gifcaptureAlt, gifcaptureShift, gifcaptureKey);
             }
             if (d3dKey != 0)
             {

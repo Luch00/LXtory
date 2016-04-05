@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
@@ -48,6 +47,8 @@ namespace ScreenShotterWPF
 
         private int progressValue;
         private string statusText;
+
+        private bool gifCapturing;
 
         private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
 
@@ -333,6 +334,7 @@ namespace ScreenShotterWPF
 
         private ImageSource icon;
         private string currentIcon;
+
         public ImageSource Icon
         {
             get { return icon; }
@@ -587,6 +589,10 @@ namespace ScreenShotterWPF
 
         public async void CapGif()
         {
+            if (gifCapturing)
+                return;
+
+            gifCapturing = true;
             GifOverlayNotification notification = new GifOverlayNotification();
             notification.Title = "GifOverlay";
             var returned = await this.GifOverlayRequest.RaiseAsync(notification);
@@ -650,6 +656,7 @@ namespace ScreenShotterWPF
                     }
                 }
             }
+            gifCapturing = false;
         }
 
         // Capture an area of the screen, save as PNG

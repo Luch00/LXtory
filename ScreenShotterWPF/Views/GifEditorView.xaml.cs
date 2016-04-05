@@ -11,19 +11,5 @@ namespace ScreenShotterWPF.Views
         {
             InitializeComponent();
         }
-
-        private void listBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            GifFrame selectedItem = listBox.SelectedItem as GifFrame;
-            if (selectedItem != null)
-            {
-                if (previewImage.Source != null)
-                {
-                    previewImage.Source = null;
-                }
-                
-                previewImage.Source = selectedItem.Image;
-            }
-        }
     }
 }
