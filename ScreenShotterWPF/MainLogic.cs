@@ -26,6 +26,8 @@ namespace ScreenShotterWPF
 
         private readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
+        private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
+
         XImage currentUpload;
         private int uploading = 0;
         private int totalUploading = 0;
@@ -78,7 +80,8 @@ namespace ScreenShotterWPF
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
             this.GifProgressRequest = new InteractionRequest<IConfirmation>();
-            SetIcon("default");
+            LoadIcons();
+            SetIcon("Default");
             timer.Interval = 5000;
             timer.Elapsed += timerTick_DelayIconChange;
             if (Properties.Settings.Default.filePath == "")
@@ -94,12 +97,23 @@ namespace ScreenShotterWPF
             return Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version >= win8;
         }
 
+        private void LoadIcons()
+        {
+            string[] ico = { "Default", "F", "E", "R", "10", "20", "30", "40", "50", "60", "70", "80", "90" };
+            foreach (var i in ico)
+            {
+                var bitmapImage = new BitmapImage(new Uri($"pack://application:,,,/Resources/{i}.ico", UriKind.Absolute));
+                bitmapImage.Freeze();
+                trayicons.Add(i, bitmapImage);
+            }
+        }
+
         private void timerTick_DelayIconChange(object sender, EventArgs e)
         {
             lock (timer)
             {
                 timer.Stop();
-                ChangeTrayIcon("default");
+                ChangeTrayIcon("Default");
             }
         }
 
@@ -333,26 +347,29 @@ namespace ScreenShotterWPF
         }
 
         private ImageSource icon;
-        private string currentIcon;
 
         public ImageSource Icon
         {
             get { return icon; }
-            set { icon = value; OnPropertyChanged("Icon"); }
+            set
+            {
+                if (value != icon)
+                {
+                    icon = value;
+                    OnPropertyChanged("Icon"); 
+                }
+            }
         }
 
         private void SetIcon(string s)
         {
-            if (!string.IsNullOrEmpty(s) && s != currentIcon)
+            if (!string.IsNullOrEmpty(s))
             {
-                var yourImage = new BitmapImage(new Uri($"pack://application:,,,/Resources/{s}.ico", UriKind.Absolute));
-                yourImage.Freeze();
-                currentIcon = s;
-                Icon = yourImage;
+                Icon = trayicons[s];
             }
             else
             {
-                Icon = null;
+                Icon = trayicons["Default"];
             }
         }
 
@@ -377,8 +394,8 @@ namespace ScreenShotterWPF
                 case "E":
                     SetIcon("E");
                     break;
-                case "default":
-                    SetIcon("default");
+                case "Default":
+                    SetIcon("Default");
                     break;
                 case "00":
                     SetIcon("00");
