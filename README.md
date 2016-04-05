@@ -1,5 +1,5 @@
 # LXtory
-A Windows desktop screenshot tool, supports Imgur, Gyazo, Puush.
+A Windows desktop screenshot tool and uploader, supports Imgur, Gyazo, Puush.
 
 * Capture screenshots of selected window, drag area or fullscreen
 * Save local copy and/or upload to Imgur, Gyazo or Puush
