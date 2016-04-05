@@ -422,6 +422,7 @@ namespace ScreenShotterWPF.Properties {
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int imgurTokenExpire {
@@ -430,6 +431,18 @@ namespace ScreenShotterWPF.Properties {
             }
             set {
                 this["imgurTokenExpire"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::ScreenShotterWPF.HotKey hkGifcapture {
+            get {
+                return ((global::ScreenShotterWPF.HotKey)(this["hkGifcapture"]));
+            }
+            set {
+                this["hkGifcapture"] = value;
             }
         }
     }

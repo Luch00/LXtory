@@ -23,18 +23,6 @@ namespace ScreenShotterWPF
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
 
-        //[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        //private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        //[DllImport("user32.dll")]
-        //internal static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        //[DllImport("user32.dll")]
-        //internal static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
-
-        //[DllImport("user32.dll")]
-        //internal static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
-
         [DllImport("user32.dll")]
         internal static extern IntPtr WindowFromPoint(int xPoint, int yPoint);
 
@@ -44,25 +32,6 @@ namespace ScreenShotterWPF
 
         [DllImport("shell32.dll")]
         internal static extern int SHQueryUserNotificationState(out USERNOTIFICATIONSTATE pquns);
-
-        // Clipboard pinvokes
-        //[DllImport("user32.dll", SetLastError = true)]
-        //internal static extern bool OpenClipboard(IntPtr hWndNewOwner);
-
-        //[DllImport("user32.dll", SetLastError = true)]
-        //internal static extern bool CloseClipboard();
-
-        //[DllImport("user32.dll", SetLastError = true)]
-        //internal static extern bool SetClipboardData(uint uFormat, IntPtr data);
-
-        //[DllImport("user32.dll", SetLastError = true)]
-        //internal static extern bool EmptyClipboard();
-
-        //[DllImport("user32.dll")]
-        //internal static extern IntPtr GetOpenClipboardWindow();
-
-        //[DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        //internal static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         [DllImport("User32.dll")]
         internal static extern bool RegisterHotKey(
@@ -117,17 +86,6 @@ namespace ScreenShotterWPF
                 this.Y = y;
             }
         }
-
-        //[StructLayout(LayoutKind.Sequential)]
-        //internal struct WINDOWPLACEMENT
-        //{
-        //    public int length;
-        //    public int flags;
-        //    public int showCmd;
-        //    public POINTAPI ptMinPosition;
-        //    public POINTAPI ptMaxPosition;
-        //    public RECT rcNormalPosition;
-        //}
 
         internal enum USERNOTIFICATIONSTATE
         {

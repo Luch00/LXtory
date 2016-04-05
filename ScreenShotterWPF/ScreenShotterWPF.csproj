@@ -78,12 +78,25 @@
   <PropertyGroup />
   <PropertyGroup />
   <ItemGroup>
-    <Reference Include="Hardcodet.Wpf.TaskbarNotification">
-      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.5\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+    <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.8\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="nQuant.Core, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\nQuant.1.0.3\lib\net40\nQuant.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Prism, Version=6.1.0.0, Culture=neutral, PublicKeyToken=91a96d2a154366d8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Prism.Core.6.1.0\lib\net45\Prism.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Prism.Wpf, Version=6.1.0.0, Culture=neutral, PublicKeyToken=91a96d2a154366d8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Prism.Wpf.6.1.1-pre2\lib\net45\Prism.Wpf.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpDX, Version=3.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
@@ -107,6 +120,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -121,40 +135,58 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GifFrame.cs" />
+    <Compile Include="HotKey.cs" />
+    <Compile Include="Notifications\GifEditorNotification.cs" />
+    <Compile Include="Notifications\GifOverlayNotification.cs" />
+    <Compile Include="Notifications\GifProgressNotification.cs" />
+    <Compile Include="Notifications\ImageEditorNotification.cs" />
+    <Compile Include="Notifications\OverlayNotification.cs" />
+    <Compile Include="Notifications\SettingsNotification.cs" />
+    <Compile Include="ViewModels\GifProgressViewModel.cs" />
+    <Compile Include="ViewModels\ImageEditorViewModel.cs" />
+    <Compile Include="ViewModels\OverlayViewModel.cs" />
+    <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="Views\GifEditorView.xaml.cs">
+      <DependentUpon>GifEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\GifOverlayView.xaml.cs">
+      <DependentUpon>GifOverlayView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\GifProgressView.xaml.cs">
+      <DependentUpon>GifProgressView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ImageEditorView.xaml.cs">
+      <DependentUpon>ImageEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MainView.xaml.cs">
+      <DependentUpon>MainView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OverlayView.xaml.cs">
+      <DependentUpon>OverlayView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SettingsView.xaml.cs">
+      <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="XImage.cs" />
     <Page Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="ArrowEnds.cs" />
-    <Compile Include="ArrowLine.cs" />
-    <Compile Include="ArrowLineBase.cs" />
-    <Compile Include="ArrowPolyline.cs" />
+    <Compile Include="Arrow\ArrowEnds.cs" />
+    <Compile Include="Arrow\ArrowLine.cs" />
+    <Compile Include="Arrow\ArrowLineBase.cs" />
+    <Compile Include="Arrow\ArrowPolyline.cs" />
     <Compile Include="BumpkitEncoder.cs" />
     <Compile Include="DesktopDuplication.cs" />
-    <Compile Include="Editor.xaml.cs">
-      <DependentUpon>Editor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="EncodingProgressViewModel.cs" />
-    <Compile Include="EncodingProgressWindow.xaml.cs">
-      <DependentUpon>EncodingProgressWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Gif.cs" />
-    <Compile Include="GifEditor.xaml.cs">
-      <DependentUpon>GifEditor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="GifEditorViewModel.cs" />
-    <Compile Include="GifOverlay.xaml.cs">
-      <DependentUpon>GifOverlay.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="GifOverlayViewModel.cs" />
-    <Compile Include="Imgur.cs" />
-    <Compile Include="KeyHook.cs" />
+    <Compile Include="ViewModels\GifEditorViewModel.cs" />
+    <Compile Include="ViewModels\GifOverlayViewModel.cs" />
+    <Compile Include="Uploader.cs" />
+    <Compile Include="MouseKeyHook.cs" />
     <Compile Include="MainLogic.cs" />
-    <Compile Include="MainViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="Overlay.xaml.cs">
-      <DependentUpon>Overlay.xaml</DependentUpon>
-    </Compile>
     <Compile Include="PortableSettings1.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -162,27 +194,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
-    <Compile Include="Settings.xaml.cs">
-      <DependentUpon>Settings.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ShellExtension.cs" />
     <Compile Include="SingleInstance.cs" />
-    <Page Include="Editor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="EncodingProgressWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="GifEditor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="GifOverlay.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -194,11 +206,31 @@
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Overlay.xaml">
+    <Page Include="Views\GifEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Settings.xaml">
+    <Page Include="Views\GifOverlayView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\GifProgressView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ImageEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\MainView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\OverlayView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SettingsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

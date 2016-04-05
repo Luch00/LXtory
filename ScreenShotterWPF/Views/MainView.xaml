@@ -1,0 +1,231 @@
+﻿<UserControl x:Class="ScreenShotterWPF.Views.MainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:prism="http://prismlibrary.com/" 
+             xmlns:local="clr-namespace:ScreenShotterWPF.Views"
+             prism:ViewModelLocator.AutoWireViewModel="True"
+             xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:tb="http://www.hardcodet.net/taskbar"
+             xmlns:views="clr-namespace:ScreenShotterWPF.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    
+    <i:Interaction.Triggers>
+        <!-- Open Settings -->
+        <prism:InteractionRequestTrigger SourceObject="{Binding SettingsRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterOwner">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="Icon" Value="../Resources/meh.ico"/>
+                        <Setter Property="ResizeMode" Value="NoResize"/>
+                        <Setter Property="Width" Value="495"/>
+                        <Setter Property="Height" Value="456"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:SettingsView />
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+        <!-- Open Gif recorder-->
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifOverlayRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="WindowStyle" Value="None"/>
+                        <Setter Property="Width" Value="{Binding WindowWidth, Mode=TwoWay}"/>
+                        <Setter Property="Height" Value="{Binding WindowHeight, Mode=TwoWay}"/>
+                        <Setter Property="Top" Value="{Binding WindowTop, Mode=TwoWay}"/>
+                        <Setter Property="Left" Value="{Binding WindowLeft, Mode=TwoWay}"/>
+                        <Setter Property="Opacity" Value="0.75"/>
+                        <Setter Property="AllowsTransparency" Value="True"/>
+                        <Setter Property="MinHeight" Value="170"/>
+                        <Setter Property="MinWidth" Value="170"/>
+                        <Setter Property="Topmost" Value="True"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:GifOverlayView />
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+        <!-- Open Gif editor -->
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifEditorRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="Icon" Value="../Resources/meh.ico"/>
+                        <Setter Property="ResizeMode" Value="NoResize"/>
+                        <Setter Property="Width" Value="520"/>
+                        <Setter Property="Height" Value="380"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:GifEditorView />
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+        <!-- Open Gif Encoding progress -->
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.GifProgressRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="Icon" Value="../Resources/meh.ico"/>
+                        <Setter Property="ResizeMode" Value="NoResize"/>
+                        <Setter Property="Width" Value="335"/>
+                        <Setter Property="Height" Value="70"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:GifProgressView />
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+        <!-- Open image editor -->
+        <!--<prism:InteractionRequestTrigger SourceObject="{Binding Main.ImageEditorRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="Icon" Value="../Resources/meh.ico"/>
+                        <Setter Property="MinHeight" Value="500"/>
+                        <Setter Property="MinWidth" Value="600"/>
+                        <Setter Property="Width" Value="627"/>
+                        <Setter Property="Height" Value="512"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:ImageEditorView/>
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>-->
+        <!-- Open overlay -->
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.OverlayRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="WindowStyle" Value="None"/>
+                        <Setter Property="Topmost" Value="False"/>
+                        <Setter Property="Width" Value="{Binding WindowWidth, Mode=TwoWay}"/>
+                        <Setter Property="Height" Value="{Binding WindowHeight, Mode=TwoWay}"/>
+                        <Setter Property="Top" Value="{Binding WindowTop, Mode=TwoWay}"/>
+                        <Setter Property="Left" Value="{Binding WindowLeft, Mode=TwoWay}"/>
+                        <Setter Property="Opacity" Value="0.35"/>
+                        <Setter Property="AllowsTransparency" Value="True"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+                <prism:PopupWindowAction.WindowContent>
+                    <views:OverlayView/>
+                </prism:PopupWindowAction.WindowContent>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+    </i:Interaction.Triggers>
+    
+    <UserControl.Resources>
+        <ContextMenu x:Key="rowContextMenu">
+            <ContextMenu.Items>
+                <MenuItem Header="Open local" Command="{Binding OpenLocalCommand}" IsEnabled="{Binding OpenLocalEnabled}"/>
+                <MenuItem Header="Open in browser" Command="{Binding OpenBrowserCommand}" IsEnabled="{Binding OpenBrowserEnabled}"/>
+                <MenuItem Header="Copy url to clipboard" Command="{Binding CopyClipboardCommand}" IsEnabled="{Binding CopyClipboardEnabled}"/>
+            </ContextMenu.Items>
+        </ContextMenu>
+        <Style x:Key="rowStyle" TargetType="{x:Type DataGridRow}">
+            <Setter Property="ContextMenu" Value="{StaticResource rowContextMenu}" />
+        </Style>
+        <CollectionViewSource x:Key="SortedImagesList" Source="{Binding Main.Ximages}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="datetime" Direction="Descending" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </UserControl.Resources>
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <Menu x:Name="menuStrip1" Height="24" Margin="0,0,0,0" VerticalAlignment="Top">
+                <MenuItem x:Name="menuMenu" Header="_Menu">
+                    <MenuItem x:Name="openMenuItem" Header="_Open" Command="{Binding OpenCommand}"/>
+                    <!--<MenuItem x:Name="albumsMenuItem" Header="_Albums"/>-->
+                    <MenuItem x:Name="settingsMenuItem" Header="_Settings" Command="{Binding RaiseSettingsCommand}"/>
+                    <Separator />
+                    <MenuItem x:Name="exitMenuItem" Header="_Exit" Command="{Binding ExitCommand}"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="button1" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureFullscreenCommand}">
+                    <TextBlock TextWrapping="Wrap" Text="Whole Desktop" TextAlignment="Center"/>
+                </Button>
+                <Button x:Name="button2" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureWindowCommand}">
+                    <TextBlock x:Name="btn2Text" TextWrapping="Wrap" Text="{Binding WindowButtonText}" TextAlignment="Center"/>
+                </Button>
+                <Button x:Name="button3" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureAreaCommand}">
+                    <TextBlock x:Name="btnText" TextWrapping="Wrap" Text="{Binding AreaButtonText}" TextAlignment="Center"/>
+                </Button>
+
+                <Button x:Name="btnGif" Content="GIF" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureGifCommand}" IsEnabled="{Binding GifButtonEnabled}"/>
+                <!--<StackPanel Orientation="Vertical"> // EDITOR DISABLED UNTIL REWORKED
+                    <Label Content="Editor:" HorizontalAlignment="Left" Margin="4,0,0,-3" VerticalAlignment="Top" Height="24"/>
+                    <ToggleButton x:Name="editorToggle" Margin="4,0,0,0" VerticalAlignment="Top" Width="70" Height="23" HorizontalAlignment="Left" IsChecked="{Binding Main.EditorEnabled}">
+                        <ToggleButton.Style>
+                            <Style TargetType="{x:Type ToggleButton}">
+                                <Setter Property="Content" Value="Disabled"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter Property="Content" Value="Enabled"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+                </StackPanel>-->
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Margin="4,80,4,2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="180"/>
+                <RowDefinition/>
+                <RowDefinition Height="22"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
+
+            <!--<DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding ViewSource.View}" RowStyle="{StaticResource rowStyle}" RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" ContextMenuOpening="ContextMenu_Check" AutoGenerateColumns="False" SelectionMode="Single" SelectionChanged="dgImages_SelectionChanged">-->
+            <DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" RowStyle="{StaticResource rowStyle}" RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" AutoGenerateColumns="False" SelectionMode="Single" SelectedItem="{Binding SelectedIndex}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding filename}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Filename" Width="100"/>
+                    <DataGridTextColumn Binding="{Binding date}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Date"/>
+                    <DataGridTextColumn Binding="{Binding url}" ClipboardContentBinding="{x:Null}" Header="Url" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StatusBar Height="22" VerticalAlignment="Bottom" ClipToBounds="True" Grid.Row="2">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+                <StatusBarItem>
+                    <TextBlock x:Name="statusBarText" Text="{Binding Main.StatusText}"/>
+                </StatusBarItem>
+                <StatusBarItem Grid.Column="2" Height="22">
+                    <ProgressBar x:Name="progressBar1" Width="120" ClipToBounds="True" Height="16" Value="{Binding Main.ProgressValue, Mode=OneWay}" />
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+
+        <tb:TaskbarIcon x:Name="tbi" IconSource="{Binding Main.Icon}" ToolTipText="LXtory" TrayMouseDoubleClick="tbi_TrayMouseDoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Restore" Click="MenuItem_Click"/>
+                    <Separator></Separator>
+                    <MenuItem Header="Exit" Click="MenuItem_Click_1"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+    </Grid>
+</UserControl>

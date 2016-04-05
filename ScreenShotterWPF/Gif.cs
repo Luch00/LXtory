@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -10,18 +9,15 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Prism.Mvvm;
+using ScreenShotterWPF.Notifications;
+using System.Collections.ObjectModel;
+using System.Windows.Media.Imaging;
 
 namespace ScreenShotterWPF
 {
-    internal class Gif : INotifyPropertyChanged
+    internal class Gif : BindableBase
     {
-        /// 1. Get framerate and record length
-        /// 2. calculate frame count and delay
-        /// 3. Get display area and start capturing
-        /// 4. Captured images to BlockingCollection and start saving on disk
-        /// 5. once capture / saving is finished start making into gif
-        /// 6. save local / upload gif & delete single frames
-
         private readonly BlockingCollection<Image> ImageBuffer;
         private readonly int delay;
         private readonly int frameCount;
@@ -29,21 +25,10 @@ namespace ScreenShotterWPF
         private readonly int height;
         private readonly int posX;
         private readonly int posY;
-        private int filename;
+        private int fileindex;
         private readonly string cachedir;
-        private readonly List<string> frames;
+        private readonly ObservableCollection<GifFrame> frames;
         private int encodingProgress;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
 
         public Gif(int framerate, int duration, int w, int h, int x, int y)
         {
@@ -51,27 +36,49 @@ namespace ScreenShotterWPF
             this.height = h;
             this.posX = x;
             this.posY = y;
-            //this.duration = duration;
-            //this.frameRate = framerate;
             this.frameCount = framerate * duration;
             this.delay = 1000 / framerate;
-            this.filename = 0;
+            this.fileindex = 0;
+            this.encodingProgress = 0;
             this.cachedir = Path.Combine(Properties.Settings.Default.filePath, "gif_frames");
-            this.frames = new List<string>();
+            this.frames = new ObservableCollection<GifFrame>();
             ImageBuffer = new BlockingCollection<Image>();
         }
 
         public int EncodingProgress
         {
             get { return encodingProgress; }
-            set { encodingProgress = value; RaisePropertyChanged("EncodingProgress"); }
+            set { encodingProgress = value; OnPropertyChanged("EncodingProgress"); }
         }
 
-        public async Task<List<string>> StartCapture()
+        public ObservableCollection<GifFrame> Frames
+        {
+            get { return frames; }
+        }
+
+        public void LoadThumbnails()
+        {
+            foreach (GifFrame frame in frames)
+            {
+                using (FileStream fs = new FileStream(frame.Filepath, FileMode.Open, FileAccess.Read))
+                {
+                    BitmapImage img = new BitmapImage();
+                    img.BeginInit();
+                    img.CacheOption = BitmapCacheOption.OnLoad;
+                    img.DecodePixelWidth = 300;
+                    //img.UriSource = new Uri(s, UriKind.Absolute);
+                    img.StreamSource = fs;
+                    img.EndInit();
+                    img.Freeze();
+                    frame.Image = img;
+                }
+            }
+        }
+        
+        public async Task StartCapture()
         {
             var cap = Capture();
             await BufferToDisk();
-            return frames;
         }
 
         private Task Capture()
@@ -124,11 +131,15 @@ namespace ScreenShotterWPF
                         img = ImageBuffer.Take();
                         if (img != null)
                         {
-                            //string f = cachedir + "\\frame" + filename + ".png"; // RANDOM FILENAME INTO LIST 
-                            string f = Path.Combine(cachedir, $"frame{filename}.png");
+                            string f = Path.Combine(cachedir, $"frame{fileindex}.png");
                             img.Save(f, ImageFormat.Png);
-                            frames.Add(f);
-                            filename++;
+                            GifFrame frame = new GifFrame
+                            {
+                                Filepath = f,
+                                Name = $"Frame{fileindex}"
+                            };
+                            frames.Add(frame);
+                            fileindex++;
                         }
                     }
                     catch (Exception)
@@ -172,7 +183,7 @@ namespace ScreenShotterWPF
             return img;
         }
 
-        public Task<string> EncodeGif2(List<string> filePaths, EncodingProgressViewModel vm)
+        public Task<string> EncodeGif(GifProgressNotification gpn)
         {
             return Task.Run(() =>
             {
@@ -187,6 +198,15 @@ namespace ScreenShotterWPF
                     count++;
                 }
 
+                List<string> filePaths = new List<string>();
+                foreach (GifFrame frame in frames)
+                {
+                    if (frame.Selected)
+                    {
+                        filePaths.Add(frame.Filepath);
+                    }
+                }
+                Console.WriteLine("SELECTED: " + filePaths.Count);
                 try
                 {
                     using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
@@ -197,7 +217,7 @@ namespace ScreenShotterWPF
                             
                             for (int i = 0; i < filePaths.Count; i++)
                             {
-                                if (vm.CancelRequested)
+                                if (gpn.Cancelled)
                                 {
                                     Console.WriteLine("CANCEL REQUESTED");
                                     break;
@@ -210,7 +230,7 @@ namespace ScreenShotterWPF
                                         encoder.AddFrame(quantImage, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
                                     }
                                 }
-                                vm.ProgressValue = (int)(((i + 1.0) / filePaths.Count) * 100.0);
+                                EncodingProgress = (int)(((i + 1.0) / filePaths.Count) * 100.0);
                             }
                             filePaths.Clear();
                         }
@@ -222,7 +242,7 @@ namespace ScreenShotterWPF
                     throw ex;
                 }
 
-                if (vm.CancelRequested)
+                if (gpn.Cancelled)
                 {
                     Console.WriteLine("DELETE UNFINISHED");
                     File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));
@@ -231,90 +251,5 @@ namespace ScreenShotterWPF
                 return gifname;
             });
         }
-
-        //public Task<string> EncodeGif(List<string> filePaths, int quality, EncodingProgressViewModel vm)
-        //{
-        //    return Task.Run(() => 
-        //    {
-        //        const string datePattern = @"dd-MM-yy_HH-mm-ss";
-        //        string date = DateTime.Now.ToString(datePattern);
-        //        int count = 1;
-        //        string gifname = $"gif_{date}.gif";
-
-        //        while (File.Exists(Path.Combine(Properties.Settings.Default.filePath, gifname)))
-        //        {
-        //            gifname = $"gif_{date}({count}).gif";
-        //            count++;
-        //        }
-
-        //        try
-        //        {
-        //            using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
-        //            {
-        //                AnimatedGifEncoder e = new AnimatedGifEncoder();
-        //                e.SetRepeat(0);
-        //                e.SetQuality(quality);
-        //                e.Start(gif);
-        //                for (int i = 0; i < filePaths.Count; i++)
-        //                {
-        //                    if (vm.CancelRequested)
-        //                    {
-        //                        Console.WriteLine("CANCEL REQUESTED");
-        //                        e.Finish();
-        //                        gif.Close();
-        //                        break;
-        //                    }
-        //                    using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i]))))
-        //                    {
-        //                        e.AddFrame(image);
-        //                    }
-        //                    e.SetDelay(delay);
-        //                    vm.ProgressValue = (int)(((i + 1.0) / filePaths.Count) * 100.0);
-        //                }
-        //                e.Finish();
-        //                gif.Close();
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Console.WriteLine(ex.Message);
-        //            throw ex;
-        //        }
-
-        //        if (vm.CancelRequested)
-        //        {
-        //            Console.WriteLine("DELETE UNFINISHED");
-        //            File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));
-        //            gifname = string.Empty;
-        //        }
-
-        //        /*using (MagickImageCollection c = new MagickImageCollection())
-        //        {
-        //            foreach (string s in filePaths)
-        //            {
-        //                c.Add(s);
-        //                c[c.Count-1].AnimationDelay = delay / 10;
-        //            }
-        //            //c.Optimize();
-        //            c.Write(Path.Combine(Properties.Settings.Default.filePath, gifname));
-        //        }*/
-
-        //        /*using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
-        //        {
-        //            using (var encoder = new GifEncoder(gif))
-        //            {
-        //                foreach (string f in filePaths)
-        //                {
-        //                    using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(f))))
-        //                    {   
-        //                        encoder.AddFrame(image, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
-        //                    }
-        //                }
-        //                filePaths.Clear();
-        //            }
-        //        }*/
-        //        return gifname;
-        //    });
-        //}
     }
 }
