@@ -95,10 +95,10 @@
     <Setting Name="d3dAllScreens" Provider="PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="imgurTokenExpire" Type="System.Int32" Scope="User">
+    <Setting Name="imgurTokenExpire" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="hkGifcapture" Type="ScreenShotterWPF.HotKey" Scope="User">
+    <Setting Name="hkGifcapture" Provider="PortableSettingsProvider" Type="ScreenShotterWPF.HotKey" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>
