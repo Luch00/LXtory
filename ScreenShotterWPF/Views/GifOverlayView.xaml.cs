@@ -17,7 +17,7 @@ namespace ScreenShotterWPF.Views
 
         private void Border_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            Window.GetWindow(this).DragMove();
+            Window.GetWindow(this)?.DragMove();
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

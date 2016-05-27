@@ -27,8 +27,7 @@ namespace ScreenShotterWPF
         private readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
         private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
-
-        XImage currentUpload;
+        
         private int uploading = 0;
         private int totalUploading = 0;
         private bool refreshing = false;
@@ -45,7 +44,6 @@ namespace ScreenShotterWPF
         protected Thread clipboardThread;
 
         private bool overlay_created;
-        private bool editorEnabled;
 
         private int progressValue;
         private string statusText;
@@ -57,8 +55,7 @@ namespace ScreenShotterWPF
         private readonly SynchronizationContext uiContext;
 
         private readonly bool windows8;
-
-        //public InteractionRequest<IConfirmation> ImageEditorRequest { get; private set; }
+        
         public InteractionRequest<IConfirmation> OverlayRequest { get; private set; }
         public InteractionRequest<IConfirmation> GifOverlayRequest { get; private set; }
         public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
@@ -68,14 +65,12 @@ namespace ScreenShotterWPF
 
         public MainLogic()
         {
-            EditorEnabled = false;
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
             progressBarUpdate = ProgressAndIconChange;
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             uploader = new Uploader(progressBarUpdate);
-            //ImageEditorRequest = new InteractionRequest<IConfirmation>();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
@@ -189,6 +184,7 @@ namespace ScreenShotterWPF
             {
                 if (!refreshing)
                 {
+                    XImage currentUpload;
                     if (queue.TryTake(out currentUpload, Timeout.Infinite))
                     {
                         try
@@ -201,7 +197,7 @@ namespace ScreenShotterWPF
                             }
                             if (currentUpload.image == null)
                             {
-                                ReadImageBytes();
+                                ReadImageBytes(currentUpload);
                             }
                             if (currentUpload.image == null)
                             {
@@ -282,7 +278,7 @@ namespace ScreenShotterWPF
             Console.WriteLine(@"STOPPED :O");
         }
 
-        private void ReadImageBytes()
+        private void ReadImageBytes(XImage currentUpload)
         {
             if (currentUpload.filepath != string.Empty)
             {
@@ -338,12 +334,6 @@ namespace ScreenShotterWPF
         {
             get { return statusText; }
             private set { statusText = value; OnPropertyChanged("StatusText"); }
-        }
-
-        public bool EditorEnabled
-        {
-            get { return editorEnabled; }
-            set { editorEnabled = value; OnPropertyChanged("EditorEnabled"); }
         }
 
         private ImageSource icon;
@@ -784,10 +774,7 @@ namespace ScreenShotterWPF
             x.datetime = DateTime.Now;
             string d = DateTime.Now.ToString(p);
             x.date = d;
-            /*if (editorEnabled) // EDITOR DISABLED UNTIL REWORKED OR JUST REMOVED ¯\_(ツ)_/¯
-            {
-                OpenEditor(x);
-            }*/
+
             if (Properties.Settings.Default.saveLocal)
             {
                 x.filepath = SaveImageToDisk(x.image, filename);
@@ -807,30 +794,14 @@ namespace ScreenShotterWPF
             }
         }
 
-        //private void OpenEditor(XImage img)
-        //{
-        //    ImageEditorNotification ien = new ImageEditorNotification();
-        //    ien.Title = "Editor";
-        //    this.ImageEditorRequest.Raise(
-        //        ien, returned =>
-        //        {
-        //            if (returned != null && returned.Confirmed)
-        //            {
-        //                //img.image = edited // TODO EVERYTHING HERE
-        //            }
-        //        });
-        //    //Editor editor = new Editor(img.image);
-        //    //editor.ShowDialog();
-        //    //if (editor.DialogResult.HasValue && editor.DialogResult.Value)
-        //    //{
-        //    //    img.image = editor.editedImage;
-        //    //    editor.editedImage = null;
-        //    //}
-        //}
-
         // Add image to list
         private void AddXimageToList(XImage x, string url)
         {
+            if (x == null)
+            {
+                Console.WriteLine("ERROR");
+                return;
+            }
             if (!Properties.Settings.Default.saveLocal && x.filepath.Length == 0)
             {
                 x.url = url;

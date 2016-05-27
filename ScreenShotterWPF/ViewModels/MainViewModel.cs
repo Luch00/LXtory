@@ -249,6 +249,7 @@ namespace ScreenShotterWPF.ViewModels
                 NativeMethods.UnregisterHotKey(WindowHandle, HOTKEY_2);
                 NativeMethods.UnregisterHotKey(WindowHandle, HOTKEY_3);
                 NativeMethods.UnregisterHotKey(WindowHandle, HOTKEY_4);
+                NativeMethods.UnregisterHotKey(WindowHandle, HOTKEY_5);
             }
             Console.WriteLine(@"Unregistered");
         }

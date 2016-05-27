@@ -25,7 +25,8 @@ namespace ScreenShotterWPF
             adapter = factory.GetAdapter1(0);
 
             // Create device from Adapter
-            device = new SharpDX.Direct3D11.Device(adapter, DeviceCreationFlags.BgraSupport, FeatureLevel.Level_11_1);
+            //device = new SharpDX.Direct3D11.Device(adapter, DeviceCreationFlags.BgraSupport, FeatureLevel.Level_11_1);
+            device = new SharpDX.Direct3D11.Device(adapter);
         }
 
         public static byte[] DuplicatePrimaryScreen()
@@ -131,7 +132,7 @@ namespace ScreenShotterWPF
             };
             var screenTexture = new Texture2D(device, textureDesc);
             
-            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
             // Duplicate the output
             var duplicatedOutput = output1.DuplicateOutput(device);
 
@@ -144,7 +145,7 @@ namespace ScreenShotterWPF
                     OutputDuplicateFrameInformation duplicateFrameInformation;
                     
                     // Try to get duplicated frame within given time
-                    duplicatedOutput.AcquireNextFrame(10000, out duplicateFrameInformation, out screenResource);
+                    duplicatedOutput.AcquireNextFrame(500, out duplicateFrameInformation, out screenResource);
 
                     if (j > 0)
                     {

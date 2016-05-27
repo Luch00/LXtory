@@ -30,7 +30,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>0.9.1.0</ApplicationVersion>
+    <ApplicationVersion>0.9.3.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -130,9 +130,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Xceed.Wpf.Toolkit">
-      <HintPath>..\..\wpftoolkit-114314\Main\Source\ExtendedWPFToolkitSolution\Src\Xceed.Wpf.Toolkit\bin\Release\Xceed.Wpf.Toolkit.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GifFrame.cs" />
@@ -140,11 +137,9 @@
     <Compile Include="Notifications\GifEditorNotification.cs" />
     <Compile Include="Notifications\GifOverlayNotification.cs" />
     <Compile Include="Notifications\GifProgressNotification.cs" />
-    <Compile Include="Notifications\ImageEditorNotification.cs" />
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
-    <Compile Include="ViewModels\ImageEditorViewModel.cs" />
     <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Views\GifEditorView.xaml.cs">
@@ -155,9 +150,6 @@
     </Compile>
     <Compile Include="Views\GifProgressView.xaml.cs">
       <DependentUpon>GifProgressView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\ImageEditorView.xaml.cs">
-      <DependentUpon>ImageEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainView.xaml.cs">
       <DependentUpon>MainView.xaml</DependentUpon>
@@ -173,10 +165,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Arrow\ArrowEnds.cs" />
-    <Compile Include="Arrow\ArrowLine.cs" />
-    <Compile Include="Arrow\ArrowLineBase.cs" />
-    <Compile Include="Arrow\ArrowPolyline.cs" />
     <Compile Include="BumpkitEncoder.cs" />
     <Compile Include="DesktopDuplication.cs" />
     <Compile Include="Gif.cs" />
@@ -215,10 +203,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\GifProgressView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\ImageEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -299,6 +283,13 @@
     <Resource Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Resource>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\wpftoolkit-114314\Main\Source\ExtendedWPFToolkitSolution\Src\Xceed.Wpf.Toolkit\Xceed.Wpf.Toolkit.csproj">
+      <Project>{72e591d6-8f83-4d8c-8f67-9c325e623234}</Project>
+      <Name>Xceed.Wpf.Toolkit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterResolveReferences">
