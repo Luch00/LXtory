@@ -16,12 +16,6 @@ namespace ScreenShotterWPF
         private ICommand openLocalCommand;
         private ICommand openBrowserCommand;
         private ICommand copyClipboardCommand;
-        [XmlIgnore]
-        private bool openLocalEnabled;
-        [XmlIgnore]
-        private bool openBrowserEnabled;
-        [XmlIgnore]
-        private bool copyClipboardEnabled;
 
         public string filename { get; set; }
         public string date { get; set; }
@@ -44,9 +38,6 @@ namespace ScreenShotterWPF
         public XImage()
         {
             datetime = DateTime.MinValue;
-            openLocalEnabled = false;
-            openBrowserEnabled = false;
-            copyClipboardEnabled = false;
             openLocalCommand = new DelegateCommand(OpenLocalImage);
             openBrowserCommand = new DelegateCommand(OpenInBrowser);
             copyClipboardCommand = new DelegateCommand(CopyToClipboard);
@@ -73,20 +64,12 @@ namespace ScreenShotterWPF
         [XmlIgnore]
         public bool OpenLocalEnabled
         {
-            get { return openLocalEnabled; }
-            set { openLocalEnabled = value; OnPropertyChanged("OpenLocalEnabled"); }
+            get { return filepath != string.Empty && System.IO.File.Exists(filepath); }
         }
         [XmlIgnore]
-        public bool OpenBrowserEnabled
+        public bool BrowserAndClipboardEnabled
         {
-            get { return openBrowserEnabled; }
-            set { openBrowserEnabled = value; OnPropertyChanged("OpenBrowserEnabled"); }
-        }
-        [XmlIgnore]
-        public bool CopyClipboardEnabled
-        {
-            get { return copyClipboardEnabled; }
-            set { copyClipboardEnabled = value; OnPropertyChanged("CopyClipboardEnabled"); }
+            get { return url != string.Empty; }
         }
 
         private void OpenInBrowser()

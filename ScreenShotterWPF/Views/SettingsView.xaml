@@ -54,7 +54,7 @@
                     </GroupBox>
                     <GroupBox x:Name="groupBox2" Header="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="229,170,0,0" VerticalAlignment="Top" Width="244" Height="113">
                         <StackPanel>
-                            <CheckBox x:Name="detectExclusive" Content="Try to Autodetect" Margin="4" ToolTip="Tries to detect if an application is running in exclusive fullscreen mode and automatically use directx to capture the screen(s)." IsChecked="{Binding DetectExclusive}"/>
+                            <CheckBox x:Name="detectExclusive" Content="Try to Autodetect (Window Capture)" Margin="4" ToolTip="When using Window Capture try to detect if an application is running in exclusive fullscreen mode and automatically use directx to capture the screen(s)." IsChecked="{Binding DetectExclusive}"/>
                             <CheckBox x:Name="fullscreenD3D" Content="Capture All Screens" Margin="4" IsChecked="{Binding FullscreenD3D}"/>
                         </StackPanel>
                     </GroupBox>

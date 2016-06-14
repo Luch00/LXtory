@@ -101,5 +101,17 @@
     <Setting Name="hkGifcapture" Provider="PortableSettingsProvider" Type="ScreenShotterWPF.HotKey" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="windowHeight" Provider="PortableSettingsProvider" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="windowWidth" Provider="PortableSettingsProvider" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">380</Value>
+    </Setting>
+    <Setting Name="windowLeft" Provider="PortableSettingsProvider" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="windowTop" Provider="PortableSettingsProvider" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

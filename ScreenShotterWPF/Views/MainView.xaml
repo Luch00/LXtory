@@ -84,23 +84,6 @@
                 </prism:PopupWindowAction.WindowContent>
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
-        <!-- Open image editor -->
-        <!--<prism:InteractionRequestTrigger SourceObject="{Binding Main.ImageEditorRequest, Mode=OneWay}">
-            <prism:PopupWindowAction IsModal="True" WindowStartupLocation="CenterScreen">
-                <prism:PopupWindowAction.WindowStyle>
-                    <Style TargetType="Window">
-                        <Setter Property="Icon" Value="../Resources/meh.ico"/>
-                        <Setter Property="MinHeight" Value="500"/>
-                        <Setter Property="MinWidth" Value="600"/>
-                        <Setter Property="Width" Value="627"/>
-                        <Setter Property="Height" Value="512"/>
-                    </Style>
-                </prism:PopupWindowAction.WindowStyle>
-                <prism:PopupWindowAction.WindowContent>
-                    <views:ImageEditorView/>
-                </prism:PopupWindowAction.WindowContent>
-            </prism:PopupWindowAction>
-        </prism:InteractionRequestTrigger>-->
         <!-- Open overlay -->
         <prism:InteractionRequestTrigger SourceObject="{Binding Main.OverlayRequest, Mode=OneWay}">
             <prism:PopupWindowAction IsModal="True">
@@ -122,24 +105,15 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
     </i:Interaction.Triggers>
-    
+
     <UserControl.Resources>
-        <ContextMenu x:Key="rowContextMenu">
-            <ContextMenu.Items>
-                <MenuItem Header="Open local" Command="{Binding OpenLocalCommand}" IsEnabled="{Binding OpenLocalEnabled}"/>
-                <MenuItem Header="Open in browser" Command="{Binding OpenBrowserCommand}" IsEnabled="{Binding OpenBrowserEnabled}"/>
-                <MenuItem Header="Copy url to clipboard" Command="{Binding CopyClipboardCommand}" IsEnabled="{Binding CopyClipboardEnabled}"/>
-            </ContextMenu.Items>
-        </ContextMenu>
-        <Style x:Key="rowStyle" TargetType="{x:Type DataGridRow}">
-            <Setter Property="ContextMenu" Value="{StaticResource rowContextMenu}" />
-        </Style>
         <CollectionViewSource x:Key="SortedImagesList" Source="{Binding Main.Ximages}">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="datetime" Direction="Descending" />
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
     </UserControl.Resources>
+    
     <Grid>
         <StackPanel Orientation="Vertical">
             <Menu x:Name="menuStrip1" Height="24" Margin="0,0,0,0" VerticalAlignment="Top">
@@ -163,21 +137,6 @@
                 </Button>
 
                 <Button x:Name="btnGif" Content="GIF" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="68" Height="40" Command="{Binding CaptureGifCommand}" IsEnabled="{Binding GifButtonEnabled}"/>
-                <!--<StackPanel Orientation="Vertical"> // EDITOR DISABLED UNTIL REWORKED
-                    <Label Content="Editor:" HorizontalAlignment="Left" Margin="4,0,0,-3" VerticalAlignment="Top" Height="24"/>
-                    <ToggleButton x:Name="editorToggle" Margin="4,0,0,0" VerticalAlignment="Top" Width="70" Height="23" HorizontalAlignment="Left" IsChecked="{Binding Main.EditorEnabled}">
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="Disabled"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="Enabled"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
-                </StackPanel>-->
             </StackPanel>
         </StackPanel>
 
@@ -189,14 +148,48 @@
             </Grid.RowDefinitions>
             <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
 
-            <!--<DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding ViewSource.View}" RowStyle="{StaticResource rowStyle}" RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" ContextMenuOpening="ContextMenu_Check" AutoGenerateColumns="False" SelectionMode="Single" SelectionChanged="dgImages_SelectionChanged">-->
-            <DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" RowStyle="{StaticResource rowStyle}" RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" AutoGenerateColumns="False" SelectionMode="Single" SelectedItem="{Binding SelectedIndex}">
+            <!--<DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}"  RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" AutoGenerateColumns="False" SelectionMode="Single" SelectedItem="{Binding SelectedIndex}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding filename}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Filename" Width="100"/>
                     <DataGridTextColumn Binding="{Binding date}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Date"/>
                     <DataGridTextColumn Binding="{Binding url}" ClipboardContentBinding="{x:Null}" Header="Url" Width="*"/>
                 </DataGrid.Columns>
-            </DataGrid>
+                <DataGrid.ItemTemplate>
+                    <ItemContainerTemplate>
+                        <ContextMenu>
+                            <MenuItem Header="KEK"/>
+                        </ContextMenu>
+                    </ItemContainerTemplate>
+                </DataGrid.ItemTemplate>
+            </DataGrid>-->
+
+            <ListView x:Name="lstImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" Margin="4,4,4,4" SelectionMode="Single" SelectedItem="{Binding SelectedItem}">
+                <ListView.Resources>
+                    <ContextMenu x:Key="ItemContextMenu">
+                        <MenuItem Header="Open local" Command="{Binding OpenLocalCommand}" IsEnabled="{Binding OpenLocalEnabled}"/>
+                        <MenuItem Header="Open in browser" Command="{Binding OpenBrowserCommand}" IsEnabled="{Binding BrowserAndClipboardEnabled}"/>
+                        <MenuItem Header="Copy url to clipboard" Command="{Binding CopyClipboardCommand}" IsEnabled="{Binding BrowserAndClipboardEnabled}"/>
+                        <Separator/>
+                        <MenuItem Header="Remove from history" Command="{Binding Path=DataContext.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding }" InputGestureText="Del"/>
+                    </ContextMenu>
+                </ListView.Resources>
+                
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.InputBindings>
+                    <KeyBinding Key="Delete" Command="{Binding Path=DataContext.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"/>
+                </ListView.InputBindings>
+                <ListView.View>
+                    <GridView AllowsColumnReorder="False">
+                        <GridViewColumn Header="Filename" DisplayMemberBinding="{Binding filename}" Width="100"/>
+                        <GridViewColumn Header="Date" DisplayMemberBinding="{Binding date}"/>
+                        <GridViewColumn Header="Url" DisplayMemberBinding="{Binding url}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
 
             <StatusBar Height="22" VerticalAlignment="Bottom" ClipToBounds="True" Grid.Row="2">
                 <StatusBar.ItemsPanel>

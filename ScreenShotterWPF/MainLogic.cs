@@ -154,6 +154,15 @@ namespace ScreenShotterWPF
             queue.CompleteAdding();
         }
 
+        public void RemoveXImage(XImage selected)
+        {
+            lock(ximages)
+            {
+                ximages.Remove(selected);
+                WriteXML();
+            }
+        }
+
         private void AddToQueue(XImage x)
         {
             try
@@ -502,12 +511,12 @@ namespace ScreenShotterWPF
         // Capture whole screen area
         public void CapFullscreen()
         {
-            if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            /*if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
                 return;
-            }
+            }*/
             
             var top = SystemParameters.VirtualScreenTop;
             var left = SystemParameters.VirtualScreenLeft;
@@ -566,12 +575,12 @@ namespace ScreenShotterWPF
         // Create an overlay, draw a rectangle on the overlay to cap that area
         public void CapArea()
         {
-            if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            /*if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
                 return;
-            }
+            }*/
 
             if (!overlay_created)
             {
@@ -697,7 +706,7 @@ namespace ScreenShotterWPF
             const int nChars = 256;
             StringBuilder buff = new StringBuilder(nChars);
             var handle = NativeMethods.GetForegroundWindow();
-
+            
             return NativeMethods.GetWindowText(handle, buff, nChars) > 0 ? buff.ToString() : "null";
         }
 
@@ -779,8 +788,11 @@ namespace ScreenShotterWPF
             {
                 x.filepath = SaveImageToDisk(x.image, filename);
                 x.filename = Path.GetFileName(x.filepath);
-                ximages.Add(x);
-                WriteXML();
+                lock (ximages)
+                {
+                    ximages.Add(x);
+                    WriteXML(); 
+                }
             }
 
             if (Properties.Settings.Default.autoUpload)
@@ -805,8 +817,11 @@ namespace ScreenShotterWPF
             if (!Properties.Settings.Default.saveLocal && x.filepath.Length == 0)
             {
                 x.url = url;
-                ximages.Add(x);
-                WriteXML();
+                lock (ximages)
+                {
+                    ximages.Add(x);
+                    WriteXML(); 
+                }
             }
             else
             {
@@ -821,8 +836,11 @@ namespace ScreenShotterWPF
                 else
                 {
                     x.url = url;
-                    ximages.Add(x);
-                    WriteXML();
+                    lock (ximages)
+                    {
+                        ximages.Add(x);
+                        WriteXML(); 
+                    }
                 }
             }
             if (url.Length > 0)
@@ -876,6 +894,9 @@ namespace ScreenShotterWPF
         // Set picturebox image only for local and imgur hosted images
         public static BitmapImage GetPicture(XImage x)
         {
+            if (x == null)
+                return null;
+
             string url;
             if (x.filepath != string.Empty && File.Exists(x.filepath))
             {

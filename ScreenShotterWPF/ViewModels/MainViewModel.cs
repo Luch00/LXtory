@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -29,6 +28,7 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand ExitCommand { get; private set; }
         public ICommand OpenCommand { get; private set; }
         //public ICommand OpenSettingsCommand { get; private set; }
+        public ICommand DeleteCommand { get; private set; }
 
         public ICommand CaptureFullscreenCommand { get; private set; }
         public ICommand CaptureWindowCommand { get; private set; }
@@ -62,6 +62,7 @@ namespace ScreenShotterWPF.ViewModels
             this.ExitCommand = new DelegateCommand(ExitApplication);
             this.OpenCommand = new DelegateCommand(OpenImageFolder);
             //this.OpenSettingsCommand = new DelegateCommand(OpenSettings);
+            this.DeleteCommand = new DelegateCommand(DeleteItem);
             
             this.CaptureFullscreenCommand = new DelegateCommand(CaptureFullscreen);
             this.CaptureWindowCommand = new DelegateCommand(CaptureWindow);
@@ -90,6 +91,12 @@ namespace ScreenShotterWPF.ViewModels
                         RegisterHotkeys();
                     }
                 });
+        }
+
+        private void DeleteItem()
+        {
+            //Console.WriteLine(selectedItem.filename);
+            Main.RemoveXImage(selectedItem);
         }
 
         private void CaptureGif()
@@ -138,6 +145,7 @@ namespace ScreenShotterWPF.ViewModels
         
         private static void ExitApplication()
         {
+            Properties.Settings.Default.Save();
             Application.Current.Shutdown();
         }
 
@@ -176,15 +184,15 @@ namespace ScreenShotterWPF.ViewModels
             set { displayImage = value; OnPropertyChanged("DisplayImage"); }
         }
 
-        public XImage SelectedIndex
+        public XImage SelectedItem
         {
             get { return selectedItem; }
             set
             {
                 selectedItem = value;
-                CheckContextMenuItems();
+                //CheckContextMenuItems();
                 DisplayImage = MainLogic.GetPicture(selectedItem);
-                OnPropertyChanged("SelectedIndex");
+                OnPropertyChanged("SelectedItem");
             }
         }
 
@@ -193,12 +201,15 @@ namespace ScreenShotterWPF.ViewModels
             Main.ReadXML();
         }
 
-        private void CheckContextMenuItems()
+        /*private void CheckContextMenuItems()
         {
+            if (selectedItem == null)
+                return;
+
             SelectedIndex.OpenLocalEnabled = SelectedIndex.filepath != string.Empty && File.Exists(SelectedIndex.filepath);
 
             SelectedIndex.OpenBrowserEnabled = SelectedIndex.CopyClipboardEnabled = (SelectedIndex.url != string.Empty);
-        }
+        }*/
 
         public bool PassCommandLineArgs(IList<string> args)
         {

@@ -55,6 +55,10 @@ namespace ScreenShotterWPF
                 this.ShowInTaskbar = false;
                 this.Visibility = Visibility.Hidden;
             }
+            else
+            {
+                Properties.Settings.Default.Save();
+            }
         }
 
         private void UI_StateChanged(object sender, EventArgs e)
@@ -76,6 +80,11 @@ namespace ScreenShotterWPF
             mainview = MainView.DataContext as MainViewModel;
             WindowInteropHelper helper = new WindowInteropHelper(this);
             mainview.WindowHandle = helper.Handle;
+        }
+
+        private void UI_Closed(object sender, EventArgs e)
+        {
+            //Properties.Settings.Default.Save();
         }
 
         #endregion
