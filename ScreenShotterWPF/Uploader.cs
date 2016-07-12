@@ -538,6 +538,34 @@ namespace ScreenShotterWPF
             }
         }
 
+        // NYI
+        private void SFTPUpload(XImage img)
+        {
+
+            using (var client = new Renci.SshNet.SftpClient("host", 22, "username", "password"))
+            {
+                try
+                {
+                    client.ConnectionInfo.Timeout = new TimeSpan(0, 0, 30);
+                    client.Connect();
+                    long fileSize = img.image.Length;
+                    client.UploadFile(new MemoryStream(img.image), "/upload/" + img.filename,
+                        bytesUploaded =>
+                        {
+                            //int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
+                            ProgressUpdate(bytesUploaded, fileSize);
+                        });
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            //Renci.SshNet.SftpClient client = new Renci.SshNet.SftpClient(;
+            
+        }
+
         // TRY DIS ON WIN10!!
         //private async Task<bool> HttpUpload(XImage img)
         /*private async void HttpUpload(XImage img)

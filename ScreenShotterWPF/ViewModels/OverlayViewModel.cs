@@ -22,6 +22,8 @@ namespace ScreenShotterWPF.ViewModels
         private Thickness rectMargin;
         private Thickness textMargin;
         private string text;
+        private double dpix;
+        private double dpiy;
 
         public string Text
         {
@@ -67,6 +69,7 @@ namespace ScreenShotterWPF.ViewModels
                     RectWidth = 0;
                     RectHeight = 0;
                     Text = "";
+                    GetDPIMultiplier();
                     this.OnPropertyChanged(() => this.Notification);
                 }
             }
@@ -75,6 +78,13 @@ namespace ScreenShotterWPF.ViewModels
         public OverlayViewModel()
         {
             EscapeCommand = new DelegateCommand(Close);
+        }
+
+        private void GetDPIMultiplier()
+        {
+            System.Windows.Media.Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
+            this.dpix = m.M11;
+            this.dpiy = m.M22;
         }
 
         private void Close()
@@ -116,7 +126,7 @@ namespace ScreenShotterWPF.ViewModels
 
             if (w > 1)
             {   
-                Text = $"H: {h}\nW: {w}";
+                Text = $"H: {Math.Floor(h*dpiy)}\nW: {Math.Floor(w*dpix)}";
                 double xpos = x + w - 50;
                 double ypos = y + h - 35;
                 TextMargin = new Thickness(xpos, ypos, 0, 0);

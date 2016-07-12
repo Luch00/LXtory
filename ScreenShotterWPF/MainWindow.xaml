@@ -6,7 +6,7 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:views="clr-namespace:ScreenShotterWPF.Views"
         xmlns:p="clr-namespace:ScreenShotterWPF.Properties"
-        Title="LXtory 0.93" 
+        Title="LXtory 0.94" 
         Height="{Binding Source={x:Static p:Settings.Default}, Path=windowHeight, Mode=TwoWay}" 
         Width="{Binding Source={x:Static p:Settings.Default}, Path=windowWidth, Mode=TwoWay}"
         Top="{Binding Source={x:Static p:Settings.Default}, Path=windowTop, Mode=TwoWay}"

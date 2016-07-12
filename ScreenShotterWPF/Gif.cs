@@ -29,9 +29,11 @@ namespace ScreenShotterWPF
         private readonly string cachedir;
         private readonly ObservableCollection<GifFrame> frames;
         private int encodingProgress;
+        private string datePattern;
 
-        public Gif(int framerate, int duration, int w, int h, int x, int y)
+        public Gif(int framerate, int duration, int w, int h, int x, int y, string datePattern)
         {
+            this.datePattern = datePattern;
             this.width = w;
             this.height = h;
             this.posX = x;
@@ -187,7 +189,7 @@ namespace ScreenShotterWPF
         {
             return Task.Run(() =>
             {
-                const string datePattern = @"dd-MM-yy_HH-mm-ss";
+                //const string datePattern = @"dd-MM-yy_HH-mm-ss";
                 string date = DateTime.Now.ToString(datePattern);
                 int count = 1;
                 string gifname = $"gif_{date}.gif";

@@ -90,13 +90,18 @@
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
                         <Setter Property="WindowStyle" Value="None"/>
-                        <Setter Property="Topmost" Value="False"/>
+                        <Setter Property="Topmost" Value="True"/>
                         <Setter Property="Width" Value="{Binding WindowWidth, Mode=TwoWay}"/>
                         <Setter Property="Height" Value="{Binding WindowHeight, Mode=TwoWay}"/>
                         <Setter Property="Top" Value="{Binding WindowTop, Mode=TwoWay}"/>
                         <Setter Property="Left" Value="{Binding WindowLeft, Mode=TwoWay}"/>
-                        <Setter Property="Opacity" Value="0.35"/>
+                        <Setter Property="Opacity" Value="1"/>
                         <Setter Property="AllowsTransparency" Value="True"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="White" Opacity="0.35"/>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </prism:PopupWindowAction.WindowStyle>
                 <prism:PopupWindowAction.WindowContent>

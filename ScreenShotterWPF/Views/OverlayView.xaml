@@ -9,13 +9,13 @@
              xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
              xmlns:local="clr-namespace:ScreenShotterWPF.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="300" Cursor="Cross">
     <ItemsControl>
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                 <Canvas x:Name="PaintSurface">
                     <Canvas.Background>
-                        <SolidColorBrush Color="White" Opacity="1" />
+                        <SolidColorBrush Color="Transparent" Opacity="1" />
                     </Canvas.Background>
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseMove">

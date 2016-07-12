@@ -497,5 +497,18 @@ namespace ScreenShotterWPF.Properties {
                 this["windowTop"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("dd-MM-yy_HH-mm-ss")]
+        public string dateTimeString {
+            get {
+                return ((string)(this["dateTimeString"]));
+            }
+            set {
+                this["dateTimeString"] = value;
+            }
+        }
     }
 }

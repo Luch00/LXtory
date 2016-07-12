@@ -51,6 +51,7 @@ namespace ScreenShotterWPF
         private bool gifCapturing;
 
         private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
+        private const string defaultDateTimePattern = @"dd-MM-yy_HH-mm-ss";
 
         private readonly SynchronizationContext uiContext;
 
@@ -522,7 +523,7 @@ namespace ScreenShotterWPF
             var left = SystemParameters.VirtualScreenLeft;
             var w = SystemParameters.VirtualScreenWidth;
             var h = SystemParameters.VirtualScreenHeight;
-            ScreenCap((int)w, (int)h, (int)left, (int)top, "Fullscreen");
+            ScreenCap((int)w, (int)h, (int)left, (int)top, "fullscreen");
         }
 
         // Capture current selected window
@@ -587,6 +588,7 @@ namespace ScreenShotterWPF
                 overlay_created = true;
                 OverlayNotification notification = new OverlayNotification();
                 notification.Title = "Overlay";
+                
                 notification.WindowTop = SystemParameters.VirtualScreenTop;
                 notification.WindowLeft = SystemParameters.VirtualScreenLeft;
                 notification.WindowWidth = SystemParameters.VirtualScreenWidth;
@@ -596,7 +598,9 @@ namespace ScreenShotterWPF
                     {
                         if (returned != null && returned.Confirmed)
                         {
-                            ScreenCap((int)notification.Rect.Width, (int)notification.Rect.Height, (int)notification.Rect.X, (int)notification.Rect.Y, "AreaCap");
+                            // get dpi multiplier
+                            Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
+                            ScreenCap(Convert.ToInt32(notification.Rect.Width * m.M22), Convert.ToInt32(notification.Rect.Height * m.M11), Convert.ToInt32(notification.Rect.X * m.M11), Convert.ToInt32(notification.Rect.Y * m.M22), "areacapture");
                         }
                         overlay_created = false;
                     });
@@ -622,7 +626,8 @@ namespace ScreenShotterWPF
                 int h = notification.WindowHeight;
                 int f = notification.GifFramerate;
                 int d = notification.GifDuration;
-                Gif gif = new Gif(f, d, w, h, x, y);
+                string datePattern = string.Empty != Properties.Settings.Default.dateTimeString ? Properties.Settings.Default.dateTimeString : defaultDateTimePattern;
+                Gif gif = new Gif(f, d, w, h, x, y, datePattern);
                 await gif.StartCapture();
                 if (gif.Frames.Count > 0)
                 {
@@ -683,7 +688,7 @@ namespace ScreenShotterWPF
                 using (Bitmap bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
                 {
                     using (var gfx = Graphics.FromImage(bmp))
-                    {
+                    {   
                         gfx.CopyFromScreen(rX,
                                            rY,
                                            0,
@@ -768,14 +773,15 @@ namespace ScreenShotterWPF
 
         private void ImageManager(byte[] image, string filename)
         {
-            const string datePattern = @"dd-MM-yy_HH-mm-ss";
+            //const string datePattern = @"dd-MM-yy_HH-mm-ss";
+            string datePattern = string.Empty != Properties.Settings.Default.dateTimeString ? Properties.Settings.Default.dateTimeString : defaultDateTimePattern;
             string date = DateTime.Now.ToString(datePattern);
-            string f = filename + "_" + date;
+            string f = $"{filename}_{date}";
 
             XImage x = new XImage
             {
                 image = image,
-                filename = f + ".png",
+                filename = $"{f}.png",
                 url = "",
                 filepath = ""
             };
@@ -786,7 +792,7 @@ namespace ScreenShotterWPF
 
             if (Properties.Settings.Default.saveLocal)
             {
-                x.filepath = SaveImageToDisk(x.image, filename);
+                x.filepath = SaveImageToDisk(x.image, f);
                 x.filename = Path.GetFileName(x.filepath);
                 lock (ximages)
                 {

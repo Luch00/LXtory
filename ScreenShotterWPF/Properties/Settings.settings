@@ -113,5 +113,8 @@
     <Setting Name="windowTop" Provider="PortableSettingsProvider" Type="System.Double" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
+    <Setting Name="dateTimeString" Provider="PortableSettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">dd-MM-yy_HH-mm-ss</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

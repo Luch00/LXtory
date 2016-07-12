@@ -90,6 +90,7 @@ namespace ScreenShotterWPF.ViewModels
         private bool loginEnabled;
         private bool anonUpload;
         private int uploadValue;
+        private string dateTimeString;
 
         public INotification Notification
         {
@@ -343,6 +344,12 @@ namespace ScreenShotterWPF.ViewModels
             set { textFilepath = value; OnPropertyChanged("TextFilepath"); }
         }
 
+        public string DateTimeString
+        {
+            get { return dateTimeString; }
+            set { dateTimeString = value; OnPropertyChanged("DateTimeString"); }
+        }
+
         public bool LocalEnabled
         {
             get { return localEnabled; }
@@ -520,6 +527,7 @@ namespace ScreenShotterWPF.ViewModels
         private void SetValues()
         {
             TextFilepath = Properties.Settings.Default.filePath;
+            DateTimeString = Properties.Settings.Default.dateTimeString;
             LocalEnabled = Properties.Settings.Default.saveLocal;
             UploadEnabled = Properties.Settings.Default.autoUpload;
             StartMinimized = Properties.Settings.Default.startMinimized;
@@ -722,6 +730,8 @@ namespace ScreenShotterWPF.ViewModels
             {
                 Properties.Settings.Default.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
             }
+
+            Properties.Settings.Default.dateTimeString = DateTimeString;
 
             if (this.notification != null)
             {

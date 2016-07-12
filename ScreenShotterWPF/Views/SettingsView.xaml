@@ -19,7 +19,7 @@
 
                             <CheckBox x:Name="checkBoxLocal" Content="Save local copy" HorizontalAlignment="Left" IsChecked="{Binding LocalEnabled}"  VerticalAlignment="Top" Margin="4"/>
                             <StackPanel Orientation="Horizontal">
-                                <TextBox x:Name="textFilepath" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="163" Margin="4" Text="{Binding TextFilepath}"/>
+                                <TextBox x:Name="textFilepath" HorizontalAlignment="Left" Height="23" MaxLines="1" TextWrapping="NoWrap" VerticalAlignment="Top" Width="163" Margin="4" Text="{Binding TextFilepath}"/>
                                 <Button x:Name="settingsBrowse" Content="..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="27" Margin="4" Visibility="Hidden" Command="{Binding BrowseCommand}"/> <!-- this needs folder browse?-->
                             </StackPanel>
                             <CheckBox x:Name="checkUpload" Content="Auto-Upload Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding UploadEnabled}"/>
@@ -29,8 +29,14 @@
                             <CheckBox x:Name="checkClosetoTray" Content="Close to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CloseToTray}"/>
                             <CheckBox x:Name="checkOpeninBrowser" Content="Open in browser after upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding OpenInBrowser}"/>
                             <CheckBox x:Name="checkCopytoClipboard" Content="Copy last url to clipboard" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CopyToClipboard}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Customize datetime string" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0"/>
+                                <TextBlock VerticalAlignment="Center" Margin="4,4,0,0">
+                                    <Hyperlink NavigateUri="https://msdn.microsoft.com/en-us/library/8kb3ddd4(v=vs.110).aspx" RequestNavigate="Hyperlink_RequestNavigate">?</Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                            <TextBox x:Name="textDatetime" HorizontalAlignment="Left" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" Width="163" Margin="4,0,0,4" Text="{Binding DateTimeString}" MaxLines="1"/>
 
-                            <Label x:Name="lblAdmin" Content="Run LXtory as admin to enable" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,10,4,4" Visibility="Hidden"/>
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Context menu:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4"/>
                                 <Button x:Name="btnRegister" Content="{Binding RegisterButtonText}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="75" ToolTip="Add/remove Windows context menu shortcuts."  IsEnabled="{Binding RegisterEnabled}" Margin="4" Command="{Binding RegisterCommand}"/>
@@ -190,7 +196,7 @@
                         <StackPanel>
                             <RadioButton x:Name="radioPuush" Content="Upload to Puush" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection" IsChecked="{Binding Value3}"/>
                             <Label Content="Puush API key" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top"/>
-                            <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Left" Height="23" Margin="4" VerticalAlignment="Top" Width="194" AcceptsReturn="False" TextWrapping="NoWrap" Text="{Binding PuushApiKey}"/>
+                            <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Left" Height="23" Margin="4" VerticalAlignment="Top" Width="194" AcceptsReturn="False" TextWrapping="NoWrap" MaxLines="1" Text="{Binding PuushApiKey}"/>
                         </StackPanel>
                     </GroupBox>
                 </Grid>
