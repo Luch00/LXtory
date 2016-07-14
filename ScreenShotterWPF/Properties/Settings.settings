@@ -116,5 +116,8 @@
     <Setting Name="dateTimeString" Provider="PortableSettingsProvider" Type="System.String" Scope="User">
       <Value Profile="(Default)">dd-MM-yy_HH-mm-ss</Value>
     </Setting>
+    <Setting Name="gyazoToken" Provider="PortableSettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

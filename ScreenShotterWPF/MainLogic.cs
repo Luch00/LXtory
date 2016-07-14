@@ -231,6 +231,11 @@ namespace ScreenShotterWPF
                                     result = uploader.HttpWebRequestUpload(currentUpload);
                                     break;
                                 case 1:
+                                    if (Properties.Settings.Default.gyazoToken == string.Empty)
+                                    {
+                                        // login first
+                                        continue;
+                                    }
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
                                     {
                                         totalUploading--;
@@ -238,7 +243,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = uploader.HttpGyazoWebRequestUpload(currentUpload);
+                                    result = uploader.HttpGyazoWebRequestUpload2(currentUpload);
                                     break;
                                 case 2:
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
@@ -588,7 +593,6 @@ namespace ScreenShotterWPF
                 overlay_created = true;
                 OverlayNotification notification = new OverlayNotification();
                 notification.Title = "Overlay";
-                
                 notification.WindowTop = SystemParameters.VirtualScreenTop;
                 notification.WindowLeft = SystemParameters.VirtualScreenLeft;
                 notification.WindowWidth = SystemParameters.VirtualScreenWidth;
@@ -688,7 +692,7 @@ namespace ScreenShotterWPF
                 using (Bitmap bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
                 {
                     using (var gfx = Graphics.FromImage(bmp))
-                    {   
+                    {
                         gfx.CopyFromScreen(rX,
                                            rY,
                                            0,

@@ -510,5 +510,18 @@ namespace ScreenShotterWPF.Properties {
                 this["dateTimeString"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string gyazoToken {
+            get {
+                return ((string)(this["gyazoToken"]));
+            }
+            set {
+                this["gyazoToken"] = value;
+            }
+        }
     }
 }

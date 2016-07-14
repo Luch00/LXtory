@@ -6,6 +6,8 @@ using System.IO;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace ScreenShotterWPF
 {
@@ -14,7 +16,10 @@ namespace ScreenShotterWPF
         // For imgur
         private const string ClientID = "83c1c8bf9f4d2b1";
         private const string ClientSecret = "33dac3b1adfcefab926d83f1cb21412cf32ee36a";
-        
+        // For Gyazo
+        private const string GyazoClientID = "f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183";
+        private const string GyazoClientSecret = "e78f75312829d3e6c6816c35e07cd6a34efa908260d47bf4ad622531c26f6bee";
+
         // Webclient for uploading
         //WebClient w;
         // Actions to main form
@@ -76,6 +81,43 @@ namespace ScreenShotterWPF
             catch (Exception e)
             {
                 throw new Exception("Error While fetching tokens", e);
+            }
+        }
+
+        public static async Task GetGyazoToken(string code)
+        {
+            try
+            {
+                string s = "";
+                using (var w = new WebClient())
+                {
+                    w.Proxy = null;
+                    NameValueCollection v = new NameValueCollection();
+                    v.Add("client_id", GyazoClientID);
+                    //v.Add("client_secret", GyazoClientSecret);
+                    v.Add("redirect_uri", "http://localhost:8080/LXtory_Auth/");
+                    //v.Add("redirect_uri", "");
+                    v.Add("code", code);
+                    v.Add("grant_type", "authorization_code");
+                    v.Add("scope", "public");
+                    var base64 = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{GyazoClientID}:{GyazoClientSecret}"));
+                    w.Headers[HttpRequestHeader.Authorization] = $"Basic {base64}";
+
+                    var response = await w.UploadValuesTaskAsync("http://api.gyazo.com/oauth/token", "POST", v);
+
+                    //w.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                    //string parameters = $"client_id={GyazoClientID}&client_secret={GyazoClientSecret}&code={code}&grant_type=authorization_code&access_token=0f90443b5477ae0f2668f057b7686c65ede778512fef6d276f09ecbcd2d1fa54";
+                    //var response = w.UploadString("https://api.gyazo.com/oauth/token", parameters);
+                    s = Encoding.UTF8.GetString(response, 0, response.Length);
+                }
+                var serializer = new JavaScriptSerializer();
+                var json = serializer.Deserialize<dynamic>(s);
+                Properties.Settings.Default.gyazoToken = json["access_token"];
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error while fetching tokens", e);
             }
         }
 
@@ -270,6 +312,107 @@ namespace ScreenShotterWPF
                 if (response.Length > 0)
                 {
                     return new Tuple<bool, string>(true, response);
+                }
+                return new Tuple<bool, string>(false, "Failed :(");
+            }
+            catch (Exception e)
+            {
+                if (e is WebException)
+                {
+                    throw ExceptionStatus((WebException)e);
+                }
+                throw new Exception("Error while uploading to Gyazo.", e);
+            }
+        }
+
+
+        public Tuple<bool, string> HttpGyazoWebRequestUpload2(XImage img)
+        {
+            WebRequestState reqState = null;
+            HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create(new Uri("http://upload.gyazo.com/api/upload"));
+
+            webrequest.Proxy = null;
+
+            string fileContentType = "image/png";
+
+            string ext = Path.GetExtension(img.filepath).ToLower();
+            if (ext == "" || ext == ".png")
+            {
+                fileContentType = "image/png";
+            }
+            if (ext == ".jpg" || ext == ".jpeg")
+            {
+                fileContentType = "image/jpeg";
+            }
+            if (ext == ".bmp")
+            {
+                fileContentType = "image/bmp";
+            }
+            if (ext == ".gif")
+            {
+                fileContentType = "image/gif";
+            }
+            
+            webrequest.Host = "upload.gyazo.com";
+            webrequest.Method = "POST";
+            webrequest.KeepAlive = false;
+            webrequest.Timeout = 300000;
+            // Random string to be used as a boundary
+            string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
+            webrequest.ContentType = "multipart/form-data; boundary=" + boundary;
+            // 
+            MultipartFormDataContent form = new MultipartFormDataContent(boundary);
+            form.Add(new StringContent(Properties.Settings.Default.gyazoToken), "access_token");
+            form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
+            form.Headers.ContentType = new MediaTypeHeaderValue(fileContentType);
+
+            byte[] formData = form.ReadAsByteArrayAsync().Result;
+            form.Dispose();
+            // Length of the whole thing
+            webrequest.ContentLength = formData.Length;
+            
+            reqState = new HttpWebRequestState(formData.Length);
+            reqState.request = webrequest;
+            
+            reqState.bufferWrite = formData;
+            img.image = null;
+            reqState.totalBytes = webrequest.ContentLength;
+            reqState.fileURI = new Uri("http://upload.gyazo.com/api/upload");
+            reqState.transferStart = DateTime.Now;
+            reqState.buffer_size = 4096;
+            webrequest.UserAgent = "LXtory/1.0";
+            Stream requestStream = webrequest.GetRequestStream();
+            reqState.streamResponse = requestStream;
+
+            try
+            {
+                while (reqState.bytesWritten < reqState.totalBytes)
+                {
+                    if ((reqState.bytesWritten + reqState.buffer_size) > reqState.totalBytes)
+                    {
+                        reqState.buffer_size = (int)reqState.totalBytes - reqState.bytesWritten;
+                    }
+                    requestStream.Write(reqState.bufferWrite, reqState.bytesWritten, reqState.buffer_size);
+                    reqState.bytesWritten += reqState.buffer_size;
+                    ProgressUpdate(reqState.bytesWritten, reqState.totalBytes);
+                }
+                requestStream.Close();
+                reqState.streamResponse.Close();
+                WebResponse wr = webrequest.GetResponse();
+
+                Stream responseStream = wr.GetResponseStream();
+                StreamReader reader = new StreamReader(responseStream);
+                string response = reader.ReadToEnd();
+
+                reader.Close();
+                progressBarUpdate(100);
+                var serializer = new JavaScriptSerializer();
+                var json = serializer.Deserialize<dynamic>(response);
+                string link = json["url"];
+
+                if (link.Length > 0)
+                {
+                    return new Tuple<bool, string>(true, link);
                 }
                 return new Tuple<bool, string>(false, "Failed :(");
             }

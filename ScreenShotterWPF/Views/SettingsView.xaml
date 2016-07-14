@@ -190,6 +190,7 @@
                     <GroupBox Header="Gyazo" HorizontalAlignment="Left" Margin="239,4,0,0" VerticalAlignment="Top" Height="88" Width="228">
                         <StackPanel>
                             <RadioButton x:Name="radioGyazo" Content="Upload to Gyazo" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection" IsChecked="{Binding Value2}"/>
+                            <Button x:Name="btnLoginGyazo" Content="{Binding LoginButtonTextGyazo}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Command="{Binding LoginCommandGyazo}"/>
                         </StackPanel>
                     </GroupBox>
                     <GroupBox Header="Puush" HorizontalAlignment="Left" Margin="241,94,0,0" VerticalAlignment="Top" Height="121" Width="226">

@@ -32,6 +32,7 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand CancelCommand { get; private set; }
         public ICommand BrowseCommand { get; private set; }
         public ICommand LoginCommand { get; private set; }
+        public ICommand LoginCommandGyazo { get; private set; }
         public ICommand RegisterCommand { get; private set; }
 
         private bool fullscreenCtrl;
@@ -83,11 +84,13 @@ namespace ScreenShotterWPF.ViewModels
         private string puushApiKey;
         private string username;
         private string loginButtonText;
+        private string loginButtonTextGyazo;
         private string registerButtonText;
         private bool registerEnabled;
         private string statusLabelText;
         private Visibility authProgressVisibility;
         private bool loginEnabled;
+        private bool loginEnabledGyazo;
         private bool anonUpload;
         private int uploadValue;
         private string dateTimeString;
@@ -119,6 +122,7 @@ namespace ScreenShotterWPF.ViewModels
             this.CancelCommand = new DelegateCommand(Cancel);
             this.BrowseCommand = new DelegateCommand(Browse);
             this.LoginCommand = new DelegateCommand(Login);
+            this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
             this.RegisterCommand = new DelegateCommand(Register);
             AuthProgressVisibility = Visibility.Hidden;
         }
@@ -442,6 +446,10 @@ namespace ScreenShotterWPF.ViewModels
             get { return loginButtonText; }
             private set { loginButtonText = value; OnPropertyChanged("LoginButtonText"); }
         }
+        public string LoginButtonTextGyazo {
+            get { return loginButtonTextGyazo; }
+            private set { loginButtonTextGyazo = value; OnPropertyChanged("LoginButtonTextGyazo"); }
+        }
         public string RegisterButtonText {
             get { return registerButtonText; }
             private set { registerButtonText = value; OnPropertyChanged("RegisterButtonText"); }
@@ -521,6 +529,11 @@ namespace ScreenShotterWPF.ViewModels
             get { return loginEnabled; }
             private set { loginEnabled = value; OnPropertyChanged("LoginEnabled"); }
         }
+        public bool LoginEnabledGyazo
+        {
+            get { return loginEnabledGyazo; }
+            private set { loginEnabledGyazo = value; OnPropertyChanged("LoginEnabledGyazo"); }
+        }
 
         #endregion
 
@@ -563,7 +576,16 @@ namespace ScreenShotterWPF.ViewModels
             }
             else
             {
+                LoginButtonText = "Login";
                 Username = "(Not logged in)";
+            }
+            if (Properties.Settings.Default.gyazoToken != "")
+            {
+                LoginButtonTextGyazo = "Logout";
+            }
+            else
+            {
+                LoginButtonTextGyazo = "Login";
             }
 
             if (Properties.Settings.Default.shellExtActive)
@@ -761,17 +783,58 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
+        private async void GyazoLogin()
+        {
+            if (Properties.Settings.Default.gyazoToken == string.Empty)
+            {
+                statusLabelText = StatusLabelText = "Waiting for Authorization..";
+                AuthProgressVisibility = Visibility.Visible;
+                LoginEnabledGyazo = false;
+                try
+                {
+                    string authCode = await GetAuthCode("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public");
+                    if (authCode != string.Empty)
+                    {
+                        // get access token
+                        await Uploader.GetGyazoToken(authCode);
+                        StatusLabelText = "Authorization complete";
+                        LoginButtonTextGyazo = "Logout";
+                        LoginEnabledGyazo = true;
+                        AuthProgressVisibility = Visibility.Hidden;
+                    }
+                    else
+                    {
+                        // auth failed
+                        AuthProgressVisibility = Visibility.Hidden;
+                        LoginEnabledGyazo = true;
+                        StatusLabelText = "Authorization failed";
+                    }
+                }
+                catch (Exception)
+                {
+                    AuthProgressVisibility = Visibility.Hidden;
+                    LoginEnabledGyazo = true;
+                    StatusLabelText = "Authorization failed";
+                }
+            }
+            else
+            {
+                Properties.Settings.Default.gyazoToken = "";
+                Properties.Settings.Default.Save();
+                LoginButtonTextGyazo = "Login";
+            }
+        }
+
         private async void Login()
         {
             if (Properties.Settings.Default.username == string.Empty && Properties.Settings.Default.accessToken == string.Empty)
             {
                 StatusLabelText = "Waiting for Authorization..";
                 AuthProgressVisibility = Visibility.Visible;
-                //authProgress.IsIndeterminate = true;
                 LoginEnabled = false;
                 try
                 {
-                    string authCode = await GetAuthCode();
+                    string authCode = await GetAuthCode("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
                     if (authCode != string.Empty)
                     {
                         //get tokens
@@ -781,13 +844,11 @@ namespace ScreenShotterWPF.ViewModels
                         LoginButtonText = "Logout";
                         LoginEnabled = true;
                         AuthProgressVisibility = Visibility.Hidden;
-                        //authProgress.IsIndeterminate = false;
                     }
                     else
                     {
                         // auth failed
                         AuthProgressVisibility = Visibility.Hidden;
-                        //authProgress.IsIndeterminate = false;
                         LoginEnabled = true;
                         StatusLabelText = "Authorization failed";
                     }
@@ -795,10 +856,8 @@ namespace ScreenShotterWPF.ViewModels
                 catch (Exception)
                 {
                     AuthProgressVisibility = Visibility.Hidden;
-                    //authProgress.IsIndeterminate = false;
                     LoginEnabled = true;
                     StatusLabelText = "Authorization failed";
-                    //throw;
                 }
             }
             else
@@ -812,7 +871,7 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private async Task<string> GetAuthCode()
+        private async Task<string> GetAuthCode(string url)
         {
             //IPAddress local = IPAddress.Loopback;
             TcpListener listener = new TcpListener(IPAddress.Loopback, 8080);
@@ -822,7 +881,8 @@ namespace ScreenShotterWPF.ViewModels
             do
             {
                 Console.WriteLine(@"WAITING CONNECTION");
-                Process.Start("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
+                //Process.Start("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
+                Process.Start(url);
                 TcpClient client = await listener.AcceptTcpClientAsync();
                 Console.WriteLine(@"CONNECTED");
                 NetworkStream stream = client.GetStream();

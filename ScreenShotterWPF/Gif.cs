@@ -189,7 +189,6 @@ namespace ScreenShotterWPF
         {
             return Task.Run(() =>
             {
-                //const string datePattern = @"dd-MM-yy_HH-mm-ss";
                 string date = DateTime.Now.ToString(datePattern);
                 int count = 1;
                 string gifname = $"gif_{date}.gif";
