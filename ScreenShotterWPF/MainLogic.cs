@@ -234,6 +234,8 @@ namespace ScreenShotterWPF
                                     if (Properties.Settings.Default.gyazoToken == string.Empty)
                                     {
                                         // login first
+                                        MessageBox.Show("Login to Gyazo first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
                                         continue;
                                     }
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
