@@ -3,6 +3,7 @@ using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
 using System;
+using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -22,6 +23,7 @@ namespace ScreenShotterWPF.ViewModels
         private ICommand uncheckBeginningCommand;
         private ICommand uncheckEndCommand;
         private ICommand encodeCommand;
+        private ICommand removeUnselectedCommand;
         public ICommand CancelCommand { get; private set; }
 
         public GifEditorViewModel()
@@ -31,6 +33,7 @@ namespace ScreenShotterWPF.ViewModels
             uncheckBeginningCommand = new DelegateCommand(UncheckFromBeginning, CanCheckUncheck);
             uncheckEndCommand = new DelegateCommand(UncheckFromEnd, CanCheckUncheck);
             encodeCommand = new DelegateCommand(StartEncode);
+            removeUnselectedCommand = new DelegateCommand(RemoveUnselected);
             CancelCommand = new DelegateCommand(Cancel);
             selectedIndex = 0;
         }
@@ -78,11 +81,20 @@ namespace ScreenShotterWPF.ViewModels
             get { return encodeCommand; }
             set { encodeCommand = value; }
         }
+        public ICommand RemoveUnselectedCommand
+        {
+            get { return removeUnselectedCommand; }
+            set { removeUnselectedCommand = value; }
+        }
 
         public int SelectedIndex
         {
             get { return selectedIndex; }
-            set { selectedIndex = value; SetPreviewImage(); OnPropertyChanged("SelectedIndex"); }
+            set
+            {
+                selectedIndex = value > -1 ? value : 0;                
+                SetPreviewImage();
+                OnPropertyChanged("SelectedIndex"); }
         }
 
         public ImageSource PreviewImage
@@ -98,6 +110,16 @@ namespace ScreenShotterWPF.ViewModels
                 previewImage = null;
             }
             PreviewImage = notification.Gif.Frames[selectedIndex].Image;
+        }
+
+        private void RemoveUnselected()
+        {
+            // herpderp
+            var unselected = notification.Gif.Frames.Where(x => x.Selected == false).ToList();
+            foreach (var item in unselected)
+            {
+                notification.Gif.Frames.Remove(item);
+            }
         }
 
         private void Cancel()

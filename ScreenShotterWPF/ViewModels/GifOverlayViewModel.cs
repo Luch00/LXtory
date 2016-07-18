@@ -16,6 +16,7 @@ namespace ScreenShotterWPF.ViewModels
 
         private ICommand cancelCaptureCommand;
         private ICommand startCaptureCommand;
+        private ICommand loadCacheCommand;
 
         private double maxWidth;
         private double maxHeight;
@@ -31,6 +32,7 @@ namespace ScreenShotterWPF.ViewModels
             SetMaxWidthHeight();
             startCaptureCommand = new DelegateCommand(Start, CanStart);
             cancelCaptureCommand = new DelegateCommand(Cancel);
+            loadCacheCommand = new DelegateCommand(LoadCache);
         }
 
         public INotification Notification
@@ -68,6 +70,18 @@ namespace ScreenShotterWPF.ViewModels
             this.FinishInteraction();
         }
 
+        private void LoadCache()
+        {
+            if (notification != null)
+            {
+                notification.GifDuration = this.GifDuration;
+                notification.GifFramerate = this.GifFramerate;
+                notification.LoadCache = true;
+                notification.Confirmed = true;
+            }
+            this.FinishInteraction();
+        }
+
         private void Cancel()
         {
             if (notification != null)
@@ -92,6 +106,12 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return cancelCaptureCommand; }
             set { cancelCaptureCommand = value; }
+        }
+
+        public ICommand LoadCacheCommand
+        {
+            get { return loadCacheCommand; }
+            set { loadCacheCommand = value; }
         }
 
         public int GifDuration

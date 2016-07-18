@@ -40,11 +40,16 @@
                         <Setter Property="Height" Value="{Binding WindowHeight, Mode=TwoWay}"/>
                         <Setter Property="Top" Value="{Binding WindowTop, Mode=TwoWay}"/>
                         <Setter Property="Left" Value="{Binding WindowLeft, Mode=TwoWay}"/>
-                        <Setter Property="Opacity" Value="0.75"/>
                         <Setter Property="AllowsTransparency" Value="True"/>
-                        <Setter Property="MinHeight" Value="170"/>
+                        <Setter Property="MinHeight" Value="155"/>
                         <Setter Property="MinWidth" Value="170"/>
                         <Setter Property="Topmost" Value="True"/>
+                        <Setter Property="Opacity" Value="1"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="White" Opacity="0.45"/>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </prism:PopupWindowAction.WindowStyle>
                 <prism:PopupWindowAction.WindowContent>

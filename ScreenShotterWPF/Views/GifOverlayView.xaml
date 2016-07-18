@@ -12,7 +12,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" MouseDown="Border_PreviewMouseDown" Loaded="UserControl_Loaded">
     <UserControl.Background>
-        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+        <!--<SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>-->
+        <SolidColorBrush Color="Transparent" Opacity="1" />
     </UserControl.Background>
     <Border BorderBrush="Transparent"
               BorderThickness="2"
@@ -25,7 +26,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <xctk:IntegerUpDown x:Name="windowSizeWidth" VerticalAlignment="Center" Value="{Binding WindowWidth, Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
                     <Label Content="X"/>
-                    <xctk:IntegerUpDown x:Name="windowSizeHeigth" VerticalAlignment="Center" Value="{Binding WindowHeight, Mode=TwoWay}" Minimum="50" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
+                    <xctk:IntegerUpDown x:Name="windowSizeHeigth" VerticalAlignment="Center" Value="{Binding WindowHeight, Mode=TwoWay}" Minimum="155" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Label Margin="0,0,25,0">Duration</Label>
@@ -35,7 +36,12 @@
                     <Label Margin="0,0,52,0">FPS</Label>
                     <xctk:IntegerUpDown x:Name="gifFramerate" VerticalAlignment="Center" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
                 </StackPanel>
-                <Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">Start</Button>
+                <!--<Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">Start</Button>-->
+                <xctk:SplitButton Content="Start" Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">
+                    <xctk:SplitButton.DropDownContent>
+                        <MenuItem Header="_Reload from cache" Command="{Binding LoadCacheCommand}"/>
+                    </xctk:SplitButton.DropDownContent>
+                </xctk:SplitButton>
                 <Button Width="100" Command="{Binding CancelCaptureCommand}">Cancel</Button>
             </StackPanel>
         </Border>

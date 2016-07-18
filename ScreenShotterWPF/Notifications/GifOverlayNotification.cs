@@ -48,12 +48,18 @@ namespace ScreenShotterWPF.Notifications
             get; set;
         }
 
+        public bool LoadCache
+        {
+            get; set;
+        }
+
         public GifOverlayNotification()
         {
             WindowHeight = 300;
             WindowWidth = 300;
             WindowTop = (int)SystemParameters.PrimaryScreenHeight / 2 - 150;
             WindowLeft = (int)SystemParameters.PrimaryScreenWidth / 2 - 150;
+            LoadCache = false;
         }
     }
 }

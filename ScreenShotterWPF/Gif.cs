@@ -13,6 +13,8 @@ using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
 using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ScreenShotterWPF
 {
@@ -74,6 +76,22 @@ namespace ScreenShotterWPF
                     img.Freeze();
                     frame.Image = img;
                 }
+            }
+        }
+
+        public void LoadFromCache()
+        {
+            Regex digit = new Regex(@"\d+", RegexOptions.Compiled);
+            //var files = Directory.EnumerateFiles(cachedir, "*.png").OrderBy(filename => Int32.Parse(Path.GetFileNameWithoutExtension(filename)));
+            var files = Directory.EnumerateFiles(cachedir, "*.png").OrderBy(x => int.Parse(digit.Match(x).Value));
+            foreach (var file in files)
+            {
+                GifFrame frame = new GifFrame
+                {
+                    Filepath = file,
+                    Name = Path.GetFileNameWithoutExtension(file)
+                };
+                frames.Add(frame);
             }
         }
         

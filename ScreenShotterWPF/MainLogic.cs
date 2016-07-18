@@ -624,8 +624,6 @@ namespace ScreenShotterWPF
             var returned = await this.GifOverlayRequest.RaiseAsync(notification);
             if (returned != null && returned.Confirmed)
             {
-                Console.WriteLine("TEST");
-
                 int x = notification.WindowLeft;
                 int y = notification.WindowTop;
                 int w = notification.WindowWidth;
@@ -634,7 +632,14 @@ namespace ScreenShotterWPF
                 int d = notification.GifDuration;
                 string datePattern = string.Empty != Properties.Settings.Default.dateTimeString ? Properties.Settings.Default.dateTimeString : defaultDateTimePattern;
                 Gif gif = new Gif(f, d, w, h, x, y, datePattern);
-                await gif.StartCapture();
+                if (!notification.LoadCache)
+                {
+                    await gif.StartCapture();
+                }
+                else
+                {
+                    gif.LoadFromCache();
+                }
                 if (gif.Frames.Count > 0)
                 {
                     bool cancelled = false;

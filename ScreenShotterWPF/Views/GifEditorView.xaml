@@ -15,6 +15,8 @@
             <Separator/>
             <MenuItem x:Name="menuCE" Header="Check From End" Command="{Binding CheckEndCommand}"/>
             <MenuItem x:Name="menuUE" Header="Uncheck From End" Command="{Binding UncheckEndCommand}"/>
+            <Separator/>
+            <MenuItem x:Name="menuRemove" Header="Remove Unselected" Command="{Binding RemoveUnselectedCommand}"/>
         </ContextMenu>
     </UserControl.Resources>
     <Grid>
