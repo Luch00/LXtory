@@ -27,7 +27,6 @@ namespace ScreenShotterWPF.ViewModels
 
         public ICommand ExitCommand { get; private set; }
         public ICommand OpenCommand { get; private set; }
-        //public ICommand OpenSettingsCommand { get; private set; }
         public ICommand DeleteCommand { get; private set; }
 
         public ICommand CaptureFullscreenCommand { get; private set; }
@@ -36,11 +35,9 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand CaptureGifCommand { get; private set; }
         public ICommand CaptureD3DImageCommand { get; private set; }
 
-        public InteractionRequest<IConfirmation> SettingsRequest { get; private set; } 
-        
+        public InteractionRequest<IConfirmation> SettingsRequest { get; private set; }
 
         public ICommand RaiseSettingsCommand { get; private set; }
-        //public ICommand RaiseGifOverlayCommand { get; private set; }
 
         private const int HOTKEY_1 = 0;
         private const int HOTKEY_2 = 1;
@@ -61,7 +58,6 @@ namespace ScreenShotterWPF.ViewModels
             gifButtonEnabled = true;
             this.ExitCommand = new DelegateCommand(ExitApplication);
             this.OpenCommand = new DelegateCommand(OpenImageFolder);
-            //this.OpenSettingsCommand = new DelegateCommand(OpenSettings);
             this.DeleteCommand = new DelegateCommand(DeleteItem);
             
             this.CaptureFullscreenCommand = new DelegateCommand(CaptureFullscreen);
@@ -71,7 +67,6 @@ namespace ScreenShotterWPF.ViewModels
             this.CaptureD3DImageCommand = new DelegateCommand(CaptureD3DImage);
 
             this.RaiseSettingsCommand = new DelegateCommand(RaiseSettings);
-            //this.RaiseGifOverlayCommand = new DelegateCommand(RaiseGifOverlay);
 
             this.SettingsRequest = new InteractionRequest<IConfirmation>();
             
@@ -95,7 +90,6 @@ namespace ScreenShotterWPF.ViewModels
 
         private void DeleteItem()
         {
-            //Console.WriteLine(selectedItem.filename);
             Main.RemoveXImage(selectedItem);
         }
 
@@ -157,19 +151,19 @@ namespace ScreenShotterWPF.ViewModels
         public string WindowButtonText
         {
             get { return windowButtonText; }
-            set { windowButtonText = value; OnPropertyChanged("WindowButtonText"); }
+            set { SetProperty(ref windowButtonText, value); }
         }
 
         public bool GifButtonEnabled
         {
             get { return gifButtonEnabled; }
-            set { gifButtonEnabled = value; OnPropertyChanged("GifButtonEnabled"); }
+            set { SetProperty(ref gifButtonEnabled, value); }
         }
 
         public string AreaButtonText
         {
             get { return areaButtonText; }
-            set { areaButtonText = value; OnPropertyChanged("AreaButtonText"); }
+            set { SetProperty(ref areaButtonText, value); }
         }
 
         public IntPtr WindowHandle
@@ -181,7 +175,7 @@ namespace ScreenShotterWPF.ViewModels
         public BitmapImage DisplayImage
         {
             get { return displayImage; }
-            set { displayImage = value; OnPropertyChanged("DisplayImage"); }
+            set { SetProperty(ref displayImage, value); }
         }
 
         public XImage SelectedItem
@@ -190,9 +184,82 @@ namespace ScreenShotterWPF.ViewModels
             set
             {
                 selectedItem = value;
-                //CheckContextMenuItems();
-                DisplayImage = MainLogic.GetPicture(selectedItem);
+                GetPicture(selectedItem);
                 OnPropertyChanged("SelectedItem");
+            }
+        }
+
+        private void GetPictureLocal(Uri url)
+        {
+            BitmapImage img = new BitmapImage();
+            img.BeginInit();
+            img.CacheOption = BitmapCacheOption.None;
+            img.DecodePixelWidth = 300;
+            img.UriSource = url;
+            img.EndInit();
+            DisplayImage = img;
+        }
+
+        private async void GetPictureWeb(Uri url)
+        {
+            if (url.Host == "puush.me" && Properties.Settings.Default.puush_key != string.Empty)
+            {
+                byte[] bytes;
+                using (var wc = new System.Net.WebClient())
+                {
+                    string id = url.AbsolutePath.TrimStart('/');
+                    System.Collections.Specialized.NameValueCollection nv =
+                        new System.Collections.Specialized.NameValueCollection
+                        {
+                            {"i", id},
+                            {"k", Properties.Settings.Default.puush_key}
+                        };
+                    bytes = await wc.UploadValuesTaskAsync("http://puush.me/api/thumb", nv);
+                }
+                if (bytes.Length <= 0)
+                {
+                    
+                    return;
+                }
+                using (var stream = new System.IO.MemoryStream(bytes))
+                {
+                    stream.Seek(0, System.IO.SeekOrigin.Begin);
+                    BitmapImage img = new BitmapImage();
+                    img.BeginInit();
+                    img.CacheOption = BitmapCacheOption.OnLoad;
+                    img.DecodePixelWidth = 300;
+                    img.StreamSource = stream;
+                    img.EndInit();
+                    DisplayImage = img;
+                }
+            }
+            else
+            {
+                DisplayImage = new BitmapImage(url);
+            }
+        }
+
+        // Set picturebox image
+        private void GetPicture(XImage x)
+        {
+            if (x == null)
+                DisplayImage = null;
+
+            Uri url;
+            if (x.filepath != string.Empty && System.IO.File.Exists(x.filepath))
+            {
+                url = new Uri(x.filepath, UriKind.Absolute);
+                GetPictureLocal(url);
+            }
+            else if (x.thumbnail != string.Empty)
+            {
+                url = new Uri(x.thumbnail, UriKind.Absolute);
+                GetPictureWeb(url);
+            }
+            else
+            {
+                DisplayImage = null;
+                return;
             }
         }
 
@@ -200,16 +267,6 @@ namespace ScreenShotterWPF.ViewModels
         {
             Main.ReadXML();
         }
-
-        /*private void CheckContextMenuItems()
-        {
-            if (selectedItem == null)
-                return;
-
-            SelectedIndex.OpenLocalEnabled = SelectedIndex.filepath != string.Empty && File.Exists(SelectedIndex.filepath);
-
-            SelectedIndex.OpenBrowserEnabled = SelectedIndex.CopyClipboardEnabled = (SelectedIndex.url != string.Empty);
-        }*/
 
         public bool PassCommandLineArgs(IList<string> args)
         {

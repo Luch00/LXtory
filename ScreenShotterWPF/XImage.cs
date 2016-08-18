@@ -12,6 +12,7 @@ namespace ScreenShotterWPF
     public class XImage : BindableBase
     {
         private string _url;
+        private string _thumbnail;
 
         private ICommand openLocalCommand;
         private ICommand openBrowserCommand;
@@ -33,11 +34,17 @@ namespace ScreenShotterWPF
                 OnPropertyChanged("url");
             }
         }
+        public string thumbnail
+        {
+            get { return _thumbnail; }
+            set { _thumbnail = value; }
+        }
         public string filepath { get; set; }
 
         public XImage()
         {
             datetime = DateTime.MinValue;
+            _thumbnail = "";
             openLocalCommand = new DelegateCommand(OpenLocalImage);
             openBrowserCommand = new DelegateCommand(OpenInBrowser);
             copyClipboardCommand = new DelegateCommand(CopyToClipboard);

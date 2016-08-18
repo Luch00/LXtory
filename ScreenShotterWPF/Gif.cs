@@ -31,7 +31,7 @@ namespace ScreenShotterWPF
         private readonly string cachedir;
         private readonly ObservableCollection<GifFrame> frames;
         private int encodingProgress;
-        private string datePattern;
+        private readonly string datePattern;
 
         public Gif(int framerate, int duration, int w, int h, int x, int y, string datePattern)
         {
@@ -52,7 +52,7 @@ namespace ScreenShotterWPF
         public int EncodingProgress
         {
             get { return encodingProgress; }
-            set { encodingProgress = value; OnPropertyChanged("EncodingProgress"); }
+            set { SetProperty(ref encodingProgress, value); }
         }
 
         public ObservableCollection<GifFrame> Frames
@@ -70,7 +70,6 @@ namespace ScreenShotterWPF
                     img.BeginInit();
                     img.CacheOption = BitmapCacheOption.OnLoad;
                     img.DecodePixelWidth = 300;
-                    //img.UriSource = new Uri(s, UriKind.Absolute);
                     img.StreamSource = fs;
                     img.EndInit();
                     img.Freeze();
@@ -241,10 +240,12 @@ namespace ScreenShotterWPF
                                     Console.WriteLine("CANCEL REQUESTED");
                                     break;
                                 }
-
-                                using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i]))))
+                                
+                                using (var image = new Bitmap(Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i])))))
+                                //using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i]))))
                                 {
-                                    using (var quantImage = quantizer.QuantizeImage(new Bitmap(image)))
+                                    using (var quantImage = quantizer.QuantizeImage(image))
+                                    //using (var quantImage = quantizer.QuantizeImage(new Bitmap(image)))
                                     {
                                         encoder.AddFrame(quantImage, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
                                     }

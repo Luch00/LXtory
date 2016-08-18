@@ -20,7 +20,7 @@
                             <CheckBox x:Name="checkBoxLocal" Content="Save local copy" HorizontalAlignment="Left" IsChecked="{Binding LocalEnabled}"  VerticalAlignment="Top" Margin="4"/>
                             <StackPanel Orientation="Horizontal">
                                 <TextBox x:Name="textFilepath" HorizontalAlignment="Left" Height="23" MaxLines="1" TextWrapping="NoWrap" VerticalAlignment="Top" Width="163" Margin="4" Text="{Binding TextFilepath}"/>
-                                <Button x:Name="settingsBrowse" Content="..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="27" Margin="4" Visibility="Hidden" Command="{Binding BrowseCommand}"/> <!-- this needs folder browse?-->
+                                <Button x:Name="settingsBrowse" Content="..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="27" Margin="4" Visibility="Visible" Command="{Binding BrowseCommand}"/> <!-- this needs folder browse?-->
                             </StackPanel>
                             <CheckBox x:Name="checkUpload" Content="Auto-Upload Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding UploadEnabled}"/>
                             <CheckBox x:Name="checkMinimizeTray" Content="Minimize to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding MinimizeToTray}"/>

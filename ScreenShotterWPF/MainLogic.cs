@@ -17,6 +17,7 @@ using System.Xml.Serialization;
 using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
+using System.Web.Script.Serialization;
 
 namespace ScreenShotterWPF
 {
@@ -188,6 +189,12 @@ namespace ScreenShotterWPF
             return true;
         }
 
+        private dynamic StringToJson(string s)
+        {
+            var serializer = new JavaScriptSerializer();
+            return serializer.Deserialize<dynamic>(s);
+        }
+
         private async void Upload()
         {
             while (!queue.IsCompleted)
@@ -216,7 +223,9 @@ namespace ScreenShotterWPF
                             }
                             uploading++;
                             SetStatusBarText("Uploading.." + uploading + "/" + totalUploading);
-                            Tuple<bool, string> result;
+                            Tuple<bool, string, string> result;
+                            string response;
+                            dynamic json;
                             switch (Properties.Settings.Default.upload_site)
                             {
                                 case 0:
@@ -228,7 +237,11 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = uploader.HttpWebRequestUpload(currentUpload);
+                                    response = uploader.HttpWebRequestUpload(currentUpload);
+                                    json = StringToJson(response);
+                                    string thumb = $"http://i.imgur.com/{json["data"]["id"]}m.jpg";
+
+                                    result =  new Tuple<bool, string, string>(true, json["data"]["link"], thumb);
                                     break;
                                 case 1:
                                     if (Properties.Settings.Default.gyazoToken == string.Empty)
@@ -245,7 +258,13 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = uploader.HttpGyazoWebRequestUpload2(currentUpload);
+                                    response = await uploader.HttpGyazoWebRequestUpload(currentUpload);
+                                    
+                                    json = StringToJson(response);
+                                    string link = json["url"];
+                                    string thumbnail = json["thumb_url"];
+                                    
+                                    result = new Tuple<bool, string, string>(true, link, thumbnail);
                                     break;
                                 case 2:
                                     if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
@@ -255,21 +274,33 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    result = uploader.PuushHttpWebRequestUpload(currentUpload);
+                                    response = uploader.PuushHttpWebRequestUpload(currentUpload);
+                                    if (response == "-1")
+                                    {
+                                        result = new Tuple<bool, string, string>(false, "", "");
+                                        break;
+                                    }
+                                    string[] split = response.Split(',');
+                                    //Regex r = new Regex("(?<=puu.sh/)(.*)(?=.png)");
+                                    //Match m = r.Match(split[1]);
+                                    string t = $"http://puush.me/{split[2]}";
+                                    
+                                    result =  new Tuple<bool, string, string>(true, split[1], t);
                                     break;
                             }
 
                             if (result.Item1)
                             {
-                                uiContext.Post(x => AddXimageToList(currentUpload, result.Item2), null);
+                                uiContext.Post(x => AddXimageToList(currentUpload, result.Item2, result.Item3), null);
                                 //AddXimageToList(currentUpload, result.Item2);
                                 ChangeTrayIcon("F");
                             }
                             else
                             {
                                 ChangeTrayIcon("E");
-                                MessageBox.Show(result.Item2, "Something went wrong.", MessageBoxButton.OK,
-                                    MessageBoxImage.Exclamation);
+                                /*MessageBox.Show(result.Item2, "Something went wrong.", MessageBoxButton.OK,
+                                    MessageBoxImage.Exclamation);*/
+                                throw new Exception("Something went wrong.");
                             }
 
                             if (queue.Count == 0)
@@ -338,19 +369,19 @@ namespace ScreenShotterWPF
         public ObservableCollection<XImage> Ximages
         {
             get { return ximages; }
-            set { ximages = value; OnPropertyChanged("Ximages"); }
+            private set { SetProperty(ref ximages, value); }
         }
 
         public int ProgressValue
         {
             get { return progressValue; }
-            private set { progressValue = value; OnPropertyChanged("ProgressValue"); }
+            private set { SetProperty(ref progressValue, value); }
         }
 
         public string StatusText
         {
             get { return statusText; }
-            private set { statusText = value; OnPropertyChanged("StatusText"); }
+            private set { SetProperty(ref statusText, value); }
         }
 
         private ImageSource icon;
@@ -358,14 +389,15 @@ namespace ScreenShotterWPF
         public ImageSource Icon
         {
             get { return icon; }
-            set
+            set { SetProperty(ref icon, value); }
+            /*set
             {
                 if (value != icon)
                 {
                     icon = value;
                     OnPropertyChanged("Icon"); 
                 }
-            }
+            }*/
         }
 
         private void SetIcon(string s)
@@ -681,7 +713,7 @@ namespace ScreenShotterWPF
                                 else
                                 {
                                     //addXImageToList(img, "");
-                                    AddXimageToList(img, "");
+                                    AddXimageToList(img, "", "");
                                 }
                             }
                         }
@@ -696,7 +728,7 @@ namespace ScreenShotterWPF
         {
             if (width > 0 && height > 0)
             {
-                using (Bitmap bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+                using (Bitmap bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
                 {
                     using (var gfx = Graphics.FromImage(bmp))
                     {
@@ -824,7 +856,7 @@ namespace ScreenShotterWPF
         }
 
         // Add image to list
-        private void AddXimageToList(XImage x, string url)
+        private void AddXimageToList(XImage x, string url, string thumbnail)
         {
             if (x == null)
             {
@@ -834,6 +866,7 @@ namespace ScreenShotterWPF
             if (!Properties.Settings.Default.saveLocal && x.filepath.Length == 0)
             {
                 x.url = url;
+                x.thumbnail = thumbnail;
                 lock (ximages)
                 {
                     ximages.Add(x);
@@ -848,11 +881,13 @@ namespace ScreenShotterWPF
                 if (y != null)
                 {
                     y.url = url;
+                    y.thumbnail = thumbnail;
                     WriteXML();
                 }
                 else
                 {
                     x.url = url;
+                    x.thumbnail = thumbnail;
                     lock (ximages)
                     {
                         ximages.Add(x);
@@ -906,43 +941,6 @@ namespace ScreenShotterWPF
             }
             //statusChange("Clipboard copy failed.");
             StatusText = "Clipboard copy failed.";
-        }
-
-        // Set picturebox image only for local and imgur hosted images
-        public static BitmapImage GetPicture(XImage x)
-        {
-            if (x == null)
-                return null;
-
-            string url;
-            if (x.filepath != string.Empty && File.Exists(x.filepath))
-            {
-                url = x.filepath;
-            }
-            else if(x.url != string.Empty)
-            {
-                Uri uri = new Uri(x.url);
-                if (uri.Host == "i.imgur.com")
-                {
-                    int i = x.url.LastIndexOf('.');
-                    url = x.url.Substring(0, i) + "m" + x.url.Substring(i);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                return null;
-            }
-            BitmapImage img = new BitmapImage();
-            img.BeginInit();
-            img.CacheOption = BitmapCacheOption.None;
-            img.DecodePixelWidth = 300;
-            img.UriSource = new Uri(url, UriKind.Absolute);
-            img.EndInit();
-            return img;
         }
 
         // Write history xml

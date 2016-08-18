@@ -100,7 +100,7 @@ namespace ScreenShotterWPF.ViewModels
         public ImageSource PreviewImage
         {
             get { return previewImage; }
-            set { previewImage = value; OnPropertyChanged("PreviewImage"); }
+            set { SetProperty(ref previewImage, value); }
         }
 
         private void SetPreviewImage()

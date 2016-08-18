@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using Prism.Commands;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace ScreenShotterWPF.ViewModels
 {
@@ -129,6 +130,27 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Browse()
         {
+            var dialog = new CommonOpenFileDialog
+            {
+                Title = "Select Folder...",
+                IsFolderPicker = true,
+                InitialDirectory = this.textFilepath,
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true
+            };
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var folder = dialog.FileName;
+                TextFilepath = folder;
+            }
         }
 
         #region KeyHandlers
@@ -194,92 +216,92 @@ namespace ScreenShotterWPF.ViewModels
 
         public bool FullscreenCtrl
         {
-            set { fullscreenCtrl = value; OnPropertyChanged("FullscreenCtrl"); }
             get { return fullscreenCtrl; }
+            set { SetProperty(ref fullscreenCtrl, value); }
         }
 
         public bool FullscreenShift
         {
             get { return fullscreenShift; }
-            set { fullscreenShift = value; OnPropertyChanged("FullscreenShift"); }
+            set { SetProperty(ref fullscreenShift, value); }
         }
 
         public bool FullscreenAlt
         {
             get { return fullscreenAlt; }
-            set { fullscreenAlt = value; OnPropertyChanged("FullscreenAlt"); }
+            set { SetProperty(ref fullscreenAlt, value); }
         }
 
         public bool CurrentwindowCtrl
         {
             get { return currentwindowCtrl; }
-            set { currentwindowCtrl = value; OnPropertyChanged("CurrentwindowCtrl"); }
+            set { SetProperty(ref currentwindowCtrl, value); }
         }
 
         public bool CurrentwindowShift
         {
             get { return currentwindowShift; }
-            set { currentwindowShift = value; OnPropertyChanged("CurrentwindowShift"); }
+            set { SetProperty(ref currentwindowShift, value); }
         }
 
         public bool CurrentwindowAlt
         {
             get { return currentwindowAlt; }
-            set { currentwindowAlt = value; OnPropertyChanged("CurrentwindowAlt"); }
+            set { SetProperty(ref currentwindowAlt, value); }
         }
 
         public bool SelectedareaCtrl
         {
             get { return selectedareaCtrl; }
-            set { selectedareaCtrl = value; OnPropertyChanged("SelectedareaCtrl"); }
+            set { SetProperty(ref selectedareaCtrl, value); }
         }
 
         public bool SelectedareaShift
         {
             get { return selectedareaShift; }
-            set { selectedareaShift = value; OnPropertyChanged("SelectedareaShift"); }
+            set { SetProperty(ref selectedareaShift, value); }
         }
 
         public bool SelectedareaAlt
         {
             get { return selectedareaAlt; }
-            set { selectedareaAlt = value; OnPropertyChanged("SelectedareaAlt"); }
+            set { SetProperty(ref selectedareaAlt, value); }
         }
 
         public bool GifCaptureCtrl
         {
             get { return gifcaptureCtrl; }
-            set { gifcaptureCtrl = value; OnPropertyChanged("GifCaptureCtrl"); }
+            set { SetProperty(ref gifcaptureCtrl, value); }
         }
 
         public bool GifCaptureShift
         {
             get { return gifcaptureShift; }
-            set { gifcaptureShift = value; OnPropertyChanged("GifCaptureShift"); }
+            set { SetProperty(ref gifcaptureShift, value); }
         }
 
         public bool GifCaptureAlt
         {
             get { return gifcaptureAlt; }
-            set { gifcaptureAlt = value; OnPropertyChanged("GifCaptureAlt"); }
+            set { SetProperty(ref gifcaptureAlt, value); }
         }
 
         public bool D3dCtrl
         {
             get { return d3dCtrl; }
-            set { d3dCtrl = value; OnPropertyChanged("D3dCtrl"); }
+            set { SetProperty(ref d3dCtrl, value); }
         }
 
         public bool D3dShift
         {
             get { return d3dShift; }
-            set { d3dShift = value; OnPropertyChanged("D3dShift"); }
+            set { SetProperty(ref d3dShift, value); }
         }
 
         public bool D3dAlt
         {
             get { return d3dAlt; }
-            set { d3dAlt = value; OnPropertyChanged("D3dAlt"); }
+            set { SetProperty(ref d3dAlt, value); }
         }
 
         public int FullscreenKey
@@ -315,43 +337,43 @@ namespace ScreenShotterWPF.ViewModels
         public string FullscreenString
         {
             get { return fullscreenString; }
-            set { fullscreenString = value; OnPropertyChanged("FullscreenString"); }
+            set { SetProperty(ref fullscreenString, value); }
         }
 
         public string CurrentwindowString
         {
             get { return currentwindowString; }
-            set { currentwindowString = value; OnPropertyChanged("CurrentwindowString"); }
+            set { SetProperty(ref currentwindowString, value); }
         }
 
         public string SelectedareaString
         {
             get { return selectedareaString; }
-            set { selectedareaString = value; OnPropertyChanged("SelectedareaString"); }
+            set { SetProperty(ref selectedareaString, value); }
         }
 
         public string GifCaptureString
         {
             get { return gifcaptureString; }
-            set { gifcaptureString = value; OnPropertyChanged("GifCaptureString"); }
+            set { SetProperty(ref gifcaptureString, value); }
         }
 
         public string D3dString
         {
             get { return d3dString; }
-            set { d3dString = value; OnPropertyChanged("D3dString"); }
+            set { SetProperty(ref d3dString, value); }
         }
 
         public string TextFilepath
         {
             get { return textFilepath; }
-            set { textFilepath = value; OnPropertyChanged("TextFilepath"); }
+            set { SetProperty(ref textFilepath, value); }
         }
 
         public string DateTimeString
         {
             get { return dateTimeString; }
-            set { dateTimeString = value; OnPropertyChanged("DateTimeString"); }
+            set { SetProperty(ref dateTimeString, value); }
         }
 
         public bool LocalEnabled
@@ -384,85 +406,85 @@ namespace ScreenShotterWPF.ViewModels
 
         public bool StartMinimized {
             get { return startMinimized; }
-            set { startMinimized = value; OnPropertyChanged("StartMinimized"); }
+            set { SetProperty(ref startMinimized, value); }
         }
         public bool MinimizeToTray {
             get { return minimizeToTray; }
-            set { minimizeToTray = value; OnPropertyChanged("MinimizeToTray"); }
+            set { SetProperty(ref minimizeToTray, value); }
         }
         public bool OpenInBrowser {
             get { return openInBrowser; }
-            set { openInBrowser = value; OnPropertyChanged("OpenInBrowser"); }
+            set { SetProperty(ref openInBrowser, value); }
         }
         public bool CloseToTray {
             get { return closetToTray; }
-            set { closetToTray = value; OnPropertyChanged("CloseToTray"); }
+            set { SetProperty(ref closetToTray, value); }
         }
         public bool RunAtStart {
             get { return runAtStart; }
-            set { runAtStart = value; OnPropertyChanged("RunAtStart"); }
+            set { SetProperty(ref runAtStart, value); }
         }
         public bool CopyToClipboard {
             get { return copyToClipboard; }
-            set { copyToClipboard = value; OnPropertyChanged("CopyToClipboard"); }
+            set { SetProperty(ref copyToClipboard, value); }
         }
         public bool GifUpload {
             get { return gifUpload; }
-            set { gifUpload = value; OnPropertyChanged("GifUpload"); }
+            set { SetProperty(ref gifUpload, value); }
         }
         public bool GifEditor {
             get { return gifEditor; }
-            set { gifEditor = value; OnPropertyChanged("GifEditor"); }
+            set { SetProperty(ref gifEditor, value); }
         }
         public bool GifCaptureCursor {
             get { return gifCaptureCursor; }
-            set { gifCaptureCursor = value; OnPropertyChanged("GifCaptureCursor"); }
+            set { SetProperty(ref gifCaptureCursor, value); }
         }
         public int GifFramerate {
             get { return gifFramerate; }
-            set { gifFramerate = value; OnPropertyChanged("GifFramerate"); }
+            set { SetProperty(ref gifFramerate, value); }
         }
         public int GifDuration {
             get { return gifDuration; }
-            set { gifDuration = value; OnPropertyChanged("GifDuration"); }
+            set { SetProperty(ref gifDuration, value); }
         }
         public bool DetectExclusive {
             get { return detectExclusive; }
-            set { detectExclusive = value; OnPropertyChanged("DetectExclusive"); }
+            set { SetProperty(ref detectExclusive, value); }
         }
         public bool FullscreenD3D {
             get { return fullscreenD3D; }
-            set { fullscreenD3D = value; OnPropertyChanged("FullscreenD3D"); }
+            set { SetProperty(ref fullscreenD3D, value); }
         }
         public string PuushApiKey {
             get { return puushApiKey; }
-            set { puushApiKey = value; OnPropertyChanged("PuushApiKey"); }
+            set { SetProperty(ref puushApiKey, value); }
         }
         public string Username {
             get { return username; }
-            set { username = value; OnPropertyChanged("Username"); }
+            set { SetProperty(ref username, value); }
         }
         public string LoginButtonText {
             get { return loginButtonText; }
-            private set { loginButtonText = value; OnPropertyChanged("LoginButtonText"); }
+            private set { SetProperty(ref loginButtonText, value); }
         }
         public string LoginButtonTextGyazo {
             get { return loginButtonTextGyazo; }
-            private set { loginButtonTextGyazo = value; OnPropertyChanged("LoginButtonTextGyazo"); }
+            private set { SetProperty(ref loginButtonTextGyazo, value); }
         }
         public string RegisterButtonText {
             get { return registerButtonText; }
-            private set { registerButtonText = value; OnPropertyChanged("RegisterButtonText"); }
+            private set { SetProperty(ref registerButtonText, value); }
         }
         public bool RegisterEnabled {
             get { return registerEnabled; }
-            private set { registerEnabled = value; OnPropertyChanged("RegisterEnabled"); }
+            private set { SetProperty(ref registerEnabled, value); }
         }
 
         public string StatusLabelText
         {
             get { return statusLabelText; }
-            private set { statusLabelText = value; OnPropertyChanged("StatusLabelText"); }
+            private set { SetProperty(ref statusLabelText, value); }
         }
 
         public int UploadValue
@@ -521,18 +543,18 @@ namespace ScreenShotterWPF.ViewModels
         public Visibility AuthProgressVisibility
         {
             get { return authProgressVisibility; }
-            private set { authProgressVisibility = value; OnPropertyChanged("AuthProgressVisibility"); }
+            private set { SetProperty(ref authProgressVisibility, value); }
         }
 
         public bool LoginEnabled
         {
             get { return loginEnabled; }
-            private set { loginEnabled = value; OnPropertyChanged("LoginEnabled"); }
+            private set { SetProperty(ref loginEnabled, value); }
         }
         public bool LoginEnabledGyazo
         {
             get { return loginEnabledGyazo; }
-            private set { loginEnabledGyazo = value; OnPropertyChanged("LoginEnabledGyazo"); }
+            private set { SetProperty(ref loginEnabledGyazo, value); }
         }
 
         #endregion
@@ -684,7 +706,6 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Cancel()
         {
-            Console.WriteLine("Cancelled");
             if (this.notification != null)
             {
                 this.notification.Confirmed = false;

@@ -28,31 +28,36 @@ namespace ScreenShotterWPF.ViewModels
         public string Text
         {
             get { return text; }
-            set { text = value; OnPropertyChanged("Text"); }
+            set { SetProperty(ref text, value); }
+            //set { text = value; OnPropertyChanged("Text"); }
         }
 
         public double RectHeight
         {
             get { return rectHeight; }
-            set { rectHeight = value; OnPropertyChanged("RectHeight"); }
+            set { SetProperty(ref rectHeight, value); }
+            //set { rectHeight = value; OnPropertyChanged("RectHeight"); }
         }
 
         public double RectWidth
         {
             get { return rectWidth; }
-            set { rectWidth = value; OnPropertyChanged("RectWidth"); }
+            set { SetProperty(ref rectWidth, value); }
+            //set { rectWidth = value; OnPropertyChanged("RectWidth"); }
         }
 
         public Thickness RectMargin
         {
             get { return rectMargin; }
-            set { rectMargin = value; OnPropertyChanged("RectMargin"); }
+            set { SetProperty(ref rectMargin, value); }
+            //set { rectMargin = value; OnPropertyChanged("RectMargin"); }
         }
 
         public Thickness TextMargin
         {
             get { return textMargin; }
-            set { textMargin = value; OnPropertyChanged("TextMargin"); }
+            set { SetProperty(ref textMargin, value); }
+            //set { textMargin = value; OnPropertyChanged("TextMargin"); }
         }
 
         public INotification Notification

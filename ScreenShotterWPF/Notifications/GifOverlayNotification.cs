@@ -17,20 +17,12 @@ namespace ScreenShotterWPF.Notifications
         public int WindowHeight
         {
             get { return windowHeight; }
-            set
-            {
-                windowHeight = value;
-                OnPropertyChanged("WindowHeight");
-            }
+            set { SetProperty(ref windowHeight, value); }
         }
         public int WindowWidth
         {
             get { return windowWidth; }
-            set
-            {
-                windowWidth = value;
-                OnPropertyChanged("WindowWidth");
-            }
+            set { SetProperty(ref windowWidth, value); }
         }
 
         public bool Confirmed

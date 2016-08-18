@@ -117,25 +117,25 @@ namespace ScreenShotterWPF.ViewModels
         public int GifDuration
         {
             get { return gifDuration; }
-            set { gifDuration = value; OnPropertyChanged("GifDuration"); }
+            set { SetProperty(ref gifDuration, value); }
         }
 
         public int GifFramerate
         {
             get { return gifFramerate; }
-            set { gifFramerate = value; OnPropertyChanged("GifFramerate"); }
+            set { SetProperty(ref gifFramerate, value); }
         }
 
         public double MaxWidth
         {
             get { return maxWidth; }
-            set { maxWidth = value; OnPropertyChanged("MaxWidth"); }
+            set { SetProperty(ref maxWidth, value); }
         }
 
         public double MaxHeight
         {
             get { return maxHeight; }
-            set { maxHeight = value; OnPropertyChanged("MaxHeight"); }
+            set { SetProperty(ref maxHeight, value); }
         }
 
         public int WindowWidth
@@ -143,9 +143,9 @@ namespace ScreenShotterWPF.ViewModels
             get { return windowWidth; }
             set
             {
-                windowWidth = value;
+                SetProperty(ref windowWidth, value);
                 notification.WindowWidth = value;
-                OnPropertyChanged("WindowWidth"); }
+            }
         }
 
         public int WindowHeight
@@ -153,9 +153,8 @@ namespace ScreenShotterWPF.ViewModels
             get { return windowHeight; }
             set
             {
-                windowHeight = value;
+                SetProperty(ref windowHeight, value);
                 notification.WindowHeight = value;
-                OnPropertyChanged("WindowHeight");
             }
         }
 

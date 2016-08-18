@@ -129,7 +129,6 @@
             <Menu x:Name="menuStrip1" Height="24" Margin="0,0,0,0" VerticalAlignment="Top">
                 <MenuItem x:Name="menuMenu" Header="_Menu">
                     <MenuItem x:Name="openMenuItem" Header="_Open" Command="{Binding OpenCommand}"/>
-                    <!--<MenuItem x:Name="albumsMenuItem" Header="_Albums"/>-->
                     <MenuItem x:Name="settingsMenuItem" Header="_Settings" Command="{Binding RaiseSettingsCommand}"/>
                     <Separator />
                     <MenuItem x:Name="exitMenuItem" Header="_Exit" Command="{Binding ExitCommand}"/>
@@ -158,21 +157,6 @@
             </Grid.RowDefinitions>
             <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
 
-            <!--<DataGrid x:Name="dgImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}"  RenderTransformOrigin="0.5,0.5" Margin="4,4,4,4" CanUserReorderColumns="False" CanUserSortColumns="False" IsReadOnly="True" CanUserResizeRows="False" AutoGenerateColumns="False" SelectionMode="Single" SelectedItem="{Binding SelectedIndex}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Binding="{Binding filename}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Filename" Width="100"/>
-                    <DataGridTextColumn Binding="{Binding date}" CanUserSort="False" ClipboardContentBinding="{x:Null}" Header="Date"/>
-                    <DataGridTextColumn Binding="{Binding url}" ClipboardContentBinding="{x:Null}" Header="Url" Width="*"/>
-                </DataGrid.Columns>
-                <DataGrid.ItemTemplate>
-                    <ItemContainerTemplate>
-                        <ContextMenu>
-                            <MenuItem Header="KEK"/>
-                        </ContextMenu>
-                    </ItemContainerTemplate>
-                </DataGrid.ItemTemplate>
-            </DataGrid>-->
-
             <ListView x:Name="lstImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" Margin="4,4,4,4" SelectionMode="Single" SelectedItem="{Binding SelectedItem}">
                 <ListView.Resources>
                     <ContextMenu x:Key="ItemContextMenu">
@@ -187,6 +171,7 @@
                 <ListView.ItemContainerStyle>
                     <Style TargetType="{x:Type ListViewItem}">
                         <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
+                        <!--<Setter Property="IsEnabled" Value="False"/>-->
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.InputBindings>

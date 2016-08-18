@@ -207,7 +207,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public Tuple<bool, string> HttpGyazoWebRequestUpload(XImage img)
+        /*public Tuple<bool, string> HttpGyazoWebRequestUpload(XImage img)
         {
             if (Properties.Settings.Default.gyazo_id == string.Empty)
             {
@@ -323,15 +323,15 @@ namespace ScreenShotterWPF
                 }
                 throw new Exception("Error while uploading to Gyazo.", e);
             }
-        }
+        }*/
 
 
-        public Tuple<bool, string> HttpGyazoWebRequestUpload2(XImage img)
+        public async Task<string> HttpGyazoWebRequestUpload(XImage img)
         {
-            WebRequestState reqState = null;
-            HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create(new Uri("http://upload.gyazo.com/api/upload"));
-
-            webrequest.Proxy = null;
+            //WebRequestState reqState = null;
+            //HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create(new Uri("http://upload.gyazo.com/api/upload"));
+            
+            //webrequest.Proxy = null;
 
             string fileContentType = "image/png";
 
@@ -353,13 +353,13 @@ namespace ScreenShotterWPF
                 fileContentType = "image/gif";
             }
             
-            webrequest.Host = "upload.gyazo.com";
-            webrequest.Method = "POST";
-            webrequest.KeepAlive = false;
-            webrequest.Timeout = 300000;
+            //webrequest.Host = "upload.gyazo.com";
+            //webrequest.Method = "POST";
+            //webrequest.KeepAlive = false;
+            //webrequest.Timeout = 300000;
             // Random string to be used as a boundary
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
-            webrequest.ContentType = "multipart/form-data; boundary=" + boundary;
+            //webrequest.ContentType = "multipart/form-data; boundary=" + boundary;
             // 
             MultipartFormDataContent form = new MultipartFormDataContent(boundary);
             form.Add(new StringContent(Properties.Settings.Default.gyazoToken), "access_token");
@@ -369,64 +369,73 @@ namespace ScreenShotterWPF
             byte[] formData = form.ReadAsByteArrayAsync().Result;
             form.Dispose();
             // Length of the whole thing
-            webrequest.ContentLength = formData.Length;
+            //webrequest.ContentLength = formData.Length;
             
-            reqState = new HttpWebRequestState(formData.Length);
-            reqState.request = webrequest;
-            
-            reqState.bufferWrite = formData;
-            img.image = null;
-            reqState.totalBytes = webrequest.ContentLength;
-            reqState.fileURI = new Uri("http://upload.gyazo.com/api/upload");
-            reqState.transferStart = DateTime.Now;
-            reqState.buffer_size = 4096;
-            webrequest.UserAgent = "LXtory/1.0";
-            Stream requestStream = webrequest.GetRequestStream();
-            reqState.streamResponse = requestStream;
-
-            try
+            //reqState = new HttpWebRequestState(formData.Length);
+            //reqState.request = webrequest;
+            using (var wc = new WebClient())
             {
-                while (reqState.bytesWritten < reqState.totalBytes)
-                {
-                    if ((reqState.bytesWritten + reqState.buffer_size) > reqState.totalBytes)
-                    {
-                        reqState.buffer_size = (int)reqState.totalBytes - reqState.bytesWritten;
-                    }
-                    requestStream.Write(reqState.bufferWrite, reqState.bytesWritten, reqState.buffer_size);
-                    reqState.bytesWritten += reqState.buffer_size;
-                    ProgressUpdate(reqState.bytesWritten, reqState.totalBytes);
-                }
-                requestStream.Close();
-                reqState.streamResponse.Close();
-                WebResponse wr = webrequest.GetResponse();
-
-                Stream responseStream = wr.GetResponseStream();
-                StreamReader reader = new StreamReader(responseStream);
-                string response = reader.ReadToEnd();
-
-                reader.Close();
-                progressBarUpdate(100);
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(response);
-                string link = json["url"];
-
-                if (link.Length > 0)
-                {
-                    return new Tuple<bool, string>(true, link);
-                }
-                return new Tuple<bool, string>(false, "Failed :(");
+                wc.UploadProgressChanged += Wc_UploadProgressChanged;
+                wc.Headers.Set(HttpRequestHeader.KeepAlive, "Close");
+                wc.Headers.Add(HttpRequestHeader.ContentType, $"multipart/form-data; boundary={boundary}");
+                wc.Headers.Add(HttpRequestHeader.UserAgent, "LXtory/1.0");
+                
+                byte[] response = await wc.UploadDataTaskAsync("http://upload.gyazo.com/api/upload", formData);
+                return Encoding.UTF8.GetString(response);
             }
-            catch (Exception e)
-            {
-                if (e is WebException)
-                {
-                    throw ExceptionStatus((WebException)e);
-                }
-                throw new Exception("Error while uploading to Gyazo.", e);
-            }
+            //reqState.bufferWrite = formData;
+            //img.image = null;
+            //reqState.totalBytes = webrequest.ContentLength;
+            //reqState.fileURI = new Uri("http://upload.gyazo.com/api/upload");
+            //reqState.transferStart = DateTime.Now;
+            //reqState.buffer_size = 4096;
+            //webrequest.UserAgent = "LXtory/1.0";
+            //Stream requestStream = webrequest.GetRequestStream();
+            //reqState.streamResponse = requestStream;
+
+            //try
+            //{
+            //    while (reqState.bytesWritten < reqState.totalBytes)
+            //    {
+            //        if ((reqState.bytesWritten + reqState.buffer_size) > reqState.totalBytes)
+            //        {
+            //            reqState.buffer_size = (int)reqState.totalBytes - reqState.bytesWritten;
+            //        }
+            //        requestStream.Write(reqState.bufferWrite, reqState.bytesWritten, reqState.buffer_size);
+            //        reqState.bytesWritten += reqState.buffer_size;
+            //        ProgressUpdate(reqState.bytesWritten, reqState.totalBytes);
+            //    }
+            //    requestStream.Close();
+            //    reqState.streamResponse.Close();
+            //    WebResponse wr = webrequest.GetResponse();
+
+            //    Stream responseStream = wr.GetResponseStream();
+            //    StreamReader reader = new StreamReader(responseStream);
+            //    string response = reader.ReadToEnd();
+
+            //    reader.Close();
+            //    progressBarUpdate(100);
+
+            //    return response;
+            //}
+            //catch (Exception e)
+            //{
+            //    if (e is WebException)
+            //    {
+            //        throw ExceptionStatus((WebException)e);
+            //    }
+            //    throw new Exception("Error while uploading to Gyazo.", e);
+            //}
         }
 
-        public Tuple<bool, string> PuushHttpWebRequestUpload(XImage img)
+        private void Wc_UploadProgressChanged(object sender, UploadProgressChangedEventArgs e)
+        {
+            int progress = e.ProgressPercentage <= 50 ? e.ProgressPercentage*2 : e.ProgressPercentage;
+            progressBarUpdate(progress);
+            //throw new NotImplementedException();
+        }
+
+        public string PuushHttpWebRequestUpload(XImage img)
         {
             WebRequestState reqState = null;
             HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create(new Uri("https://puush.me/api/up"));
@@ -522,12 +531,7 @@ namespace ScreenShotterWPF
 
                 reader.Close();
                 progressBarUpdate(100);
-                if (response == "-1")
-                {
-                    return new Tuple<bool, string>(false, "Failed :(");
-                }
-                string[] split = response.Split(',');
-                return new Tuple<bool, string>(true, split[1]);
+                return response;
             }
             catch (Exception e)
             {
@@ -561,10 +565,10 @@ namespace ScreenShotterWPF
         {
             double pctComplete = (bytesWritten / totalBytes) * 100.0f;
             progressBarUpdate((int)pctComplete);
-            Console.WriteLine("Uploaded: " + pctComplete + "%");
+            //Console.WriteLine("Uploaded: " + pctComplete + "%");
         }
 
-        public Tuple<bool, string> HttpWebRequestUpload(XImage img)
+        public string HttpWebRequestUpload(XImage img)
         {
             WebRequestState reqState;
             HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create(new Uri("https://api.imgur.com/3/image"));
@@ -665,11 +669,8 @@ namespace ScreenShotterWPF
                 
                 reader.Close();
                 progressBarUpdate(100);
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(response);
-                string link = json["data"]["link"];
 
-                return new Tuple<bool, string>(true, link);
+                return response;
             }
             catch (Exception e)
             {

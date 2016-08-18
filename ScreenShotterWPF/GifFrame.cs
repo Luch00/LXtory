@@ -28,7 +28,7 @@ namespace ScreenShotterWPF
         public bool Selected
         {
             get { return selected; }
-            set { selected = value; OnPropertyChanged("Selected"); }
+            set { SetProperty(ref selected, value); }
         }
     }
 }

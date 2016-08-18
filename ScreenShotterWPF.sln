@@ -6,9 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenShotterWPF", "ScreenShotterWPF\ScreenShotterWPF.csproj", "{0FA20FAF-279F-4E3E-B9D9-E07B45825AB9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{72E591D6-8F83-4D8C-8F67-9C325E623234} = {72E591D6-8F83-4D8C-8F67-9C325E623234}
+		{A59307EA-FCB0-4110-BC42-0417871C24C4} = {A59307EA-FCB0-4110-BC42-0417871C24C4}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xceed.Wpf.Toolkit", "..\wpftoolkit-114314\Main\Source\ExtendedWPFToolkitSolution\Src\Xceed.Wpf.Toolkit\Xceed.Wpf.Toolkit.csproj", "{72E591D6-8F83-4D8C-8F67-9C325E623234}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nQuant.Core", "..\nquant-master\nQuant.Core\nQuant.Core.csproj", "{A59307EA-FCB0-4110-BC42-0417871C24C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +27,10 @@ Global
 		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72E591D6-8F83-4D8C-8F67-9C325E623234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A59307EA-FCB0-4110-BC42-0417871C24C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A59307EA-FCB0-4110-BC42-0417871C24C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A59307EA-FCB0-4110-BC42-0417871C24C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A59307EA-FCB0-4110-BC42-0417871C24C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
