@@ -224,7 +224,7 @@ namespace ScreenShotterWPF
                         filePaths.Add(frame.Filepath);
                     }
                 }
-                Console.WriteLine("SELECTED: " + filePaths.Count);
+                //Console.WriteLine("SELECTED: " + filePaths.Count);
                 try
                 {
                     using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
@@ -237,7 +237,7 @@ namespace ScreenShotterWPF
                             {
                                 if (gpn.Cancelled)
                                 {
-                                    Console.WriteLine("CANCEL REQUESTED");
+                                    //Console.WriteLine("CANCEL REQUESTED");
                                     break;
                                 }
                                 
@@ -259,12 +259,12 @@ namespace ScreenShotterWPF
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    throw ex;
+                    throw;
                 }
 
                 if (gpn.Cancelled)
                 {
-                    Console.WriteLine("DELETE UNFINISHED");
+                    //Console.WriteLine("DELETE UNFINISHED");
                     File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));
                     gifname = string.Empty;
                 }

@@ -32,10 +32,9 @@ namespace ScreenShotterWPF
         private int uploading = 0;
         private int totalUploading = 0;
         private bool refreshing = false;
-        
-        readonly Uploader uploader;
-        
-        readonly Action<int> progressBarUpdate;
+
+        private readonly Uploader uploader;
+
         //readonly Action<XImage, string> addXImageToList;
 
         // For selecting window to capture
@@ -69,10 +68,9 @@ namespace ScreenShotterWPF
         {
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
-            progressBarUpdate = ProgressAndIconChange;
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
-            uploader = new Uploader(progressBarUpdate);
+            uploader = new Uploader(ProgressAndIconChange);
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
@@ -210,7 +208,7 @@ namespace ScreenShotterWPF
                             {
                                 SetStatusBarText("Refreshing Imgur login..");
                                 ChangeTrayIcon("R");
-                                await uploader.RefreshToken();
+                                await Uploader.RefreshToken();
                             }
                             if (currentUpload.image == null)
                             {
@@ -237,7 +235,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    response = uploader.HttpWebRequestUpload(currentUpload);
+                                    response = await Uploader.HttpImgurUpload(currentUpload);
                                     json = StringToJson(response);
                                     string thumb = $"http://i.imgur.com/{json["data"]["id"]}m.jpg";
 
@@ -258,7 +256,7 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    response = await uploader.HttpGyazoWebRequestUpload(currentUpload);
+                                    response = await Uploader.HttpGyazoUpload(currentUpload);
                                     
                                     json = StringToJson(response);
                                     string link = json["url"];
@@ -274,15 +272,13 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    response = uploader.PuushHttpWebRequestUpload(currentUpload);
+                                    response = await Uploader.HttpPuushUpload(currentUpload);
                                     if (response == "-1")
                                     {
                                         result = new Tuple<bool, string, string>(false, "", "");
                                         break;
                                     }
                                     string[] split = response.Split(',');
-                                    //Regex r = new Regex("(?<=puu.sh/)(.*)(?=.png)");
-                                    //Match m = r.Match(split[1]);
                                     string t = $"http://puush.me/{split[2]}";
                                     
                                     result =  new Tuple<bool, string, string>(true, split[1], t);
@@ -544,7 +540,7 @@ namespace ScreenShotterWPF
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message, "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error);   
+                MessageBox.Show(e.Message, "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
