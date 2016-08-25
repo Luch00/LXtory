@@ -189,7 +189,7 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private void GetPictureLocal(Uri url)
+        private void GetLocalThumbnail(Uri url)
         {
             BitmapImage img = new BitmapImage();
             img.BeginInit();
@@ -200,7 +200,7 @@ namespace ScreenShotterWPF.ViewModels
             DisplayImage = img;
         }
 
-        private async void GetPictureWeb(Uri url)
+        private async void GetWebThumbnail(Uri url)
         {
             if (url.Host == "puush.me" && Properties.Settings.Default.puush_key != string.Empty)
             {
@@ -249,12 +249,12 @@ namespace ScreenShotterWPF.ViewModels
             if (x.filepath != string.Empty && System.IO.File.Exists(x.filepath))
             {
                 url = new Uri(x.filepath, UriKind.Absolute);
-                GetPictureLocal(url);
+                GetLocalThumbnail(url);
             }
-            else if (x.thumbnail != string.Empty)
+            else if (x.thumbnail != string.Empty && !Properties.Settings.Default.disableWebThumbs)
             {
                 url = new Uri(x.thumbnail, UriKind.Absolute);
-                GetPictureWeb(url);
+                GetWebThumbnail(url);
             }
             else
             {

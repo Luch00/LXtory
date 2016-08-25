@@ -81,7 +81,13 @@ namespace ScreenShotterWPF
 
         private void OpenInBrowser()
         {
-            Process.Start(this.url);
+            try
+            {
+                Process.Start(this.url);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void OpenLocalImage()

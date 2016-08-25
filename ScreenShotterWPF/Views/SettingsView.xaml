@@ -29,6 +29,7 @@
                             <CheckBox x:Name="checkClosetoTray" Content="Close to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CloseToTray}"/>
                             <CheckBox x:Name="checkOpeninBrowser" Content="Open in browser after upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding OpenInBrowser}"/>
                             <CheckBox x:Name="checkCopytoClipboard" Content="Copy last url to clipboard" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CopyToClipboard}"/>
+                            <CheckBox x:Name="disableWebThumbs" Content="Disable web thumbnails" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding DisableWebThumbs}"/>
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Customize datetime string" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0"/>
                                 <TextBlock VerticalAlignment="Center" Margin="4,4,0,0">
@@ -68,6 +69,7 @@
             </TabItem>
             <TabItem Header="Hotkeys">
                 <Grid Background="#FFE5E5E5">
+                    <GroupBox Header="Hotkeys" Margin="6">
                     <StackPanel>
                         <Label Content="Fullscreen" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
                         <StackPanel Orientation="Horizontal">
@@ -169,6 +171,7 @@
                             </TextBox>
                         </StackPanel>
                     </StackPanel>
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Uploading">
@@ -201,6 +204,75 @@
                         </StackPanel>
                     </GroupBox>
                 </Grid>
+            </TabItem>
+            <TabItem Header="S/FTP" Loaded="TabItem_Loaded">
+                <StackPanel>
+                    <GroupBox Header="Server" Margin="6">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel></StackPanel>
+                            <StackPanel>
+                                <Label>Host</Label>
+                                <TextBox Width="150" Margin="4" Text="{Binding FTPHost}"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label Height="26"></Label>
+                                <TextBlock Margin="4">:</TextBlock>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label>Port</Label>
+                                <TextBox Width="70" Margin="4" Text="{Binding FTPPort}" MaxLength="5" PreviewTextInput="TextBox_PreviewTextInput" DataObject.Pasting="DataObject_OnPasting"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label Height="26"></Label>
+                                <TextBlock Margin="4">/</TextBlock>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label>Path</Label>
+                                <TextBox Width="160" Margin="4" Text="{Binding FTPPath}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Header="Authentication" Margin="6">
+                        <StackPanel>
+                            <RadioButton x:Name="radioSFTP" Content="Upload to SFTP server" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection" IsChecked="{Binding Value4, Mode=TwoWay}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel>
+                                    <Label>Username</Label>
+                                    <TextBox Width="150" Margin="4" Text="{Binding FTPUsername}"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <Label>Method</Label>
+                                    <ComboBox Margin="4" ItemsSource="{Binding FTPMethods}" SelectedValue="{Binding FTPMethod}" SelectedValuePath="Key" DisplayMemberPath="Value"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel>
+                                    <Label>Password</Label>
+                                    <PasswordBox Name="PasswordBox" Width="150" Margin="4" HorizontalAlignment="Left">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="PasswordChanged">
+                                                <i:InvokeCommandAction Command="{Binding PasswordChangedCommand}" CommandParameter="{Binding ElementName=PasswordBox}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </PasswordBox>
+                                    <Label>Publickey</Label>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox Width="150" Margin="4" HorizontalAlignment="Left" Text="{Binding FTPKeyfile}"/>
+                                        <Button Width="30" Margin="4" Command="{Binding BrowseKeyCommand}">...</Button>
+                                    </StackPanel>
+                                    <Label>Passphrase</Label>
+                                    <PasswordBox Name="PassphraseBox" Width="150" Margin="4" HorizontalAlignment="Left">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="PasswordChanged">
+                                                <i:InvokeCommandAction Command="{Binding PassphraseChangedCommand}" CommandParameter="{Binding ElementName=PassphraseBox}"/>
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                    </PasswordBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
             </TabItem>
         </TabControl>
         <DockPanel>

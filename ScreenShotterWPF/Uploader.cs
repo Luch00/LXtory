@@ -9,6 +9,7 @@ using System.Web.Script.Serialization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Renci.SshNet;
 
 namespace ScreenShotterWPF
 {
@@ -24,10 +25,21 @@ namespace ScreenShotterWPF
         // Actions to main form
         private static Action<int> progressBarUpdate;
 
+        //private ConnectionInfo info;
+
         public Uploader(Action<int> p)
         {
             progressBarUpdate = p;
+            //info = new ConnectionInfo("","", new PasswordAuthenticationMethod("", ""));
         }
+
+        /*public static void BuildConnectionInfo()
+        {
+            if (Properties.Settings.Default.ftpMethod == 0)
+            {
+
+            }
+        }*/
 
         // Use pin to get auth token
         /*public void GetToken(string pin)
@@ -320,21 +332,56 @@ namespace ScreenShotterWPF
         //}
 
         // NYI
-        private void SFTPUpload(XImage img)
+        private static PrivateKeyFile BuildKeyfile()
         {
-            using (var client = new Renci.SshNet.SftpClient("host", 22, "username", "password"))
+            if (Properties.Settings.Default.ftpPassphrase != string.Empty)
+            {
+                return new PrivateKeyFile(Properties.Settings.Default.ftpKeyfile, Properties.Settings.Default.ftpPassphrase);
+            }
+            else
+            {
+                return new PrivateKeyFile(Properties.Settings.Default.ftpKeyfile);
+            }
+        }
+        private static SftpClient BuildClient()
+        {
+            string host = new Uri(Properties.Settings.Default.ftpHost).Host;
+            if (Properties.Settings.Default.ftpMethod == 0)
+            {
+                return new SftpClient(
+                    //Properties.Settings.Default.ftpHost,
+                    host,
+                    Properties.Settings.Default.ftpPort,
+                    Properties.Settings.Default.ftpUsername,
+                    Properties.Settings.Default.ftpPassword);
+            }
+            else
+            {
+                return new SftpClient(
+                    //Properties.Settings.Default.ftpHost,
+                    host,
+                    Properties.Settings.Default.ftpPort,
+                    Properties.Settings.Default.ftpUsername,
+                    BuildKeyfile());
+            }
+        }
+        public static string SFTPUpload(XImage img)
+        {
+            using (var client = BuildClient())
             {
                 try
                 {
                     client.ConnectionInfo.Timeout = new TimeSpan(0, 0, 30);
                     client.Connect();
                     long fileSize = img.image.Length;
-                    client.UploadFile(new MemoryStream(img.image), "/upload/" + img.filename,
+                    string path = $"/{Properties.Settings.Default.ftpPath}{(Properties.Settings.Default.ftpPath == string.Empty ? "" : "/")}{img.filename}";
+                    client.UploadFile(new MemoryStream(img.image), path,
                         bytesUploaded =>
                         {
-                            //int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
-                            //ProgressUpdate(bytesUploaded, fileSize);
+                            int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
+                            progressBarUpdate(percent);
                         });
+                    return $"{Properties.Settings.Default.ftpHost}{path}";
                 }
                 catch (Exception)
                 {

@@ -257,7 +257,6 @@ namespace ScreenShotterWPF
                                         continue;
                                     }
                                     response = await Uploader.HttpGyazoUpload(currentUpload);
-                                    
                                     json = StringToJson(response);
                                     string link = json["url"];
                                     string thumbnail = json["thumb_url"];
@@ -282,6 +281,10 @@ namespace ScreenShotterWPF
                                     string t = $"http://puush.me/{split[2]}";
                                     
                                     result =  new Tuple<bool, string, string>(true, split[1], t);
+                                    break;
+                                case 3:
+                                    response = Uploader.SFTPUpload(currentUpload);
+                                    result = new Tuple<bool, string, string>(true, response, "");
                                     break;
                             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.Win32;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using Prism.Commands;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -35,6 +37,10 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand LoginCommand { get; private set; }
         public ICommand LoginCommandGyazo { get; private set; }
         public ICommand RegisterCommand { get; private set; }
+
+        public ICommand BrowseKeyCommand { get; private set; }
+        public ICommand PasswordChangedCommand { get; private set; }
+        public ICommand PassphraseChangedCommand { get; private set; }
 
         private bool fullscreenCtrl;
         private bool fullscreenShift;
@@ -95,6 +101,16 @@ namespace ScreenShotterWPF.ViewModels
         private bool anonUpload;
         private int uploadValue;
         private string dateTimeString;
+        private bool disableWebThumbs;
+
+        private string ftpHost;
+        private int ftpPort;
+        private string ftpPath;
+        private string ftpUsername;
+        private string ftpKeyfile;
+        private string ftpPassword;
+        private string ftpPassphrase;
+        private int ftpMethod;
 
         public INotification Notification
         {
@@ -125,7 +141,20 @@ namespace ScreenShotterWPF.ViewModels
             this.LoginCommand = new DelegateCommand(Login);
             this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
             this.RegisterCommand = new DelegateCommand(Register);
+            this.BrowseKeyCommand = new DelegateCommand(BrowseKey);
+            this.PasswordChangedCommand = new DelegateCommand<PasswordBox>(PasswordChanged);
+            this.PassphraseChangedCommand = new DelegateCommand<PasswordBox>(PassphraseChanged);
             AuthProgressVisibility = Visibility.Hidden;
+        }
+
+        private void PasswordChanged(PasswordBox obj)
+        {
+            FTPPassword = obj.Password;
+        }
+
+        private void PassphraseChanged(PasswordBox obj)
+        {
+            FTPPassphrase = obj.Password;
         }
 
         private void Browse()
@@ -150,6 +179,31 @@ namespace ScreenShotterWPF.ViewModels
             {
                 var folder = dialog.FileName;
                 TextFilepath = folder;
+            }
+        }
+
+        private void BrowseKey()
+        {
+            var dialog = new CommonOpenFileDialog
+            {
+                Title = "Select Key File...",
+                IsFolderPicker = false,
+                InitialDirectory = this.ftpKeyfile,
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureReadOnly = false,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true
+            };
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                var key = dialog.FileName;
+                FTPKeyfile = key;
             }
         }
 
@@ -213,6 +267,83 @@ namespace ScreenShotterWPF.ViewModels
         #endregion
 
         #region Properties
+
+        public bool DisableWebThumbs
+        {
+            get { return disableWebThumbs; }
+            set { SetProperty(ref disableWebThumbs, value); }
+        }
+
+        public Dictionary<int, string> FTPMethods
+        {
+            get
+            {
+                return new Dictionary<int, string>
+                {
+                    [0] = "Password",
+                    [1] = "Publickey"
+                };
+            }
+        }
+
+        public int FTPMethod
+        {
+            get { return ftpMethod; }
+            set { SetProperty(ref ftpMethod, value); }
+        }
+
+        public string FTPPassphrase
+        {
+            get { return ftpPassphrase; }
+            private set { SetProperty(ref ftpPassphrase, value); }
+        }
+
+        public string FTPPassword
+        {
+            get { return ftpPassword; }
+            private set { SetProperty(ref ftpPassword, value); }
+        }
+
+        public string FTPUsername
+        {
+            get { return ftpUsername; }
+            set { SetProperty(ref ftpUsername, value); }
+        }
+
+        public string FTPPath
+        {
+            get { return ftpPath; }
+            set { SetProperty(ref ftpPath, value); }
+        }
+
+        public string FTPPort
+        {
+            get { return ftpPort.ToString(); }
+            set
+            {
+                int port;
+                if (!Int32.TryParse(value, out port))
+                {
+                    SetProperty(ref ftpPort, 22);
+                }
+                else
+                {
+                    SetProperty(ref ftpPort, port);
+                }
+            }
+        }
+
+        public string FTPHost
+        {
+            get { return ftpHost; }
+            set { SetProperty(ref ftpHost, value); }
+        }
+
+        public string FTPKeyfile
+        {
+            get { return ftpKeyfile; }
+            set { SetProperty(ref ftpKeyfile, value); }
+        }
 
         public bool FullscreenCtrl
         {
@@ -496,6 +627,7 @@ namespace ScreenShotterWPF.ViewModels
                 OnPropertyChanged("Value1");
                 OnPropertyChanged("Value2");
                 OnPropertyChanged("Value3");
+                OnPropertyChanged("Value4");
             }
         }
 
@@ -526,6 +658,12 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return UploadValue.Equals(2); }
             set { UploadValue = 2; }
+        }
+
+        public bool Value4
+        {
+            get { return UploadValue.Equals(3); }
+            set { UploadValue = 3; }
         }
 
         public bool AnonOn
@@ -580,6 +718,17 @@ namespace ScreenShotterWPF.ViewModels
 
             DetectExclusive = Properties.Settings.Default.d3dAutoDetect;
             FullscreenD3D = Properties.Settings.Default.d3dAllScreens;
+
+            DisableWebThumbs = Properties.Settings.Default.disableWebThumbs;
+
+            FTPHost = Properties.Settings.Default.ftpHost;
+            FTPPort = Properties.Settings.Default.ftpPort.ToString();
+            FTPPath = Properties.Settings.Default.ftpPath;
+            FTPUsername = Properties.Settings.Default.ftpUsername;
+            FTPPassword = Properties.Settings.Default.ftpPassword;
+            FTPKeyfile = Properties.Settings.Default.ftpKeyfile;
+            FTPPassphrase = Properties.Settings.Default.ftpPassphrase;
+            FTPMethod = Properties.Settings.Default.ftpMethod;
 
             if(Properties.Settings.Default.anonUpload)
             {
@@ -765,6 +914,18 @@ namespace ScreenShotterWPF.ViewModels
             Properties.Settings.Default.d3dAutoDetect = DetectExclusive;
 
             Properties.Settings.Default.puush_key = PuushApiKey;
+
+            Properties.Settings.Default.disableWebThumbs = DisableWebThumbs;
+
+            Properties.Settings.Default.ftpHost = FTPHost;
+            Properties.Settings.Default.ftpPort = ftpPort;
+            Properties.Settings.Default.ftpPath = FTPPath;
+            Properties.Settings.Default.ftpUsername = FTPUsername;
+            Properties.Settings.Default.ftpPassword = FTPPassword;
+            Properties.Settings.Default.ftpKeyfile = FTPKeyfile;
+            Properties.Settings.Default.ftpPassphrase = FTPPassphrase;
+            Properties.Settings.Default.ftpMethod = FTPMethod;
+
             if (Directory.Exists(TextFilepath))
             {
                 Properties.Settings.Default.filePath = TextFilepath;
