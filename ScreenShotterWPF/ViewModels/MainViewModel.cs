@@ -84,6 +84,7 @@ namespace ScreenShotterWPF.ViewModels
                     {
                         Properties.Settings.Default.Save();
                         RegisterHotkeys();
+                        Main.CreateSFTPConnectionInfo();
                     }
                 });
         }

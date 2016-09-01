@@ -640,5 +640,18 @@ namespace ScreenShotterWPF.Properties {
                 this["disableWebThumbs"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ftpProtocol {
+            get {
+                return ((int)(this["ftpProtocol"]));
+            }
+            set {
+                this["ftpProtocol"] = value;
+            }
+        }
     }
 }

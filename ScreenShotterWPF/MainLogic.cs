@@ -18,6 +18,8 @@ using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
 using System.Web.Script.Serialization;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using Renci.SshNet;
 
 namespace ScreenShotterWPF
 {
@@ -28,6 +30,8 @@ namespace ScreenShotterWPF
         private readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
         private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
+
+        private static readonly Properties.Settings settings = Properties.Settings.Default;
         
         private int uploading = 0;
         private int totalUploading = 0;
@@ -64,6 +68,8 @@ namespace ScreenShotterWPF
 
         readonly System.Timers.Timer timer = new System.Timers.Timer();
 
+        private ConnectionInfo ftpConnectionInfo;
+
         public MainLogic()
         {
             windows8 = CheckIfWin8OrHigher();
@@ -71,6 +77,7 @@ namespace ScreenShotterWPF
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             uploader = new Uploader(ProgressAndIconChange);
+            CreateSFTPConnectionInfo();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
@@ -79,11 +86,41 @@ namespace ScreenShotterWPF
             SetIcon("Default");
             timer.Interval = 5000;
             timer.Elapsed += timerTick_DelayIconChange;
-            if (Properties.Settings.Default.filePath == "")
+            if (settings.filePath == "")
             {
                 SetDefaults();
             }
             StartUploads();
+        }
+
+        public void CreateSFTPConnectionInfo()
+        {
+            if (settings.ftpProtocol == 0)
+                return;
+
+            try
+            {
+                AuthenticationMethod auth;
+                if (settings.ftpMethod == 0)
+                {
+                    auth = new PasswordAuthenticationMethod(settings.ftpUsername, settings.ftpPassword);
+                }
+                else
+                {
+                    var key = settings.ftpPassphrase != string.Empty ? new PrivateKeyFile(settings.ftpKeyfile, settings.ftpPassphrase) : new PrivateKeyFile(settings.ftpKeyfile);
+                    auth = new PrivateKeyAuthenticationMethod(settings.ftpUsername, key);
+                }
+                
+                ftpConnectionInfo = new ConnectionInfo(
+                    settings.ftpHost,
+                    settings.ftpPort,
+                    settings.ftpUsername,
+                    auth);
+            }
+            catch (Exception)
+            {
+                ftpConnectionInfo = null;
+            }
         }
 
         private static bool CheckIfWin8OrHigher()
@@ -131,7 +168,7 @@ namespace ScreenShotterWPF
                         img.datetime = DateTime.Now;
                         string d = DateTime.Now.ToString(p);
                         img.date = d;
-                        img.anonupload = Properties.Settings.Default.anonUpload;
+                        img.anonupload = settings.anonUpload;
                         AddToQueue(img);
                     }
                 }
@@ -178,10 +215,10 @@ namespace ScreenShotterWPF
 
         private static bool TokenNeedsRefresh()
         {
-            if (Properties.Settings.Default.lastRefreshTime != null)
+            if (settings.lastRefreshTime != null)
             {
-                TimeSpan diff = DateTime.Now.Subtract(Properties.Settings.Default.lastRefreshTime);
-                //return diff.TotalSeconds >= Properties.Settings.Default.imgurTokenExpire;
+                TimeSpan diff = DateTime.Now.Subtract(settings.lastRefreshTime);
+                //return diff.TotalSeconds >= settings.imgurTokenExpire;
                 return diff.TotalSeconds >= 3600; // BECAUSE IMGUR FAILS
             }
             return true;
@@ -224,7 +261,7 @@ namespace ScreenShotterWPF
                             Tuple<bool, string, string> result;
                             string response;
                             dynamic json;
-                            switch (Properties.Settings.Default.upload_site)
+                            switch (settings.upload_site)
                             {
                                 case 0:
                                 default:
@@ -242,7 +279,7 @@ namespace ScreenShotterWPF
                                     result =  new Tuple<bool, string, string>(true, json["data"]["link"], thumb);
                                     break;
                                 case 1:
-                                    if (Properties.Settings.Default.gyazoToken == string.Empty)
+                                    if (settings.gyazoToken == string.Empty)
                                     {
                                         // login first
                                         MessageBox.Show("Login to Gyazo first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
@@ -283,7 +320,15 @@ namespace ScreenShotterWPF
                                     result =  new Tuple<bool, string, string>(true, split[1], t);
                                     break;
                                 case 3:
-                                    response = Uploader.SFTPUpload(currentUpload);
+                                    if (settings.ftpProtocol == 0)
+                                    {
+                                        response = await Uploader.FTPUpload(currentUpload);
+                                    }
+                                    else
+                                    {
+                                        response = Uploader.SFTPUpload(currentUpload, ftpConnectionInfo);
+                                    }
+                                    
                                     result = new Tuple<bool, string, string>(true, response, "");
                                     break;
                             }
@@ -312,8 +357,19 @@ namespace ScreenShotterWPF
                         catch (Exception e)
                         {
                             ChangeTrayIcon("E");
-                            MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                            /*MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);*/
+                            TaskDialog dialog = new TaskDialog();
+                            dialog.Caption = "LXtory Error";
+                            dialog.InstructionText = "LXtory Error";
+                            dialog.Text = e.Message;
+                            dialog.Icon = TaskDialogStandardIcon.Warning;
+                            dialog.Cancelable = false;
+                            dialog.DetailsExpanded = false;
+                            dialog.DetailsCollapsedLabel = "Show Stack Trace";
+                            dialog.DetailsExpandedLabel = "Hide Stack Trace";
+                            dialog.DetailsExpandedText = e.StackTrace;
+                            dialog.Show();
                         }
                     }
                 }
@@ -350,13 +406,13 @@ namespace ScreenShotterWPF
         // Set some default settings values
         private static void SetDefaults()
         {
-            Properties.Settings.Default.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            /*Properties.Settings.Default.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
-            Properties.Settings.Default.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
-            Properties.Settings.Default.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
-            Properties.Settings.Default.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
-            Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));*/
-            Properties.Settings.Default.Save();
+            settings.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            /*settings.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
+            settings.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
+            settings.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
+            settings.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
+            settings.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));*/
+            settings.Save();
         }
 
         // Put some text in that statusbar
@@ -530,7 +586,7 @@ namespace ScreenShotterWPF
                 
             try
             {
-                if (!Properties.Settings.Default.d3dAllScreens)
+                if (!settings.d3dAllScreens)
                 {
                     //DesktopDuplication.DuplicatePrimaryScreen();
                     //GC.Collect();
@@ -550,7 +606,7 @@ namespace ScreenShotterWPF
         // Capture whole screen area
         public void CapFullscreen()
         {
-            /*if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            /*if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
@@ -567,7 +623,7 @@ namespace ScreenShotterWPF
         // Capture current selected window
         public void CapWindow()
         {
-            if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
@@ -586,7 +642,7 @@ namespace ScreenShotterWPF
 
         public void CapWindowFromPoint(int x, int y)
         {
-            if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
@@ -614,7 +670,7 @@ namespace ScreenShotterWPF
         // Create an overlay, draw a rectangle on the overlay to cap that area
         public void CapArea()
         {
-            /*if (Properties.Settings.Default.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
+            /*if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
                 Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
@@ -661,7 +717,7 @@ namespace ScreenShotterWPF
                 int h = notification.WindowHeight;
                 int f = notification.GifFramerate;
                 int d = notification.GifDuration;
-                string datePattern = string.Empty != Properties.Settings.Default.dateTimeString ? Properties.Settings.Default.dateTimeString : defaultDateTimePattern;
+                string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
                 Gif gif = new Gif(f, d, w, h, x, y, datePattern);
                 if (!notification.LoadCache)
                 {
@@ -674,7 +730,7 @@ namespace ScreenShotterWPF
                 if (gif.Frames.Count > 0)
                 {
                     bool cancelled = false;
-                    if (Properties.Settings.Default.gifEditorEnabled)
+                    if (settings.gifEditorEnabled)
                     {
                         GifEditorNotification gen = new GifEditorNotification();
                         gen.Title = "Gif Editor";
@@ -698,15 +754,15 @@ namespace ScreenShotterWPF
                             {
                                 XImage img = new XImage();
                                 img.filename = filename;
-                                img.filepath = Path.Combine(Properties.Settings.Default.filePath, filename);
+                                img.filepath = Path.Combine(settings.filePath, filename);
                                 string p = "dd.MM.yy HH:mm:ss";
                                 img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
                                 img.date = date;
 
-                                if (Properties.Settings.Default.gifUpload)
+                                if (settings.gifUpload)
                                 {
-                                    img.anonupload = Properties.Settings.Default.anonUpload;
+                                    img.anonupload = settings.anonUpload;
                                     AddToQueue(img);
                                 }
                                 else
@@ -778,11 +834,11 @@ namespace ScreenShotterWPF
             filename = MakeValidFileName(filename);
 
             // Create directory if doesnt exist yet
-            if (!Directory.Exists(Properties.Settings.Default.filePath))
+            if (!Directory.Exists(settings.filePath))
             {
                 try
                 {
-                    Directory.CreateDirectory(Properties.Settings.Default.filePath);
+                    Directory.CreateDirectory(settings.filePath);
                 }
                 catch (Exception e)
                 {
@@ -791,13 +847,13 @@ namespace ScreenShotterWPF
                 }
             }
             string file = $"{filename}.png";
-            string target = Path.Combine(Properties.Settings.Default.filePath, file);
+            string target = Path.Combine(settings.filePath, file);
             // if file with same name exists append a number to it
             while (File.Exists(target))
             {
                 i++;
                 file = $"{filename}({i}).png";
-                target = Path.Combine(Properties.Settings.Default.filePath, file);
+                target = Path.Combine(settings.filePath, file);
             }
 
             try
@@ -816,7 +872,7 @@ namespace ScreenShotterWPF
         private void ImageManager(byte[] image, string filename)
         {
             //const string datePattern = @"dd-MM-yy_HH-mm-ss";
-            string datePattern = string.Empty != Properties.Settings.Default.dateTimeString ? Properties.Settings.Default.dateTimeString : defaultDateTimePattern;
+            string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
             string date = DateTime.Now.ToString(datePattern);
             string f = $"{filename}_{date}";
 
@@ -832,7 +888,7 @@ namespace ScreenShotterWPF
             string d = DateTime.Now.ToString(p);
             x.date = d;
 
-            if (Properties.Settings.Default.saveLocal)
+            if (settings.saveLocal)
             {
                 x.filepath = SaveImageToDisk(x.image, f);
                 x.filename = Path.GetFileName(x.filepath);
@@ -843,9 +899,9 @@ namespace ScreenShotterWPF
                 }
             }
 
-            if (Properties.Settings.Default.autoUpload)
+            if (settings.autoUpload)
             {
-                x.anonupload = Properties.Settings.Default.anonUpload;
+                x.anonupload = settings.anonUpload;
                 AddToQueue(x);
             }
             else
@@ -862,7 +918,7 @@ namespace ScreenShotterWPF
                 Console.WriteLine("ERROR");
                 return;
             }
-            if (!Properties.Settings.Default.saveLocal && x.filepath.Length == 0)
+            if (!settings.saveLocal && x.filepath.Length == 0)
             {
                 x.url = url;
                 x.thumbnail = thumbnail;
@@ -896,11 +952,11 @@ namespace ScreenShotterWPF
             }
             if (url.Length > 0)
             {
-                if (Properties.Settings.Default.openInBrowser)
+                if (settings.openInBrowser)
                 {
                     Process.Start(url);
                 }
-                if (Properties.Settings.Default.lastToClipboard)
+                if (settings.lastToClipboard)
                 {
                     clipboardThread = new Thread(copy_to_clipboard);
                     clipboardThread.SetApartmentState(ApartmentState.STA);

@@ -207,9 +207,12 @@
             </TabItem>
             <TabItem Header="S/FTP" Loaded="TabItem_Loaded">
                 <StackPanel>
-                    <GroupBox Header="Server" Margin="6">
+                    <GroupBox Header="Server" Margin="6,6,6,3">
                         <StackPanel Orientation="Horizontal">
-                            <StackPanel></StackPanel>
+                            <StackPanel>
+                                <Label>Protocol</Label>
+                                <ComboBox Margin="4" ItemsSource="{Binding FTPProtocols}" SelectedValue="{Binding FTPProtocol}" SelectedValuePath="Key" DisplayMemberPath="Value"/>
+                            </StackPanel>
                             <StackPanel>
                                 <Label>Host</Label>
                                 <TextBox Width="150" Margin="4" Text="{Binding FTPHost}"/>
@@ -228,11 +231,11 @@
                             </StackPanel>
                             <StackPanel>
                                 <Label>Path</Label>
-                                <TextBox Width="160" Margin="4" Text="{Binding FTPPath}"/>
+                                <TextBox Width="120" Margin="4" Text="{Binding FTPPath}"/>
                             </StackPanel>
                         </StackPanel>
                     </GroupBox>
-                    <GroupBox Header="Authentication" Margin="6">
+                    <GroupBox Header="Authentication" Margin="6,3,6,3">
                         <StackPanel>
                             <RadioButton x:Name="radioSFTP" Content="Upload to SFTP server" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="upload_selection" IsChecked="{Binding Value4, Mode=TwoWay}"/>
                             <StackPanel Orientation="Horizontal">

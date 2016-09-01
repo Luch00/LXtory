@@ -331,43 +331,30 @@ namespace ScreenShotterWPF
         //    return new Exception(e.Message);
         //}
 
-        // NYI
-        private static PrivateKeyFile BuildKeyfile()
+        public static async Task<string> FTPUpload(XImage img)
         {
-            if (Properties.Settings.Default.ftpPassphrase != string.Empty)
+            using (var wc = new WebClient())
             {
-                return new PrivateKeyFile(Properties.Settings.Default.ftpKeyfile, Properties.Settings.Default.ftpPassphrase);
-            }
-            else
-            {
-                return new PrivateKeyFile(Properties.Settings.Default.ftpKeyfile);
+                wc.Proxy = null;
+                wc.UploadProgressChanged += Wc_UploadProgressChanged;
+                wc.Credentials = new NetworkCredential(Properties.Settings.Default.ftpUsername, Properties.Settings.Default.ftpPassword);
+                //wc.BaseAddress = $"ftp://{Properties.Settings.Default.ftpHost}:{Properties.Settings.Default.ftpPort}/{Properties.Settings.Default.ftpPath}";
+                wc.BaseAddress = $"ftp://{Properties.Settings.Default.ftpHost}:{Properties.Settings.Default.ftpPort}";
+                string path = $"/{Properties.Settings.Default.ftpPath}{(Properties.Settings.Default.ftpPath == string.Empty ? "" : "/")}{img.filename}";
+                await wc.UploadDataTaskAsync(path, img.image);
+                img.image = null;
+                // return some kind of url
+                return $"http://{Properties.Settings.Default.ftpHost}{path}";
             }
         }
-        private static SftpClient BuildClient()
+
+        public static string SFTPUpload(XImage img, ConnectionInfo ftpConnectionInfo)
         {
-            string host = new Uri(Properties.Settings.Default.ftpHost).Host;
-            if (Properties.Settings.Default.ftpMethod == 0)
+            if (ftpConnectionInfo == null)
             {
-                return new SftpClient(
-                    //Properties.Settings.Default.ftpHost,
-                    host,
-                    Properties.Settings.Default.ftpPort,
-                    Properties.Settings.Default.ftpUsername,
-                    Properties.Settings.Default.ftpPassword);
+                throw new Exception("Invalid FTP connection information.");
             }
-            else
-            {
-                return new SftpClient(
-                    //Properties.Settings.Default.ftpHost,
-                    host,
-                    Properties.Settings.Default.ftpPort,
-                    Properties.Settings.Default.ftpUsername,
-                    BuildKeyfile());
-            }
-        }
-        public static string SFTPUpload(XImage img)
-        {
-            using (var client = BuildClient())
+            using (var client = new SftpClient(ftpConnectionInfo))
             {
                 try
                 {
@@ -381,7 +368,8 @@ namespace ScreenShotterWPF
                             int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
                             progressBarUpdate(percent);
                         });
-                    return $"{Properties.Settings.Default.ftpHost}{path}";
+                    // return some kind of url
+                    return $"http://{Properties.Settings.Default.ftpHost}{path}";
                 }
                 catch (Exception)
                 {
@@ -390,6 +378,12 @@ namespace ScreenShotterWPF
                 }
             }
         }
+
+        /*private static void Client_HostKeyReceived(object sender, Renci.SshNet.Common.HostKeyEventArgs e)
+        {
+            e.CanTrust = true;
+            //throw new NotImplementedException();
+        }*/
 
         // TRY DIS ON WIN10!!
         //private async Task<bool> HttpUpload(XImage img)

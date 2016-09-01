@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +23,7 @@ namespace ScreenShotterWPF.ViewModels
     public class SettingsViewModel : BindableBase, IInteractionRequestAware
     {
         private SettingsNotification notification;
+        private static readonly Properties.Settings settings = Properties.Settings.Default;
 
         public Action FinishInteraction { get; set; }
         
@@ -111,6 +111,7 @@ namespace ScreenShotterWPF.ViewModels
         private string ftpPassword;
         private string ftpPassphrase;
         private int ftpMethod;
+        private int ftpProtocol;
 
         public INotification Notification
         {
@@ -286,10 +287,28 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
+        public Dictionary<int, string> FTPProtocols
+        {
+            get
+            {
+                return new Dictionary<int, string>
+                {
+                    [0] = "ftp://",
+                    [1] = "sftp://"
+                };
+            }
+        }
+
         public int FTPMethod
         {
             get { return ftpMethod; }
             set { SetProperty(ref ftpMethod, value); }
+        }
+
+        public int FTPProtocol
+        {
+            get { return ftpProtocol; }
+            set { SetProperty(ref ftpProtocol, value); }
         }
 
         public string FTPPassphrase
@@ -699,50 +718,51 @@ namespace ScreenShotterWPF.ViewModels
 
         private void SetValues()
         {
-            TextFilepath = Properties.Settings.Default.filePath;
-            DateTimeString = Properties.Settings.Default.dateTimeString;
-            LocalEnabled = Properties.Settings.Default.saveLocal;
-            UploadEnabled = Properties.Settings.Default.autoUpload;
-            StartMinimized = Properties.Settings.Default.startMinimized;
-            MinimizeToTray = Properties.Settings.Default.minimizeToTray;
-            OpenInBrowser = Properties.Settings.Default.openInBrowser;
-            CloseToTray = Properties.Settings.Default.closeToTray;
-            RunAtStart = Properties.Settings.Default.runAtStart;
-            CopyToClipboard = Properties.Settings.Default.lastToClipboard;
+            TextFilepath = settings.filePath;
+            DateTimeString = settings.dateTimeString;
+            LocalEnabled = settings.saveLocal;
+            UploadEnabled = settings.autoUpload;
+            StartMinimized = settings.startMinimized;
+            MinimizeToTray = settings.minimizeToTray;
+            OpenInBrowser = settings.openInBrowser;
+            CloseToTray = settings.closeToTray;
+            RunAtStart = settings.runAtStart;
+            CopyToClipboard = settings.lastToClipboard;
 
-            GifUpload = Properties.Settings.Default.gifUpload;
-            GifEditor = Properties.Settings.Default.gifEditorEnabled;
-            GifCaptureCursor = Properties.Settings.Default.gifCaptureCursor;
-            GifFramerate = Properties.Settings.Default.gifFrameRate;
-            GifDuration = Properties.Settings.Default.gifDuration;
+            GifUpload = settings.gifUpload;
+            GifEditor = settings.gifEditorEnabled;
+            GifCaptureCursor = settings.gifCaptureCursor;
+            GifFramerate = settings.gifFrameRate;
+            GifDuration = settings.gifDuration;
 
-            DetectExclusive = Properties.Settings.Default.d3dAutoDetect;
-            FullscreenD3D = Properties.Settings.Default.d3dAllScreens;
+            DetectExclusive = settings.d3dAutoDetect;
+            FullscreenD3D = settings.d3dAllScreens;
 
-            DisableWebThumbs = Properties.Settings.Default.disableWebThumbs;
+            DisableWebThumbs = settings.disableWebThumbs;
 
-            FTPHost = Properties.Settings.Default.ftpHost;
-            FTPPort = Properties.Settings.Default.ftpPort.ToString();
-            FTPPath = Properties.Settings.Default.ftpPath;
-            FTPUsername = Properties.Settings.Default.ftpUsername;
-            FTPPassword = Properties.Settings.Default.ftpPassword;
-            FTPKeyfile = Properties.Settings.Default.ftpKeyfile;
-            FTPPassphrase = Properties.Settings.Default.ftpPassphrase;
-            FTPMethod = Properties.Settings.Default.ftpMethod;
+            FTPHost = settings.ftpHost;
+            FTPPort = settings.ftpPort.ToString();
+            FTPPath = settings.ftpPath;
+            FTPUsername = settings.ftpUsername;
+            FTPPassword = settings.ftpPassword;
+            FTPKeyfile = settings.ftpKeyfile;
+            FTPPassphrase = settings.ftpPassphrase;
+            FTPMethod = settings.ftpMethod;
+            FTPProtocol = settings.ftpProtocol;
 
-            if(Properties.Settings.Default.anonUpload)
+            if(settings.anonUpload)
             {
 
             }
 
-            AnonUpload = Properties.Settings.Default.anonUpload;
-            UploadValue = Properties.Settings.Default.upload_site;
+            AnonUpload = settings.anonUpload;
+            UploadValue = settings.upload_site;
 
-            PuushApiKey = Properties.Settings.Default.puush_key;
+            PuushApiKey = settings.puush_key;
             SetHotkeys();
-            if (Properties.Settings.Default.username != "")
+            if (settings.username != "")
             {
-                Username = Properties.Settings.Default.username;
+                Username = settings.username;
                 LoginButtonText = "Logout";
             }
             else
@@ -750,7 +770,7 @@ namespace ScreenShotterWPF.ViewModels
                 LoginButtonText = "Login";
                 Username = "(Not logged in)";
             }
-            if (Properties.Settings.Default.gyazoToken != "")
+            if (settings.gyazoToken != "")
             {
                 LoginButtonTextGyazo = "Logout";
             }
@@ -759,7 +779,7 @@ namespace ScreenShotterWPF.ViewModels
                 LoginButtonTextGyazo = "Login";
             }
 
-            if (Properties.Settings.Default.shellExtActive)
+            if (settings.shellExtActive)
             {
                 RegisterButtonText = "Unregister";
             }
@@ -772,84 +792,84 @@ namespace ScreenShotterWPF.ViewModels
 
         private void SetHotkeys()
         {
-            if (Properties.Settings.Default.hkFullscreen != null)
+            if (settings.hkFullscreen != null)
             {
-                FullscreenCtrl = Properties.Settings.Default.hkFullscreen.ctrl;
-                FullscreenShift = Properties.Settings.Default.hkFullscreen.shift;
-                FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
-                FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
+                FullscreenCtrl = settings.hkFullscreen.ctrl;
+                FullscreenShift = settings.hkFullscreen.shift;
+                FullscreenAlt = settings.hkFullscreen.alt;
+                FullscreenKey = settings.hkFullscreen.vkKey;
             }
             else
             {
-                Properties.Settings.Default.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
-                FullscreenCtrl = Properties.Settings.Default.hkFullscreen.ctrl;
-                FullscreenShift = Properties.Settings.Default.hkFullscreen.shift;
-                FullscreenAlt = Properties.Settings.Default.hkFullscreen.alt;
-                FullscreenKey = Properties.Settings.Default.hkFullscreen.vkKey;
+                settings.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
+                FullscreenCtrl = settings.hkFullscreen.ctrl;
+                FullscreenShift = settings.hkFullscreen.shift;
+                FullscreenAlt = settings.hkFullscreen.alt;
+                FullscreenKey = settings.hkFullscreen.vkKey;
             }
 
-            if (Properties.Settings.Default.hkCurrentwindow != null)
+            if (settings.hkCurrentwindow != null)
             {
-                CurrentwindowCtrl = Properties.Settings.Default.hkCurrentwindow.ctrl;
-                CurrentwindowShift = Properties.Settings.Default.hkCurrentwindow.shift;
-                CurrentwindowAlt = Properties.Settings.Default.hkCurrentwindow.alt;
-                CurrentwindowKey = Properties.Settings.Default.hkCurrentwindow.vkKey;
+                CurrentwindowCtrl = settings.hkCurrentwindow.ctrl;
+                CurrentwindowShift = settings.hkCurrentwindow.shift;
+                CurrentwindowAlt = settings.hkCurrentwindow.alt;
+                CurrentwindowKey = settings.hkCurrentwindow.vkKey;
             }
             else
             {
-                Properties.Settings.Default.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
-                CurrentwindowCtrl = Properties.Settings.Default.hkCurrentwindow.ctrl;
-                CurrentwindowShift = Properties.Settings.Default.hkCurrentwindow.shift;
-                CurrentwindowAlt = Properties.Settings.Default.hkCurrentwindow.alt;
-                CurrentwindowKey = Properties.Settings.Default.hkCurrentwindow.vkKey;
+                settings.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
+                CurrentwindowCtrl = settings.hkCurrentwindow.ctrl;
+                CurrentwindowShift = settings.hkCurrentwindow.shift;
+                CurrentwindowAlt = settings.hkCurrentwindow.alt;
+                CurrentwindowKey = settings.hkCurrentwindow.vkKey;
             }
 
-            if (Properties.Settings.Default.hkSelectedarea != null)
+            if (settings.hkSelectedarea != null)
             {
-                SelectedareaCtrl = Properties.Settings.Default.hkSelectedarea.ctrl;
-                SelectedareaShift = Properties.Settings.Default.hkSelectedarea.shift;
-                SelectedareaAlt = Properties.Settings.Default.hkSelectedarea.alt;
-                SelectedareaKey = Properties.Settings.Default.hkSelectedarea.vkKey;
+                SelectedareaCtrl = settings.hkSelectedarea.ctrl;
+                SelectedareaShift = settings.hkSelectedarea.shift;
+                SelectedareaAlt = settings.hkSelectedarea.alt;
+                SelectedareaKey = settings.hkSelectedarea.vkKey;
             }
             else
             {
-                Properties.Settings.Default.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
-                SelectedareaCtrl = Properties.Settings.Default.hkSelectedarea.ctrl;
-                SelectedareaShift = Properties.Settings.Default.hkSelectedarea.shift;
-                SelectedareaAlt = Properties.Settings.Default.hkSelectedarea.alt;
-                SelectedareaKey = Properties.Settings.Default.hkSelectedarea.vkKey;
+                settings.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
+                SelectedareaCtrl = settings.hkSelectedarea.ctrl;
+                SelectedareaShift = settings.hkSelectedarea.shift;
+                SelectedareaAlt = settings.hkSelectedarea.alt;
+                SelectedareaKey = settings.hkSelectedarea.vkKey;
             }
 
-            if (Properties.Settings.Default.hkGifcapture != null)
+            if (settings.hkGifcapture != null)
             {
-                GifCaptureCtrl = Properties.Settings.Default.hkGifcapture.ctrl;
-                GifCaptureShift = Properties.Settings.Default.hkGifcapture.shift;
-                GifCaptureAlt = Properties.Settings.Default.hkGifcapture.alt;
-                GifCaptureKey = Properties.Settings.Default.hkGifcapture.vkKey;
+                GifCaptureCtrl = settings.hkGifcapture.ctrl;
+                GifCaptureShift = settings.hkGifcapture.shift;
+                GifCaptureAlt = settings.hkGifcapture.alt;
+                GifCaptureKey = settings.hkGifcapture.vkKey;
             }
             else
             {
-                Properties.Settings.Default.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
-                GifCaptureCtrl = Properties.Settings.Default.hkGifcapture.ctrl;
-                GifCaptureShift = Properties.Settings.Default.hkGifcapture.shift;
-                GifCaptureAlt = Properties.Settings.Default.hkGifcapture.alt;
-                GifCaptureKey = Properties.Settings.Default.hkGifcapture.vkKey;
+                settings.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
+                GifCaptureCtrl = settings.hkGifcapture.ctrl;
+                GifCaptureShift = settings.hkGifcapture.shift;
+                GifCaptureAlt = settings.hkGifcapture.alt;
+                GifCaptureKey = settings.hkGifcapture.vkKey;
             }
 
-            if (Properties.Settings.Default.hkD3DCap != null)
+            if (settings.hkD3DCap != null)
             {
-                D3dCtrl = Properties.Settings.Default.hkD3DCap.ctrl;
-                D3dShift = Properties.Settings.Default.hkD3DCap.shift;
-                D3dAlt = Properties.Settings.Default.hkD3DCap.alt;
-                D3dKey = Properties.Settings.Default.hkD3DCap.vkKey;
+                D3dCtrl = settings.hkD3DCap.ctrl;
+                D3dShift = settings.hkD3DCap.shift;
+                D3dAlt = settings.hkD3DCap.alt;
+                D3dKey = settings.hkD3DCap.vkKey;
             }
             else
             {
-                Properties.Settings.Default.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));
-                D3dCtrl = Properties.Settings.Default.hkD3DCap.ctrl;
-                D3dShift = Properties.Settings.Default.hkD3DCap.shift;
-                D3dAlt = Properties.Settings.Default.hkD3DCap.alt;
-                D3dKey = Properties.Settings.Default.hkD3DCap.vkKey;
+                settings.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));
+                D3dCtrl = settings.hkD3DCap.ctrl;
+                D3dShift = settings.hkD3DCap.shift;
+                D3dAlt = settings.hkD3DCap.alt;
+                D3dKey = settings.hkD3DCap.vkKey;
             }
         }
 
@@ -871,71 +891,72 @@ namespace ScreenShotterWPF.ViewModels
             }
             if (fullscreenKey != 0)
             {
-                Properties.Settings.Default.hkFullscreen = new HotKey(fullscreenCtrl, fullscreenAlt, fullscreenShift, fullscreenKey);
+                settings.hkFullscreen = new HotKey(fullscreenCtrl, fullscreenAlt, fullscreenShift, fullscreenKey);
             }
             if (currentwindowKey != 0)
             {
-                Properties.Settings.Default.hkCurrentwindow = new HotKey(currentwindowCtrl, currentwindowAlt, currentwindowShift, currentwindowKey);
+                settings.hkCurrentwindow = new HotKey(currentwindowCtrl, currentwindowAlt, currentwindowShift, currentwindowKey);
             }
             if (selectedareaKey != 0)
             {
-                Properties.Settings.Default.hkSelectedarea = new HotKey(selectedareaCtrl, selectedareaAlt, selectedareaShift, selectedareaKey);
+                settings.hkSelectedarea = new HotKey(selectedareaCtrl, selectedareaAlt, selectedareaShift, selectedareaKey);
             }
             if (gifcaptureKey != 0)
             {
-                Properties.Settings.Default.hkGifcapture = new HotKey(gifcaptureCtrl, gifcaptureAlt, gifcaptureShift, gifcaptureKey);
+                settings.hkGifcapture = new HotKey(gifcaptureCtrl, gifcaptureAlt, gifcaptureShift, gifcaptureKey);
             }
             if (d3dKey != 0)
             {
-                Properties.Settings.Default.hkD3DCap = new HotKey(d3dCtrl, d3dAlt, d3dShift, d3dKey);
+                settings.hkD3DCap = new HotKey(d3dCtrl, d3dAlt, d3dShift, d3dKey);
             }
 
-            Properties.Settings.Default.upload_site = UploadValue;
+            settings.upload_site = UploadValue;
 
             SetStartUp(RunAtStart);
 
-            Properties.Settings.Default.lastToClipboard = CopyToClipboard;
-            Properties.Settings.Default.minimizeToTray = MinimizeToTray;
-            Properties.Settings.Default.openInBrowser = OpenInBrowser;
-            Properties.Settings.Default.runAtStart = RunAtStart;
-            Properties.Settings.Default.saveLocal = LocalEnabled;
-            Properties.Settings.Default.anonUpload = AnonUpload;
-            Properties.Settings.Default.autoUpload = UploadEnabled;
-            Properties.Settings.Default.closeToTray = CloseToTray;
-            Properties.Settings.Default.startMinimized = StartMinimized;
+            settings.lastToClipboard = CopyToClipboard;
+            settings.minimizeToTray = MinimizeToTray;
+            settings.openInBrowser = OpenInBrowser;
+            settings.runAtStart = RunAtStart;
+            settings.saveLocal = LocalEnabled;
+            settings.anonUpload = AnonUpload;
+            settings.autoUpload = UploadEnabled;
+            settings.closeToTray = CloseToTray;
+            settings.startMinimized = StartMinimized;
 
-            Properties.Settings.Default.gifUpload = GifUpload;
-            Properties.Settings.Default.gifEditorEnabled = GifEditor;
-            Properties.Settings.Default.gifCaptureCursor = GifCaptureCursor;
-            Properties.Settings.Default.gifFrameRate = GifFramerate;
-            Properties.Settings.Default.gifDuration = GifDuration;
+            settings.gifUpload = GifUpload;
+            settings.gifEditorEnabled = GifEditor;
+            settings.gifCaptureCursor = GifCaptureCursor;
+            settings.gifFrameRate = GifFramerate;
+            settings.gifDuration = GifDuration;
 
-            Properties.Settings.Default.d3dAllScreens = FullscreenD3D;
-            Properties.Settings.Default.d3dAutoDetect = DetectExclusive;
+            settings.d3dAllScreens = FullscreenD3D;
+            settings.d3dAutoDetect = DetectExclusive;
 
-            Properties.Settings.Default.puush_key = PuushApiKey;
+            settings.puush_key = PuushApiKey;
 
-            Properties.Settings.Default.disableWebThumbs = DisableWebThumbs;
+            settings.disableWebThumbs = DisableWebThumbs;
 
-            Properties.Settings.Default.ftpHost = FTPHost;
-            Properties.Settings.Default.ftpPort = ftpPort;
-            Properties.Settings.Default.ftpPath = FTPPath;
-            Properties.Settings.Default.ftpUsername = FTPUsername;
-            Properties.Settings.Default.ftpPassword = FTPPassword;
-            Properties.Settings.Default.ftpKeyfile = FTPKeyfile;
-            Properties.Settings.Default.ftpPassphrase = FTPPassphrase;
-            Properties.Settings.Default.ftpMethod = FTPMethod;
+            settings.ftpHost = FTPHost;
+            settings.ftpPort = ftpPort;
+            settings.ftpPath = FTPPath;
+            settings.ftpUsername = FTPUsername;
+            settings.ftpPassword = FTPPassword;
+            settings.ftpKeyfile = FTPKeyfile;
+            settings.ftpPassphrase = FTPPassphrase;
+            settings.ftpMethod = FTPMethod;
+            settings.ftpProtocol = FTPProtocol;
 
             if (Directory.Exists(TextFilepath))
             {
-                Properties.Settings.Default.filePath = TextFilepath;
+                settings.filePath = TextFilepath;
             }
             else
             {
-                Properties.Settings.Default.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                settings.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
             }
 
-            Properties.Settings.Default.dateTimeString = DateTimeString;
+            settings.dateTimeString = DateTimeString;
 
             if (this.notification != null)
             {
@@ -967,7 +988,7 @@ namespace ScreenShotterWPF.ViewModels
 
         private async void GyazoLogin()
         {
-            if (Properties.Settings.Default.gyazoToken == string.Empty)
+            if (settings.gyazoToken == string.Empty)
             {
                 statusLabelText = StatusLabelText = "Waiting for Authorization..";
                 AuthProgressVisibility = Visibility.Visible;
@@ -1001,15 +1022,15 @@ namespace ScreenShotterWPF.ViewModels
             }
             else
             {
-                Properties.Settings.Default.gyazoToken = "";
-                Properties.Settings.Default.Save();
+                settings.gyazoToken = "";
+                settings.Save();
                 LoginButtonTextGyazo = "Login";
             }
         }
 
         private async void Login()
         {
-            if (Properties.Settings.Default.username == string.Empty && Properties.Settings.Default.accessToken == string.Empty)
+            if (settings.username == string.Empty && settings.accessToken == string.Empty)
             {
                 StatusLabelText = "Waiting for Authorization..";
                 AuthProgressVisibility = Visibility.Visible;
@@ -1021,7 +1042,7 @@ namespace ScreenShotterWPF.ViewModels
                     {
                         //get tokens
                         await Uploader.GetToken(authCode);
-                        Username = Properties.Settings.Default.username;
+                        Username = settings.username;
                         StatusLabelText = "Authorization complete";
                         LoginButtonText = "Logout";
                         LoginEnabled = true;
@@ -1044,10 +1065,10 @@ namespace ScreenShotterWPF.ViewModels
             }
             else
             {
-                Properties.Settings.Default.accessToken = "";
-                Properties.Settings.Default.refreshToken = "";
-                Properties.Settings.Default.username = "";
-                Properties.Settings.Default.Save();
+                settings.accessToken = "";
+                settings.refreshToken = "";
+                settings.username = "";
+                settings.Save();
                 LoginButtonText = "Login";
                 Username = "Not logged in";
             }
@@ -1160,16 +1181,16 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Register()
         {
-            if (Properties.Settings.Default.shellExtActive)
+            if (settings.shellExtActive)
             {
                 RemoveContextMenuItems();
-                Properties.Settings.Default.shellExtActive = false;
+                settings.shellExtActive = false;
                 RegisterButtonText = "Register";
             }
             else
             {
                 AddContextMenuItems();
-                Properties.Settings.Default.shellExtActive = true;
+                settings.shellExtActive = true;
                 RegisterButtonText = "Unregister";
             }
         }

@@ -155,7 +155,7 @@
                 <RowDefinition/>
                 <RowDefinition Height="22"/>
             </Grid.RowDefinitions>
-            <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
+            <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" MaxWidth="300" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
 
             <ListView x:Name="lstImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" Margin="4,4,4,4" SelectionMode="Single" SelectedItem="{Binding SelectedItem}">
                 <ListView.Resources>
