@@ -26,8 +26,6 @@ namespace ScreenShotterWPF.ViewModels
         private static readonly Properties.Settings settings = Properties.Settings.Default;
 
         public Action FinishInteraction { get; set; }
-        
-        private string accesscode = string.Empty;
 
         private const string CloseWindowResponse = "<!DOCTYPE html><html><head></head><body style=\"background-color: #121211; font-family: Arial,sans-serif;    color: rgb(221, 221, 209);\"><h1>Authorization Successfull</h1><p>You can now close this window</p></body></html>";
 
@@ -36,7 +34,6 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand BrowseCommand { get; private set; }
         public ICommand LoginCommand { get; private set; }
         public ICommand LoginCommandGyazo { get; private set; }
-        public ICommand RegisterCommand { get; private set; }
 
         public ICommand BrowseKeyCommand { get; private set; }
         public ICommand PasswordChangedCommand { get; private set; }
@@ -113,6 +110,9 @@ namespace ScreenShotterWPF.ViewModels
         private int ftpMethod;
         private int ftpProtocol;
 
+        private static bool contextMenuEnabled;
+        private static bool fileUploadEnabled;
+
         public INotification Notification
         {
             get
@@ -141,7 +141,6 @@ namespace ScreenShotterWPF.ViewModels
             this.BrowseCommand = new DelegateCommand(Browse);
             this.LoginCommand = new DelegateCommand(Login);
             this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
-            this.RegisterCommand = new DelegateCommand(Register);
             this.BrowseKeyCommand = new DelegateCommand(BrowseKey);
             this.PasswordChangedCommand = new DelegateCommand<PasswordBox>(PasswordChanged);
             this.PassphraseChangedCommand = new DelegateCommand<PasswordBox>(PassphraseChanged);
@@ -269,13 +268,25 @@ namespace ScreenShotterWPF.ViewModels
 
         #region Properties
 
+        public bool FileUploadEnabled
+        {
+            get { return fileUploadEnabled; }
+            set { SetProperty(ref fileUploadEnabled, value); }
+        }
+
+        public bool ContextMenuEnabled
+        {
+            get { return contextMenuEnabled; }
+            set { SetProperty(ref contextMenuEnabled, value); }
+        }
+
         public bool DisableWebThumbs
         {
             get { return disableWebThumbs; }
             set { SetProperty(ref disableWebThumbs, value); }
         }
 
-        public Dictionary<int, string> FTPMethods
+        public static Dictionary<int, string> FTPMethods
         {
             get
             {
@@ -287,7 +298,7 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        public Dictionary<int, string> FTPProtocols
+        public static Dictionary<int, string> FTPProtocols
         {
             get
             {
@@ -750,6 +761,9 @@ namespace ScreenShotterWPF.ViewModels
             FTPMethod = settings.ftpMethod;
             FTPProtocol = settings.ftpProtocol;
 
+            ContextMenuEnabled = settings.shellExtActive;
+            FileUploadEnabled = settings.fileUploadEnabled;
+
             if(settings.anonUpload)
             {
 
@@ -956,6 +970,20 @@ namespace ScreenShotterWPF.ViewModels
                 settings.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
             }
 
+            if (ContextMenuEnabled != settings.shellExtActive || FileUploadEnabled != settings.fileUploadEnabled)
+            {
+                if (!ContextMenuEnabled)
+                {
+                    RemoveContextMenu();
+                }
+                else
+                {
+                    EnableContextMenu(!FileUploadEnabled);
+                }
+            }
+            settings.shellExtActive = ContextMenuEnabled;
+            settings.fileUploadEnabled = FileUploadEnabled;
+
             settings.dateTimeString = DateTimeString;
 
             if (this.notification != null)
@@ -1074,9 +1102,10 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private async Task<string> GetAuthCode(string url)
+        private static async Task<string> GetAuthCode(string url)
         {
             //IPAddress local = IPAddress.Loopback;
+            string accesscode = string.Empty;
             TcpListener listener = new TcpListener(IPAddress.Loopback, 8080);
             listener.Start();
             Byte[] bytes = new Byte[256];
@@ -1137,14 +1166,43 @@ namespace ScreenShotterWPF.ViewModels
             return accesscode;
         }
 
-        private static void AddContextMenuItems()
+        private static void EnableContextMenu(bool imagesonly)
         {
-            string executablePath = Assembly.GetExecutingAssembly().Location;
+            RemoveContextMenu();
+            List<string> keys;
+            if (imagesonly)
+            {
+                keys = new List<string> {
+                    "SOFTWARE\\Classes\\giffile\\shell\\LXtory",
+                    "SOFTWARE\\Classes\\jpegfile\\shell\\LXtory",
+                    "SOFTWARE\\Classes\\pngfile\\shell\\LXtory",
+                    "SOFTWARE\\Classes\\SystemFileAssociations\\image\\shell\\LXtory" };
+                AddRegistryEntries(keys);
+            }
+            else
+            {
+                keys = new List<string>
+                {
+                    "SOFTWARE\\Classes\\*\\shell\\LXtory"
+                };
+                AddRegistryEntries(keys);
+            }
+        }
+
+        private static void RemoveContextMenu()
+        {
             List<string> keys = new List<string> {
                 "SOFTWARE\\Classes\\giffile\\shell\\LXtory",
                 "SOFTWARE\\Classes\\jpegfile\\shell\\LXtory",
                 "SOFTWARE\\Classes\\pngfile\\shell\\LXtory",
-                "SOFTWARE\\Classes\\SystemFileAssociations\\image\\shell\\LXtory" };
+                "SOFTWARE\\Classes\\SystemFileAssociations\\image\\shell\\LXtory",
+                "SOFTWARE\\Classes\\*\\shell\\LXtory" };
+            RemoveRegistryEntries(keys);
+        }
+
+        private static void AddRegistryEntries(List<string> keys)
+        {
+            string executablePath = Assembly.GetExecutingAssembly().Location;
 
             foreach (string k in keys)
             {
@@ -1165,21 +1223,15 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private static void RemoveContextMenuItems()
+        private static void RemoveRegistryEntries(List<string> keys)
         {
-            List<string> keys = new List<string> {
-                "SOFTWARE\\Classes\\giffile\\shell\\LXtory",
-                "SOFTWARE\\Classes\\jpegfile\\shell\\LXtory",
-                "SOFTWARE\\Classes\\pngfile\\shell\\LXtory",
-                "SOFTWARE\\Classes\\SystemFileAssociations\\image\\shell\\LXtory" };
-
             foreach (string key in keys)
             {
                 Registry.CurrentUser.DeleteSubKeyTree(key, false);
             }
         }
 
-        private void Register()
+        /*private void Register()
         {
             if (settings.shellExtActive)
             {
@@ -1193,6 +1245,6 @@ namespace ScreenShotterWPF.ViewModels
                 settings.shellExtActive = true;
                 RegisterButtonText = "Unregister";
             }
-        }
+        }*/
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -47,6 +49,7 @@ namespace ScreenShotterWPF.ViewModels
 
         private MouseKeyHook mHook;
         private readonly Action<bool> mouseAction;
+        private int selectedIndex;
 
         public MainViewModel()
         {
@@ -190,6 +193,12 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
+        public int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set { SetProperty(ref selectedIndex, value); }
+        }
+
         private void GetLocalThumbnail(Uri url)
         {
             BitmapImage img = new BitmapImage();
@@ -244,13 +253,20 @@ namespace ScreenShotterWPF.ViewModels
         private void GetPicture(XImage x)
         {
             if (x == null)
+            {
                 DisplayImage = null;
+                return;
+            }
 
             Uri url;
-            if (x.filepath != string.Empty && System.IO.File.Exists(x.filepath))
+            if (x.filepath != string.Empty && File.Exists(x.filepath))
             {
-                url = new Uri(x.filepath, UriKind.Absolute);
-                GetLocalThumbnail(url);
+                string ext = Path.GetExtension(x.filename);
+                if (ImageFileTypes.SupportedTypes.Contains(ext))
+                {
+                    url = new Uri(x.filepath, UriKind.Absolute);
+                    GetLocalThumbnail(url);
+                }
             }
             else if (x.thumbnail != string.Empty && !Properties.Settings.Default.disableWebThumbs)
             {
@@ -260,7 +276,6 @@ namespace ScreenShotterWPF.ViewModels
             else
             {
                 DisplayImage = null;
-                return;
             }
         }
 

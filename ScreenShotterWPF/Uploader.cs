@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net.Http.Handlers;
 using Renci.SshNet;
 
 namespace ScreenShotterWPF
 {
-    public class Uploader
+    public static class Uploader
     {
         // For imgur
         private const string ClientID = "83c1c8bf9f4d2b1";
@@ -23,23 +23,8 @@ namespace ScreenShotterWPF
         private const string GyazoClientSecret = "e78f75312829d3e6c6816c35e07cd6a34efa908260d47bf4ad622531c26f6bee";
         
         // Actions to main form
-        private static Action<int> progressBarUpdate;
 
-        //private ConnectionInfo info;
-
-        public Uploader(Action<int> p)
-        {
-            progressBarUpdate = p;
-            //info = new ConnectionInfo("","", new PasswordAuthenticationMethod("", ""));
-        }
-
-        /*public static void BuildConnectionInfo()
-        {
-            if (Properties.Settings.Default.ftpMethod == 0)
-            {
-
-            }
-        }*/
+        public static Action<int> ProgressBarUpdate { private get; set; }
 
         // Use pin to get auth token
         /*public void GetToken(string pin)
@@ -99,13 +84,12 @@ namespace ScreenShotterWPF
         {
             try
             {
-                string s = "";
+                string s = string.Empty;
                 using (var w = new WebClient())
                 {
                     w.Proxy = null;
                     NameValueCollection v = new NameValueCollection();
                     v.Add("client_id", GyazoClientID);
-                    //v.Add("client_secret", GyazoClientSecret);
                     v.Add("redirect_uri", "http://localhost:8080/LXtory_Auth/");
                     v.Add("code", code);
                     v.Add("grant_type", "authorization_code");
@@ -114,10 +98,6 @@ namespace ScreenShotterWPF
                     w.Headers[HttpRequestHeader.Authorization] = $"Basic {base64}";
 
                     var response = await w.UploadValuesTaskAsync("http://api.gyazo.com/oauth/token", "POST", v);
-
-                    //w.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-                    //string parameters = $"client_id={GyazoClientID}&client_secret={GyazoClientSecret}&code={code}&grant_type=authorization_code&access_token=0f90443b5477ae0f2668f057b7686c65ede778512fef6d276f09ecbcd2d1fa54";
-                    //var response = w.UploadString("https://api.gyazo.com/oauth/token", parameters);
                     s = Encoding.UTF8.GetString(response, 0, response.Length);
                 }
                 var serializer = new JavaScriptSerializer();
@@ -155,7 +135,7 @@ namespace ScreenShotterWPF
                 using (var w = new WebClient())
                 {
                     w.Proxy = null;
-                    w.UploadValuesCompleted += new UploadValuesCompletedEventHandler(webClient_TokenRefreshCompleted);
+                    w.UploadValuesCompleted += webClient_TokenRefreshCompleted;
                     NameValueCollection v = new NameValueCollection();
                     v.Add("refresh_token", Properties.Settings.Default.refreshToken);
                     v.Add("client_id", ClientID);
@@ -201,9 +181,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        
-
-        private static async Task<string> UploadData(string uri, string boundary, MultipartFormDataContent formData, Dictionary<HttpRequestHeader, string> extraHeaders = null )
+        /*private static async Task<string> UploadData(string uri, string boundary, MultipartFormDataContent formData, Dictionary<HttpRequestHeader, string> extraHeaders = null )
         {
             using (var wc = new NotAliveWebClient())
             {
@@ -224,16 +202,52 @@ namespace ScreenShotterWPF
                 byte[] response = await wc.UploadDataTaskAsync(uri, formBytes);
                 return Encoding.UTF8.GetString(response);
             }
+        }*/
+
+        private static async Task<string> UploadData2(string uri, MultipartFormDataContent formData, Dictionary<HttpRequestHeader, string> extraHeaders = null)
+        {
+            ProgressMessageHandler progress = new ProgressMessageHandler();
+            progress.HttpSendProgress += HttpSendProgress;
+
+            HttpRequestMessage message = new HttpRequestMessage();
+            
+            message.Method = HttpMethod.Post;
+            message.Content = formData;
+            message.RequestUri = new Uri(uri);
+
+            using (var client = HttpClientFactory.Create(progress))
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "LXtory/1.0");
+                client.DefaultRequestHeaders.Add("Connection", "Close");
+                
+                if (extraHeaders != null)
+                {
+                    foreach (KeyValuePair<HttpRequestHeader, string> header in extraHeaders)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key.ToString(), header.Value);
+                    }
+                }
+                var response = await client.SendAsync(message);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                throw new Exception($"Upload error.\n{response.ReasonPhrase}");
+            }
+        }
+
+        private static void HttpSendProgress(object sender, HttpProgressEventArgs e)
+        {
+            ProgressBarUpdate(e.ProgressPercentage);
         }
 
         private static void Wc_UploadProgressChanged(object sender, UploadProgressChangedEventArgs e)
         {
             int progress = e.ProgressPercentage <= 50 ? e.ProgressPercentage * 2 : e.ProgressPercentage;
-            //Console.WriteLine($"{e.BytesSent} / {e.TotalBytesToSend} -- {e.ProgressPercentage}");
-            progressBarUpdate(progress);
+            ProgressBarUpdate(progress);
         }
 
-        private static string GetFileContentType(string file)
+        /*private static string GetFileContentType(string file)
         {
             string ext = Path.GetExtension(file)?.ToLower() ?? ".png";
             switch (ext)
@@ -250,7 +264,7 @@ namespace ScreenShotterWPF
                 case ".gif":
                     return "image/gif";
             }
-        }
+        }*/
 
         public static async Task<string> HttpGyazoUpload(XImage img)
         {
@@ -258,11 +272,25 @@ namespace ScreenShotterWPF
             using (var form = new MultipartFormDataContent(boundary))
             {
                 form.Add(new StringContent(Properties.Settings.Default.gyazoToken), "access_token");
-                form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
-                img.image = null;
+                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
+                //form.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                //form.Headers.ContentType = new MediaTypeHeaderValue($"multipart/form-data; boundary={boundary}");
+                //form.Headers.ContentType = new MediaTypeHeaderValue($"multipart/form-data; boundary={boundary}");
+                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
+                if (img.image != null)
+                {
+                    form.Add(new StreamContent(new MemoryStream(img.image)), "imagedata", img.filename);
+                    //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
+                }
+                else
+                {
+                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open)), "imagedata", img.filename);
+                }
+                
+                //img.image = null;
 
-                return await UploadData("http://upload.gyazo.com/api/upload", boundary, form);
+                //return await UploadData("http://upload.gyazo.com/api/upload", boundary, form);
+                return await UploadData2("http://upload.gyazo.com/api/upload", form);
             }
         }
 
@@ -273,11 +301,21 @@ namespace ScreenShotterWPF
             {
                 form.Add(new StringContent(Properties.Settings.Default.puush_key), "k");
                 form.Add(new StringContent("LXtory"), "z");
-                form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "f", img.filename);
+                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
+                //form.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "f", img.filename);
+                if (img.image != null)
+                {
+                    form.Add(new StreamContent(new MemoryStream(img.image)), "f", img.filename);
+                }
+                else
+                {
+                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), "f", img.filename);
+                }
                 img.image = null;
 
-                return await UploadData("https://puush.me/api/up", boundary, form);
+                //return await UploadData("https://puush.me/api/up", boundary, form);
+                return await UploadData2("https://puush.me/api/up", form);
             }
         }
 
@@ -286,20 +324,30 @@ namespace ScreenShotterWPF
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
             {
-                form.Add(new StringContent(Properties.Settings.Default.puush_key), "title");
-                form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "image", img.filename);
-
+                form.Add(new StringContent(img.filename), "title");
+                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
+                //form.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "image", img.filename);
+                if (img.image != null)
+                {
+                    form.Add(new StreamContent(new MemoryStream(img.image)), "image", img.filename);
+                }
+                else
+                {
+                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open)), "image", img.filename);
+                }
                 img.image = null;
+
                 var extraHeaders = new Dictionary<HttpRequestHeader, string>
                 {
                     [HttpRequestHeader.Authorization] = img.anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
                 };
-                return await UploadData("https://api.imgur.com/3/image", boundary, form, extraHeaders);
+                //return await UploadData("https://api.imgur.com/3/image", boundary, form, extraHeaders);
+                return await UploadData2("https://api.imgur.com/3/image", form, extraHeaders);
             }
         }
 
-        private class NotAliveWebClient : WebClient
+        /*private class NotAliveWebClient : WebClient
         {
             protected override WebRequest GetWebRequest(Uri address)
             {
@@ -311,7 +359,7 @@ namespace ScreenShotterWPF
                 }
                 return request;
             }
-        }
+        }*/
 
         //private static Exception ExceptionStatus(WebException e)
         //{
@@ -341,8 +389,16 @@ namespace ScreenShotterWPF
                 //wc.BaseAddress = $"ftp://{Properties.Settings.Default.ftpHost}:{Properties.Settings.Default.ftpPort}/{Properties.Settings.Default.ftpPath}";
                 wc.BaseAddress = $"ftp://{Properties.Settings.Default.ftpHost}:{Properties.Settings.Default.ftpPort}";
                 string path = $"/{Properties.Settings.Default.ftpPath}{(Properties.Settings.Default.ftpPath == string.Empty ? "" : "/")}{img.filename}";
-                await wc.UploadDataTaskAsync(path, img.image);
+                if (img.image != null)
+                {
+                    await wc.UploadDataTaskAsync(path, img.image);
+                }
+                else
+                {
+                    await wc.UploadFileTaskAsync(path, img.filepath);
+                }
                 img.image = null;
+
                 // return some kind of url
                 return $"http://{Properties.Settings.Default.ftpHost}{path}";
             }
@@ -362,12 +418,32 @@ namespace ScreenShotterWPF
                     client.Connect();
                     long fileSize = img.image.Length;
                     string path = $"/{Properties.Settings.Default.ftpPath}{(Properties.Settings.Default.ftpPath == string.Empty ? "" : "/")}{img.filename}";
-                    client.UploadFile(new MemoryStream(img.image), path,
-                        bytesUploaded =>
+                    if (img.image != null)
+                    {
+                        using (var stream = new MemoryStream(img.image))
                         {
-                            int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
-                            progressBarUpdate(percent);
-                        });
+                            client.UploadFile(stream, path,
+                                bytesUploaded =>
+                                {
+                                    int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
+                                    ProgressBarUpdate(percent);
+                                });
+                        }
+                        img.image = null;
+                    }
+                    else
+                    {
+                        using (var stream = new FileStream(img.filepath, FileMode.Open))
+                        {
+                            client.UploadFile(stream, path,
+                                bytesUploaded =>
+                                {
+                                    int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
+                                    ProgressBarUpdate(percent);
+                                });
+                        }
+                    }
+                    
                     // return some kind of url
                     return $"http://{Properties.Settings.Default.ftpHost}{path}";
                 }
@@ -378,12 +454,6 @@ namespace ScreenShotterWPF
                 }
             }
         }
-
-        /*private static void Client_HostKeyReceived(object sender, Renci.SshNet.Common.HostKeyEventArgs e)
-        {
-            e.CanTrust = true;
-            //throw new NotImplementedException();
-        }*/
 
         // TRY DIS ON WIN10!!
         //private async Task<bool> HttpUpload(XImage img)

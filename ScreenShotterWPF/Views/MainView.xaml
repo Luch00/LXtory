@@ -21,8 +21,8 @@
                     <Style TargetType="Window">
                         <Setter Property="Icon" Value="../Resources/meh.ico"/>
                         <Setter Property="ResizeMode" Value="NoResize"/>
-                        <Setter Property="Width" Value="495"/>
-                        <Setter Property="Height" Value="456"/>
+                        <Setter Property="Width" Value="500"/>
+                        <Setter Property="Height" Value="465"/>
                     </Style>
                 </prism:PopupWindowAction.WindowStyle>
                 <prism:PopupWindowAction.WindowContent>
@@ -90,7 +90,7 @@
             </prism:PopupWindowAction>
         </prism:InteractionRequestTrigger>
         <!-- Open overlay -->
-        <prism:InteractionRequestTrigger SourceObject="{Binding Main.OverlayRequest, Mode=OneWay}">
+        <prism:InteractionRequestTrigger SourceObject="{Binding Main.OverlayRequest, Mode=OneWay}" VirtualizingPanel.IsVirtualizing="True">
             <prism:PopupWindowAction IsModal="True">
                 <prism:PopupWindowAction.WindowStyle>
                     <Style TargetType="Window">
@@ -157,7 +157,7 @@
             </Grid.RowDefinitions>
             <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="180" MaxWidth="300" VerticalAlignment="Top" Margin="4,4,4,4" Source="{Binding DisplayImage}"/>
 
-            <ListView x:Name="lstImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" Margin="4,4,4,4" SelectionMode="Single" SelectedItem="{Binding SelectedItem}">
+            <ListView x:Name="lstImages" Grid.Row="1" ItemsSource="{Binding Source={StaticResource SortedImagesList}}" Margin="4,4,4,4" SelectionMode="Single" SelectedItem="{Binding SelectedItem}" SelectedIndex="{Binding SelectedIndex}" SelectionChanged="lstImages_SelectionChanged">
                 <ListView.Resources>
                     <ContextMenu x:Key="ItemContextMenu">
                         <MenuItem Header="Open local" Command="{Binding OpenLocalCommand}" IsEnabled="{Binding OpenLocalEnabled}"/>

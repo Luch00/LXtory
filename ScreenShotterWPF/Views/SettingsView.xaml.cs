@@ -53,7 +53,7 @@ namespace ScreenShotterWPF.Views
             }
         }
 
-        private bool IsTextAllowed(string text)
+        private static bool IsTextAllowed(string text)
         {
             Regex regex = new Regex("[^0-9]+");
             return regex.IsMatch(text);

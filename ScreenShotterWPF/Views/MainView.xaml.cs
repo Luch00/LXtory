@@ -9,11 +9,12 @@ namespace ScreenShotterWPF.Views
     /// </summary>
     public partial class MainView : UserControl
     {
-        MainWindow mainwindow;
+        private readonly MainWindow mainwindow;
         public MainView()
         {
             InitializeComponent();
             mainwindow = (MainWindow)Application.Current.MainWindow;
+            BalloonMessage.Notification = this.tbi;
         }
 
         private void tbi_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
@@ -47,6 +48,13 @@ namespace ScreenShotterWPF.Views
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        // keep focus on list items after removing one
+        private void lstImages_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var item = (ListViewItem) lstImages.ItemContainerGenerator.ContainerFromItem(lstImages.SelectedItem);
+            item?.Focus();
         }
     }
 }

@@ -37,8 +37,6 @@ namespace ScreenShotterWPF
         private int totalUploading = 0;
         private bool refreshing = false;
 
-        private readonly Uploader uploader;
-
         //readonly Action<XImage, string> addXImageToList;
 
         // For selecting window to capture
@@ -54,7 +52,7 @@ namespace ScreenShotterWPF
 
         private bool gifCapturing;
 
-        private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
+        //private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
         private const string defaultDateTimePattern = @"dd-MM-yy_HH-mm-ss";
 
         private readonly SynchronizationContext uiContext;
@@ -66,7 +64,7 @@ namespace ScreenShotterWPF
         public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
         public InteractionRequest<IConfirmation> GifProgressRequest { get; private set; }
 
-        readonly System.Timers.Timer timer = new System.Timers.Timer();
+        private readonly System.Timers.Timer timer = new System.Timers.Timer();
 
         private ConnectionInfo ftpConnectionInfo;
 
@@ -76,7 +74,8 @@ namespace ScreenShotterWPF
             uiContext = SynchronizationContext.Current;
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
-            uploader = new Uploader(ProgressAndIconChange);
+            //uploader = new Uploader(ProgressAndIconChange);
+            Uploader.ProgressBarUpdate = ProgressAndIconChange;
             CreateSFTPConnectionInfo();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
@@ -159,16 +158,24 @@ namespace ScreenShotterWPF
                 for (int i = 1; i < args.Count; i++)
                 {
                     string extension = Path.GetExtension(args[i]);
-                    if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
+
+                    XImage img = new XImage();
+                    img.filename = Path.GetFileName(args[i]);
+                    img.filepath = args[i];
+                    string p = "dd.MM.yy HH:mm:ss";
+                    img.datetime = DateTime.Now;
+                    string d = DateTime.Now.ToString(p);
+                    img.date = d;
+                    img.anonupload = settings.anonUpload;
+                    //if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
+                    if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
-                        XImage img = new XImage();
-                        img.filename = Path.GetFileName(args[i]);
-                        img.filepath = args[i];
-                        string p = "dd.MM.yy HH:mm:ss";
-                        img.datetime = DateTime.Now;
-                        string d = DateTime.Now.ToString(p);
-                        img.date = d;
-                        img.anonupload = settings.anonUpload;
+                        img.uploadsite = settings.upload_site;
+                        AddToQueue(img);
+                    }
+                    else if (settings.fileUploadEnabled)
+                    {
+                        img.uploadsite = 2;
                         AddToQueue(img);
                     }
                 }
@@ -224,7 +231,7 @@ namespace ScreenShotterWPF
             return true;
         }
 
-        private dynamic StringToJson(string s)
+        private static dynamic StringToJson(string s)
         {
             var serializer = new JavaScriptSerializer();
             return serializer.Deserialize<dynamic>(s);
@@ -241,19 +248,11 @@ namespace ScreenShotterWPF
                     {
                         try
                         {
-                            if (TokenNeedsRefresh() && currentUpload.anonupload == false)
+                            var filesize = currentUpload.image?.Length ?? new FileInfo(currentUpload.filepath).Length;
+                            //if (currentUpload.image == null)
+                            if (filesize == 0)
                             {
-                                SetStatusBarText("Refreshing Imgur login..");
-                                ChangeTrayIcon("R");
-                                await Uploader.RefreshToken();
-                            }
-                            if (currentUpload.image == null)
-                            {
-                                ReadImageBytes(currentUpload);
-                            }
-                            if (currentUpload.image == null)
-                            {
-                                Console.WriteLine(@"Tried to upload an empty image");
+                                Console.WriteLine(@"Tried to upload an empty file");
                                 continue;
                             }
                             uploading++;
@@ -261,16 +260,23 @@ namespace ScreenShotterWPF
                             Tuple<bool, string, string> result;
                             string response;
                             dynamic json;
-                            switch (settings.upload_site)
+                            switch (currentUpload.uploadsite)
                             {
                                 case 0:
                                 default:
-                                    if (((currentUpload.image.Length / 1024f) / 1024f) > 10)
+                                    if (((filesize / 1024f) / 1024f) > 10)
                                     {
                                         totalUploading--;
                                         currentUpload.image = null;
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
+                                    }
+                                    // refresh imgur token if using accound
+                                    if (TokenNeedsRefresh() && currentUpload.anonupload == false)
+                                    {
+                                        SetStatusBarText("Refreshing Imgur login..");
+                                        ChangeTrayIcon("R");
+                                        await Uploader.RefreshToken();
                                     }
                                     response = await Uploader.HttpImgurUpload(currentUpload);
                                     json = StringToJson(response);
@@ -286,7 +292,7 @@ namespace ScreenShotterWPF
                                             MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
                                         continue;
                                     }
-                                    if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
+                                    if (((filesize / 1024f) / 1024f) > 20)
                                     {
                                         totalUploading--;
                                         currentUpload.image = null;
@@ -301,7 +307,13 @@ namespace ScreenShotterWPF
                                     result = new Tuple<bool, string, string>(true, link, thumbnail);
                                     break;
                                 case 2:
-                                    if (((currentUpload.image.Length / 1024f) / 1024f) > 20)
+                                    if (settings.puush_key == string.Empty)
+                                    {
+                                        MessageBox.Show("Puush api key required!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                        continue;
+                                    }
+                                    if (((filesize / 1024f) / 1024f) > 20)
                                     {
                                         totalUploading--;
                                         currentUpload.image = null;
@@ -309,11 +321,12 @@ namespace ScreenShotterWPF
                                         continue;
                                     }
                                     response = await Uploader.HttpPuushUpload(currentUpload);
-                                    if (response == "-1")
+                                    if (response.StartsWith("-"))
                                     {
                                         result = new Tuple<bool, string, string>(false, "", "");
                                         break;
                                     }
+                                    //Console.WriteLine(response);
                                     string[] split = response.Split(',');
                                     string t = $"http://puush.me/{split[2]}";
                                     
@@ -357,19 +370,20 @@ namespace ScreenShotterWPF
                         catch (Exception e)
                         {
                             ChangeTrayIcon("E");
-                            /*MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);*/
-                            TaskDialog dialog = new TaskDialog();
+                            MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+
+                            /*TaskDialog dialog = new TaskDialog();
                             dialog.Caption = "LXtory Error";
                             dialog.InstructionText = "LXtory Error";
                             dialog.Text = e.Message;
-                            dialog.Icon = TaskDialogStandardIcon.Warning;
+                            dialog.Icon = TaskDialogStandardIcon.Error;
                             dialog.Cancelable = false;
                             dialog.DetailsExpanded = false;
                             dialog.DetailsCollapsedLabel = "Show Stack Trace";
                             dialog.DetailsExpandedLabel = "Hide Stack Trace";
                             dialog.DetailsExpandedText = e.StackTrace;
-                            dialog.Show();
+                            dialog.Show();*/
                         }
                     }
                 }
@@ -379,28 +393,6 @@ namespace ScreenShotterWPF
                 }
             }
             Console.WriteLine(@"STOPPED :O");
-        }
-
-        private void ReadImageBytes(XImage currentUpload)
-        {
-            if (currentUpload.filepath != string.Empty)
-            {
-                try
-                {
-                    using (FileStream fileData = File.Open(currentUpload.filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            fileData.CopyTo(ms);
-                            currentUpload.image = new byte[ms.Length];
-                            currentUpload.image = ms.ToArray();
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
         }
 
         // Set some default settings values
@@ -603,21 +595,14 @@ namespace ScreenShotterWPF
             }
         }
 
-        // Capture whole screen area
+        // Capture whole (virtual)screen area
         public void CapFullscreen()
         {
-            /*if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
-            {
-                Console.WriteLine("D3DFullscreen Detected!");
-                D3DCapPrimaryScreen();
-                return;
-            }*/
-            
             var top = SystemParameters.VirtualScreenTop;
             var left = SystemParameters.VirtualScreenLeft;
             var w = SystemParameters.VirtualScreenWidth;
             var h = SystemParameters.VirtualScreenHeight;
-            ScreenCap((int)w, (int)h, (int)left, (int)top, "fullscreen");
+            ImageManager(EncodeImage(ScreenCap((int)w, (int)h, (int)left, (int)top)), "fullscreen");
         }
 
         // Capture current selected window
@@ -625,7 +610,7 @@ namespace ScreenShotterWPF
         {
             if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
-                Console.WriteLine("D3DFullscreen Detected!");
+                //Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
                 return;
             }
@@ -637,14 +622,15 @@ namespace ScreenShotterWPF
             int width = rect.Right - rect.Left;
             int height = rect.Bottom - rect.Top;
 
-            ScreenCap(width, height, rect.Left, rect.Top, GetActiveWindowTitle());
+            var title = GetActiveWindowTitle();
+            ImageManager(EncodeImage(ScreenCap(width, height, rect.Left, rect.Top)), title);
         }
 
         public void CapWindowFromPoint(int x, int y)
         {
             if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
-                Console.WriteLine("D3DFullscreen Detected!");
+                //Console.WriteLine("D3DFullscreen Detected!");
                 D3DCapPrimaryScreen();
                 return;
             }
@@ -664,19 +650,12 @@ namespace ScreenShotterWPF
                 title = buff.ToString();
             }
 
-            ScreenCap(width, height, rect.Left, rect.Top, title);
+            ImageManager(EncodeImage(ScreenCap(width, height, rect.Left, rect.Top)), title);
         }
 
         // Create an overlay, draw a rectangle on the overlay to cap that area
         public void CapArea()
         {
-            /*if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
-            {
-                Console.WriteLine("D3DFullscreen Detected!");
-                D3DCapPrimaryScreen();
-                return;
-            }*/
-
             if (!overlay_created)
             {
                 overlay_created = true;
@@ -693,7 +672,15 @@ namespace ScreenShotterWPF
                         {
                             // get dpi multiplier
                             Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
-                            ScreenCap(Convert.ToInt32(notification.Rect.Width * m.M22), Convert.ToInt32(notification.Rect.Height * m.M11), Convert.ToInt32(notification.Rect.X * m.M11), Convert.ToInt32(notification.Rect.Y * m.M22), "areacapture");
+                            
+                            ImageManager(
+                                EncodeImage(
+                                    ScreenCap(Convert.ToInt32(notification.Rect.Width * m.M22), 
+                                    Convert.ToInt32(notification.Rect.Height * m.M11),
+                                    Convert.ToInt32(notification.Rect.X * m.M11), 
+                                    Convert.ToInt32(notification.Rect.Y * m.M22))
+                                    ), 
+                                "areacapture");
                         }
                         overlay_created = false;
                     });
@@ -759,7 +746,7 @@ namespace ScreenShotterWPF
                                 img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
                                 img.date = date;
-
+                                img.uploadsite = settings.upload_site;
                                 if (settings.gifUpload)
                                 {
                                     img.anonupload = settings.anonUpload;
@@ -779,28 +766,29 @@ namespace ScreenShotterWPF
         }
 
         // Capture an area of the screen, save as PNG
-        private void ScreenCap(int width, int height, int rX, int rY, string filename)
+        private static Image ScreenCap(int width, int height, int rX, int rY)
         {
-            if (width > 0 && height > 0)
+            // minimum size 1 pixel
+            if (width < 1)
             {
-                using (Bitmap bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
-                {
-                    using (var gfx = Graphics.FromImage(bmp))
-                    {
-                        gfx.CopyFromScreen(rX,
-                                           rY,
-                                           0,
-                                           0,
-                                           new System.Drawing.Size(width, height),
-                                           CopyPixelOperation.SourceCopy);
-                    }
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        bmp.Save(ms, ImageFormat.Png);
-                        ImageManager(ms.ToArray(), filename);
-                    }
-                }
+                width = 1;
             }
+            if (height < 1)
+            {
+                height = 1;
+            }
+
+            Image image = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+            using (var gfx = Graphics.FromImage(image))
+            {
+                gfx.CopyFromScreen(rX,
+                    rY,
+                    0,
+                    0,
+                    new System.Drawing.Size(width, height),
+                    CopyPixelOperation.SourceCopy);
+            }
+            return image;
         }
 
         // Get active window title to be used in filenames
@@ -813,8 +801,18 @@ namespace ScreenShotterWPF
             return NativeMethods.GetWindowText(handle, buff, nChars) > 0 ? buff.ToString() : "null";
         }
 
+        // convert image into png encoded byte array
+        private static byte[] EncodeImage(Image image)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                image.Save(ms, ImageFormat.Png);
+                return ms.ToArray();
+            }
+        }
+
         // Strip illegal characters from filename
-        private string MakeValidFileName(string name)
+        private static string MakeValidFileName(string name)
         {
             var builder = new StringBuilder();
             var invalid = Path.GetInvalidFileNameChars();
@@ -858,6 +856,7 @@ namespace ScreenShotterWPF
 
             try
             {
+                //bmp.Save(target,);
                 File.WriteAllBytes(target, bmp);
             }
             catch (Exception e)
@@ -881,7 +880,8 @@ namespace ScreenShotterWPF
                 image = image,
                 filename = $"{f}.png",
                 url = "",
-                filepath = ""
+                filepath = "",
+                uploadsite = settings.upload_site
             };
             const string p = "dd.MM.yy HH:mm:ss";
             x.datetime = DateTime.Now;
