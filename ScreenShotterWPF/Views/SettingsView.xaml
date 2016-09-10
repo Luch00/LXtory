@@ -10,6 +10,113 @@
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <ControlTemplate x:Key="NoneTemplate">
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">No upload site selected.</TextBlock>
+        </ControlTemplate>
+        <ControlTemplate x:Key="ImgurTemplate">
+            <GroupBox Header="Imgur" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+                <StackPanel>
+                    <RadioButton x:Name="radioAnon" Content="Use anonymous upload" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload" IsChecked="{Binding AnonOn, Mode=TwoWay}"/>
+                    <RadioButton x:Name="radioAccount" Content="Upload to Imgur account" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload" IsChecked="{Binding AnonOff, Mode=TwoWay}"/>
+                    <Button x:Name="btnLogin" Content="{Binding LoginButtonText}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Command="{Binding LoginCommand}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Logged in as:" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                        <Label x:Name="labelUsername" Content="{Binding Username}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+        </ControlTemplate>
+        <ControlTemplate x:Key="GyazoTemplate">
+            <GroupBox Header="Gyazo" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+                <StackPanel>
+                    <Label Content="Authentication"/>
+                    <Button x:Name="btnLoginGyazo" Content="{Binding LoginButtonTextGyazo}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Command="{Binding LoginCommandGyazo}"/>
+                </StackPanel>
+            </GroupBox>
+        </ControlTemplate>
+        <ControlTemplate x:Key="PuushTemplate">
+            <GroupBox Header="Puush" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+                <StackPanel>
+                    <Label Content="Puush API key" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Stretch" Height="23" Margin="4" VerticalAlignment="Top" AcceptsReturn="False" TextWrapping="NoWrap" MaxLines="1" Text="{Binding PuushApiKey}"/>
+                </StackPanel>
+            </GroupBox>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SFTPTemplate">
+            <StackPanel>
+                <GroupBox Header="Server" Margin="6,6,6,0">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel>
+                            <Label>Protocol</Label>
+                            <ComboBox Margin="4" ItemsSource="{Binding FTPProtocols}" SelectedValue="{Binding FTPProtocol}" SelectedValuePath="Key" DisplayMemberPath="Value" Width="60"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <Label>Host</Label>
+                            <TextBox Width="147" Margin="4" Text="{Binding FTPHost}"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <Label Height="26"></Label>
+                            <TextBlock Margin="2,4,4,2">:</TextBlock>
+                        </StackPanel>
+                        <StackPanel>
+                            <Label>Port</Label>
+                            <TextBox Width="50" Margin="4" Text="{Binding FTPPort}" MaxLength="5" PreviewTextInput="TextBox_PreviewTextInput" DataObject.Pasting="DataObject_OnPasting"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <Label Height="26"></Label>
+                            <TextBlock Margin="2,4,4,2">/</TextBlock>
+                        </StackPanel>
+                        <StackPanel>
+                            <Label>Path</Label>
+                            <TextBox Margin="4" Text="{Binding FTPPath}" HorizontalAlignment="Stretch" Width="125"/>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Authentication" Margin="6,3,6,6">
+                    <StackPanel>
+                        <StackPanel>
+                            <Label>Method</Label>
+                            <ComboBox Margin="4" ItemsSource="{Binding FTPMethods}" SelectedValue="{Binding FTPMethod}" SelectedValuePath="Key" DisplayMemberPath="Value"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel>
+                                <Label>Username</Label>
+                                <TextBox Width="150" Margin="4" Text="{Binding FTPUsername}"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <Label>Password</Label>
+                                <PasswordBox Name="PasswordBox" Width="150" Margin="4" HorizontalAlignment="Left" ToolTip="Note: Passwords are stored plain-text in the settings file" Loaded="PasswordBox_Loaded">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="PasswordChanged">
+                                            <i:InvokeCommandAction Command="{Binding PasswordChangedCommand}" CommandParameter="{Binding ElementName=PasswordBox}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </PasswordBox>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel>
+                                <Label>Publickey</Label>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Width="150" Margin="4" HorizontalAlignment="Left" Text="{Binding FTPKeyfile}"/>
+                                    <Button Width="30" Margin="4" Command="{Binding BrowseKeyCommand}">...</Button>
+                                </StackPanel>
+                                <Label>Passphrase</Label>
+                                <PasswordBox Name="PassphraseBox" Width="150" Margin="4" HorizontalAlignment="Left" ToolTip="Note: Passwords are stored plain-text in the settings file" Loaded="PassphraseBox_Loaded">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="PasswordChanged">
+                                            <i:InvokeCommandAction Command="{Binding PassphraseChangedCommand}" CommandParameter="{Binding ElementName=PassphraseBox}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </PasswordBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ControlTemplate>
+    </UserControl.Resources>
     <Grid>
         <TabControl Height="398" VerticalAlignment="Top">
             <TabItem Header="General">
@@ -52,7 +159,7 @@
                         </StackPanel>
                     </GroupBox>
                     <StackPanel Grid.Column="1">
-                        <GroupBox x:Name="groupBox1" Header="Gif" Margin="2,6,6,3" VerticalAlignment="Top" HorizontalAlignment="Left" Padding="0,0,58,0">
+                        <GroupBox x:Name="groupBox1" Header="Gif" Margin="2,6,6,3" Padding="0,0,58,0">
                             <StackPanel>
                                 <CheckBox x:Name="checkGifUpload" Content="Auto-Upload Gifs" Margin="4" IsChecked="{Binding GifUpload}"/>
                                 <CheckBox x:Name="checkGifEditor" Content="Use Gif Editor" Margin="4" IsChecked="{Binding GifEditor}"/>
@@ -181,7 +288,7 @@
                     </StackPanel>
                 </GroupBox>
             </TabItem>
-            <TabItem Header="Uploading">
+            <!--<TabItem Header="Uploading">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -203,7 +310,7 @@
                         <Label x:Name="lblStatus" Content="" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="177"/>
                         <ProgressBar x:Name="authProgress" HorizontalAlignment="Left" Height="18" Margin="4" VerticalAlignment="Top" Width="177" Visibility="{Binding AuthProgressVisibility}" IsIndeterminate="True"/>
                     </StackPanel>
-                    
+
                     <StackPanel Grid.Column="1">
                         <GroupBox Header="Gyazo" HorizontalAlignment="Left" Margin="2,6,6,2" VerticalAlignment="Top" Height="88" Width="231">
                             <StackPanel>
@@ -220,8 +327,8 @@
                         </GroupBox>
                     </StackPanel>
                 </Grid>
-            </TabItem>
-            <TabItem Header="S/FTP" Loaded="TabItem_Loaded">
+            </TabItem>-->
+            <!--<TabItem Header="S/FTP" Loaded="TabItem_Loaded">
                 <StackPanel>
                     <GroupBox Header="Server" Margin="6,6,6,3">
                         <StackPanel Orientation="Horizontal">
@@ -292,6 +399,65 @@
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>
+            </TabItem>-->
+            <TabItem Header="Image Upload">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="ImageUploadSelector" Grid.Row="0" ItemsSource="{Binding ImageUploadSites}" DisplayMemberPath="Key" SelectedValue="{Binding UploadValue}" SelectedValuePath="Value">
+                        <!--<ComboBoxItem Content="Imgur"/>
+                        <ComboBoxItem Content="Gyazo"/>
+                        <ComboBoxItem Content="Puush"/>
+                        <ComboBoxItem Content="S/FTP"/>-->
+                    </ComboBox>
+                    <ContentControl Grid.Row="1">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Setter Property="Template" Value="{StaticResource ImgurTemplate}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ElementName=ImageUploadSelector, Path=SelectedIndex}" Value="1">
+                                        <Setter Property="Template" Value="{StaticResource GyazoTemplate}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=ImageUploadSelector, Path=SelectedIndex}" Value="2">
+                                        <Setter Property="Template" Value="{StaticResource PuushTemplate}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=ImageUploadSelector, Path=SelectedIndex}" Value="3">
+                                        <Setter Property="Template" Value="{StaticResource SFTPTemplate}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                </Grid>
+            </TabItem>
+            <TabItem Header="File Upload">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ComboBox Name="FileUploadSelector" Grid.Row="0" ItemsSource="{Binding FileUploadSites}" DisplayMemberPath="Key" SelectedValue="{Binding FileuploadValue}" SelectedValuePath="Value">
+                        <!--<ComboBoxItem Content="Puush"/>
+                        <ComboBoxItem Content="S/FTP"/>-->
+                    </ComboBox>
+                    <ContentControl Grid.Row="1">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Setter Property="Template" Value="{StaticResource NoneTemplate}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ElementName=FileUploadSelector, Path=SelectedIndex}" Value="1">
+                                        <Setter Property="Template" Value="{StaticResource PuushTemplate}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=FileUploadSelector, Path=SelectedIndex}" Value="2">
+                                        <Setter Property="Template" Value="{StaticResource SFTPTemplate}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                </Grid>
             </TabItem>
         </TabControl>
         <DockPanel Height="420">

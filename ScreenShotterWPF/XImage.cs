@@ -26,7 +26,7 @@ namespace ScreenShotterWPF
         [XmlIgnore]
         public bool anonupload { get; set; }
         [XmlIgnore]
-        public int uploadsite { get; set; }
+        public UploadSite uploadsite { get; set; }
         public string url
         {
             get { return this._url; }

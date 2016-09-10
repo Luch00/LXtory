@@ -170,12 +170,12 @@ namespace ScreenShotterWPF
                     //if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
                     if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
-                        img.uploadsite = settings.upload_site;
+                        img.uploadsite = (UploadSite)settings.upload_site;
                         AddToQueue(img);
                     }
-                    else if (settings.fileUploadEnabled)
+                    else if ((UploadSite)settings.fileUploadSite != UploadSite.None)
                     {
-                        img.uploadsite = 2;
+                        img.uploadsite = (UploadSite)settings.fileUploadSite;
                         AddToQueue(img);
                     }
                 }
@@ -262,7 +262,7 @@ namespace ScreenShotterWPF
                             dynamic json;
                             switch (currentUpload.uploadsite)
                             {
-                                case 0:
+                                case UploadSite.Imgur:
                                 default:
                                     if (((filesize / 1024f) / 1024f) > 10)
                                     {
@@ -284,7 +284,7 @@ namespace ScreenShotterWPF
 
                                     result =  new Tuple<bool, string, string>(true, json["data"]["link"], thumb);
                                     break;
-                                case 1:
+                                case UploadSite.Gyazo:
                                     if (settings.gyazoToken == string.Empty)
                                     {
                                         // login first
@@ -306,7 +306,7 @@ namespace ScreenShotterWPF
                                     
                                     result = new Tuple<bool, string, string>(true, link, thumbnail);
                                     break;
-                                case 2:
+                                case UploadSite.Puush:
                                     if (settings.puush_key == string.Empty)
                                     {
                                         MessageBox.Show("Puush api key required!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
@@ -332,7 +332,7 @@ namespace ScreenShotterWPF
                                     
                                     result =  new Tuple<bool, string, string>(true, split[1], t);
                                     break;
-                                case 3:
+                                case UploadSite.SFTP:
                                     if (settings.ftpProtocol == 0)
                                     {
                                         response = await Uploader.FTPUpload(currentUpload);
@@ -746,7 +746,7 @@ namespace ScreenShotterWPF
                                 img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
                                 img.date = date;
-                                img.uploadsite = settings.upload_site;
+                                img.uploadsite = (UploadSite)settings.upload_site;
                                 if (settings.gifUpload)
                                 {
                                     img.anonupload = settings.anonUpload;
@@ -881,7 +881,7 @@ namespace ScreenShotterWPF
                 filename = $"{f}.png",
                 url = "",
                 filepath = "",
-                uploadsite = settings.upload_site
+                uploadsite = (UploadSite)settings.upload_site
             };
             const string p = "dd.MM.yy HH:mm:ss";
             x.datetime = DateTime.Now;

@@ -96,7 +96,8 @@ namespace ScreenShotterWPF.ViewModels
         private bool loginEnabled;
         private bool loginEnabledGyazo;
         private bool anonUpload;
-        private int uploadValue;
+        private UploadSite uploadValue;
+        private UploadSite fileuploadValue;
         private string dateTimeString;
         private bool disableWebThumbs;
 
@@ -284,6 +285,33 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return disableWebThumbs; }
             set { SetProperty(ref disableWebThumbs, value); }
+        }
+
+        public static Dictionary<string, UploadSite> ImageUploadSites
+        {
+            get
+            {
+                return new Dictionary<string, UploadSite>
+                {
+                    ["Imgur"] = UploadSite.Imgur,
+                    ["Gyazo"] = UploadSite.Gyazo,
+                    ["Puush"] = UploadSite.Puush,
+                    ["S/FTP"] = UploadSite.SFTP
+                };
+            }
+        }
+
+        public static Dictionary<string, UploadSite> FileUploadSites
+        {
+            get
+            {
+                return new Dictionary<string, UploadSite>
+                {
+                    ["None"] = UploadSite.None,
+                    ["Puush"] = UploadSite.Puush,
+                    ["S/FTP"] = UploadSite.SFTP
+                };
+            }
         }
 
         public static Dictionary<int, string> FTPMethods
@@ -648,17 +676,16 @@ namespace ScreenShotterWPF.ViewModels
             private set { SetProperty(ref statusLabelText, value); }
         }
 
-        public int UploadValue
+        public UploadSite UploadValue
         {
             get { return uploadValue; }
-            set
-            {
-                uploadValue = value;
-                OnPropertyChanged("Value1");
-                OnPropertyChanged("Value2");
-                OnPropertyChanged("Value3");
-                OnPropertyChanged("Value4");
-            }
+            set { SetProperty(ref uploadValue, value); }
+        }
+
+        public UploadSite FileuploadValue
+        {
+            get { return fileuploadValue; }
+            set { SetProperty(ref fileuploadValue, value); }
         }
 
         public bool AnonUpload
@@ -672,13 +699,13 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        public bool Value1
+        /*public bool Value1
         {
             get { return UploadValue.Equals(0); }
             set { UploadValue = 0; }
-        }
+        }*/
 
-        public bool Value2
+        /*public bool Value2
         {
             get { return UploadValue.Equals(1); }
             set { UploadValue = 1; }
@@ -694,7 +721,7 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return UploadValue.Equals(3); }
             set { UploadValue = 3; }
-        }
+        }*/
 
         public bool AnonOn
         {
@@ -770,7 +797,8 @@ namespace ScreenShotterWPF.ViewModels
             }
 
             AnonUpload = settings.anonUpload;
-            UploadValue = settings.upload_site;
+            UploadValue = (UploadSite)settings.upload_site;
+            FileuploadValue = (UploadSite)settings.fileUploadSite;
 
             PuushApiKey = settings.puush_key;
             SetHotkeys();
@@ -898,7 +926,7 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Confirm()
         {
-            if (UploadValue == 2 && PuushApiKey.Length < 1)
+            if (UploadValue == UploadSite.Puush && PuushApiKey.Length < 1)
             {
                 StatusLabelText = "Enter Puush API Key";
                 return;
@@ -924,7 +952,8 @@ namespace ScreenShotterWPF.ViewModels
                 settings.hkD3DCap = new HotKey(d3dCtrl, d3dAlt, d3dShift, d3dKey);
             }
 
-            settings.upload_site = UploadValue;
+            settings.upload_site = (int)UploadValue;
+            settings.fileUploadSite = (int)FileuploadValue;
 
             SetStartUp(RunAtStart);
 

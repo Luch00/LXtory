@@ -149,7 +149,10 @@
     <Setting Name="ftpProtocol" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="fileUploadEnabled" Provider="PortableSettingsProvider" Type="System.Boolean" Scope="User">
+    <Setting Name="fileUploadSite" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">99</Value>
+    </Setting>
+    <Setting Name="fileUploadEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

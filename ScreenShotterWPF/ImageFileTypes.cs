@@ -12,4 +12,13 @@ namespace ScreenShotterWPF
         }
 
     }
+
+    public enum UploadSite
+    {
+        Imgur = 0,
+        Gyazo = 1,
+        Puush = 2,
+        SFTP = 3,
+        None = 99
+    }
 }

@@ -17,13 +17,6 @@ namespace ScreenShotterWPF.Views
             InitializeComponent();
         }
 
-        private void GetPasswords()
-        {
-            var vm = (SettingsViewModel) this.DataContext;
-            this.PasswordBox.Password = vm.FTPPassword;
-            this.PassphraseBox.Password = vm.FTPPassphrase;
-        }
-
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
@@ -59,9 +52,18 @@ namespace ScreenShotterWPF.Views
             return regex.IsMatch(text);
         }
 
-        private void TabItem_Loaded(object sender, RoutedEventArgs e)
+        private void PasswordBox_Loaded(object sender, RoutedEventArgs e)
         {
-            GetPasswords();
+            var vm = (SettingsViewModel) this.DataContext;
+            var passwordBox = sender as PasswordBox;
+            if (passwordBox != null) passwordBox.Password = vm.FTPPassword;
+        }
+
+        private void PassphraseBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            var vm = (SettingsViewModel) this.DataContext;
+            var passwordBox = sender as PasswordBox;
+            if (passwordBox != null) passwordBox.Password = vm.FTPPassphrase;
         }
     }
 }
