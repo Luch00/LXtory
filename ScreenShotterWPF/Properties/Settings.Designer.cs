@@ -668,6 +668,7 @@ namespace ScreenShotterWPF.Properties {
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool fileUploadEnabled {
@@ -676,6 +677,32 @@ namespace ScreenShotterWPF.Properties {
             }
             set {
                 this["fileUploadEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string dropboxToken {
+            get {
+                return ((string)(this["dropboxToken"]));
+            }
+            set {
+                this["dropboxToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("/Public/")]
+        public string dropboxPath {
+            get {
+                return ((string)(this["dropboxPath"]));
+            }
+            set {
+                this["dropboxPath"] = value;
             }
         }
     }

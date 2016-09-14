@@ -13,8 +13,8 @@ using System.Net.Sockets;
 using Microsoft.Win32;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Windows.Controls;
+using Hardcodet.Wpf.TaskbarNotification;
 using Prism.Commands;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -27,13 +27,12 @@ namespace ScreenShotterWPF.ViewModels
 
         public Action FinishInteraction { get; set; }
 
-        private const string CloseWindowResponse = "<!DOCTYPE html><html><head></head><body style=\"background-color: #121211; font-family: Arial,sans-serif;    color: rgb(221, 221, 209);\"><h1>Authorization Successfull</h1><p>You can now close this window</p></body></html>";
+        private const string CloseWindowResponse = "<!DOCTYPE html><html><head></head><body style=\"background-color: #121211; font-family: Arial,sans-serif;    color: rgb(221, 221, 209);\"><h1>Authorization Successful</h1><p>You can now close this window</p></body></html>";
 
         public ICommand ConfirmCommand { get; private set; }
         public ICommand CancelCommand { get; private set; }
         public ICommand BrowseCommand { get; private set; }
         public ICommand LoginCommand { get; private set; }
-        public ICommand LoginCommandGyazo { get; private set; }
 
         public ICommand BrowseKeyCommand { get; private set; }
         public ICommand PasswordChangedCommand { get; private set; }
@@ -89,17 +88,13 @@ namespace ScreenShotterWPF.ViewModels
         private string username;
         private string loginButtonText;
         private string loginButtonTextGyazo;
-        private string registerButtonText;
-        private bool registerEnabled;
         private string statusLabelText;
-        private Visibility authProgressVisibility;
-        private bool loginEnabled;
-        private bool loginEnabledGyazo;
         private bool anonUpload;
         private UploadSite uploadValue;
         private UploadSite fileuploadValue;
         private string dateTimeString;
         private bool disableWebThumbs;
+        private string dropboxPath;
 
         private string ftpHost;
         private int ftpPort;
@@ -113,6 +108,7 @@ namespace ScreenShotterWPF.ViewModels
 
         private static bool contextMenuEnabled;
         private static bool fileUploadEnabled;
+        private string loginButtonTextDropbox;
 
         public INotification Notification
         {
@@ -140,12 +136,12 @@ namespace ScreenShotterWPF.ViewModels
             this.ConfirmCommand = new DelegateCommand(Confirm);
             this.CancelCommand = new DelegateCommand(Cancel);
             this.BrowseCommand = new DelegateCommand(Browse);
-            this.LoginCommand = new DelegateCommand(Login);
-            this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
+            //this.LoginCommand = new DelegateCommand(Login);
+            //this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
+            this.LoginCommand = new DelegateCommand<UploadSite?>(Login);
             this.BrowseKeyCommand = new DelegateCommand(BrowseKey);
             this.PasswordChangedCommand = new DelegateCommand<PasswordBox>(PasswordChanged);
             this.PassphraseChangedCommand = new DelegateCommand<PasswordBox>(PassphraseChanged);
-            AuthProgressVisibility = Visibility.Hidden;
         }
 
         private void PasswordChanged(PasswordBox obj)
@@ -287,6 +283,12 @@ namespace ScreenShotterWPF.ViewModels
             set { SetProperty(ref disableWebThumbs, value); }
         }
 
+        public string DropboxPath
+        {
+            get { return dropboxPath; }
+            set { SetProperty(ref dropboxPath, value); }
+        }
+
         public static Dictionary<string, UploadSite> ImageUploadSites
         {
             get
@@ -296,6 +298,7 @@ namespace ScreenShotterWPF.ViewModels
                     ["Imgur"] = UploadSite.Imgur,
                     ["Gyazo"] = UploadSite.Gyazo,
                     ["Puush"] = UploadSite.Puush,
+                    ["Dropbox"] = UploadSite.Dropbox,
                     ["S/FTP"] = UploadSite.SFTP
                 };
             }
@@ -309,6 +312,7 @@ namespace ScreenShotterWPF.ViewModels
                 {
                     ["None"] = UploadSite.None,
                     ["Puush"] = UploadSite.Puush,
+                    ["Dropbox"] = UploadSite.Dropbox,
                     ["S/FTP"] = UploadSite.SFTP
                 };
             }
@@ -661,14 +665,9 @@ namespace ScreenShotterWPF.ViewModels
             get { return loginButtonTextGyazo; }
             private set { SetProperty(ref loginButtonTextGyazo, value); }
         }
-        public string RegisterButtonText {
-            get { return registerButtonText; }
-            private set { SetProperty(ref registerButtonText, value); }
-        }
-        public bool RegisterEnabled {
-            get { return registerEnabled; }
-            private set { SetProperty(ref registerEnabled, value); }
-        }
+        public string LoginButtonTextDropbox {
+            get { return loginButtonTextDropbox; }
+            private set { SetProperty(ref loginButtonTextDropbox, value); } }
 
         public string StatusLabelText
         {
@@ -699,30 +698,6 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        /*public bool Value1
-        {
-            get { return UploadValue.Equals(0); }
-            set { UploadValue = 0; }
-        }*/
-
-        /*public bool Value2
-        {
-            get { return UploadValue.Equals(1); }
-            set { UploadValue = 1; }
-        }
-
-        public bool Value3
-        {
-            get { return UploadValue.Equals(2); }
-            set { UploadValue = 2; }
-        }
-
-        public bool Value4
-        {
-            get { return UploadValue.Equals(3); }
-            set { UploadValue = 3; }
-        }*/
-
         public bool AnonOn
         {
             get { return AnonUpload.Equals(true); }
@@ -733,23 +708,6 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return AnonUpload.Equals(false); }
             set { AnonUpload = false; }
-        }
-
-        public Visibility AuthProgressVisibility
-        {
-            get { return authProgressVisibility; }
-            private set { SetProperty(ref authProgressVisibility, value); }
-        }
-
-        public bool LoginEnabled
-        {
-            get { return loginEnabled; }
-            private set { SetProperty(ref loginEnabled, value); }
-        }
-        public bool LoginEnabledGyazo
-        {
-            get { return loginEnabledGyazo; }
-            private set { SetProperty(ref loginEnabledGyazo, value); }
         }
 
         #endregion
@@ -791,15 +749,10 @@ namespace ScreenShotterWPF.ViewModels
             ContextMenuEnabled = settings.shellExtActive;
             FileUploadEnabled = settings.fileUploadEnabled;
 
-            if(settings.anonUpload)
-            {
-
-            }
-
             AnonUpload = settings.anonUpload;
             UploadValue = (UploadSite)settings.upload_site;
             FileuploadValue = (UploadSite)settings.fileUploadSite;
-
+            DropboxPath = settings.dropboxPath;
             PuushApiKey = settings.puush_key;
             SetHotkeys();
             if (settings.username != "")
@@ -812,24 +765,8 @@ namespace ScreenShotterWPF.ViewModels
                 LoginButtonText = "Login";
                 Username = "(Not logged in)";
             }
-            if (settings.gyazoToken != "")
-            {
-                LoginButtonTextGyazo = "Logout";
-            }
-            else
-            {
-                LoginButtonTextGyazo = "Login";
-            }
-
-            if (settings.shellExtActive)
-            {
-                RegisterButtonText = "Unregister";
-            }
-            else
-            {
-                RegisterButtonText = "Register";
-            }
-            RegisterEnabled = true;
+            LoginButtonTextGyazo = settings.gyazoToken != "" ? "Logout" : "Login";
+            LoginButtonTextDropbox = settings.dropboxToken != "" ? "Logout" : "Login";
         }
 
         private void SetHotkeys()
@@ -926,9 +863,22 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Confirm()
         {
-            if (UploadValue == UploadSite.Puush && PuushApiKey.Length < 1)
+            if (UploadValue == UploadSite.Puush || FileuploadValue == UploadSite.Puush && PuushApiKey.Length < 1)
             {
                 StatusLabelText = "Enter Puush API Key";
+                BalloonMessage.ShowMessage("Enter Puush API Key", BalloonIcon.Warning);
+                return;
+            }
+            if (UploadValue == UploadSite.Gyazo && settings.gyazoToken == string.Empty)
+            {
+                StatusLabelText = "Gyazo login needed";
+                BalloonMessage.ShowMessage("Gyazo login needed", BalloonIcon.Warning);
+                return;
+            }
+            if (UploadValue == UploadSite.Imgur && anonUpload == false && settings.accessToken == string.Empty)
+            {
+                StatusLabelText = "Imgur login needed";
+                BalloonMessage.ShowMessage("Imgur login needed", BalloonIcon.Warning);
                 return;
             }
             if (fullscreenKey != 0)
@@ -989,15 +939,8 @@ namespace ScreenShotterWPF.ViewModels
             settings.ftpPassphrase = FTPPassphrase;
             settings.ftpMethod = FTPMethod;
             settings.ftpProtocol = FTPProtocol;
-
-            if (Directory.Exists(TextFilepath))
-            {
-                settings.filePath = TextFilepath;
-            }
-            else
-            {
-                settings.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            }
+            settings.dropboxPath = DropboxPath;
+            settings.filePath = Directory.Exists(TextFilepath) ? TextFilepath : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 
             if (ContextMenuEnabled != settings.shellExtActive || FileUploadEnabled != settings.fileUploadEnabled)
             {
@@ -1043,13 +986,73 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
+        private void Login(UploadSite? site)
+        {
+            switch (site)
+            {
+                case UploadSite.Imgur:
+                    ImgurLogin();
+                    break;
+                case UploadSite.Gyazo:
+                    GyazoLogin();
+                    break;
+                case UploadSite.Puush:
+                    break;
+                case UploadSite.SFTP:
+                    break;
+                case UploadSite.Dropbox:
+                    DropboxLogin();
+                    break;
+                case UploadSite.GoogleDrive:
+                    break;
+                case UploadSite.None:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private async void DropboxLogin()
+        {
+            if (settings.dropboxToken == string.Empty)
+            {
+                StatusLabelText = "Waiting for Authorization..";
+                try
+                {
+                    string authCode = await GetAuthCode("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F");
+                    if (authCode != string.Empty)
+                    {
+                        // finished
+                        await Uploader.GetDropboxToken(authCode);
+                        StatusLabelText = "Authorization complete";
+                        BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
+                        LoginButtonTextDropbox = "Logout";
+                    }
+                    else
+                    {
+                        StatusLabelText = "Authorization failed";
+                    }
+                }
+                catch (Exception)
+                {
+                    StatusLabelText = "Authorization failed";
+                    BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
+                    //throw;
+                }
+            }
+            else
+            {
+                settings.dropboxToken = "";
+                settings.Save();
+                LoginButtonTextDropbox = "Login";
+            }
+        }
+
         private async void GyazoLogin()
         {
             if (settings.gyazoToken == string.Empty)
             {
                 statusLabelText = StatusLabelText = "Waiting for Authorization..";
-                AuthProgressVisibility = Visibility.Visible;
-                LoginEnabledGyazo = false;
                 try
                 {
                     string authCode = await GetAuthCode("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public");
@@ -1058,23 +1061,20 @@ namespace ScreenShotterWPF.ViewModels
                         // get access token
                         await Uploader.GetGyazoToken(authCode);
                         StatusLabelText = "Authorization complete";
+                        BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonTextGyazo = "Logout";
-                        LoginEnabledGyazo = true;
-                        AuthProgressVisibility = Visibility.Hidden;
                     }
                     else
                     {
                         // auth failed
-                        AuthProgressVisibility = Visibility.Hidden;
-                        LoginEnabledGyazo = true;
                         StatusLabelText = "Authorization failed";
+                        BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
                     }
                 }
                 catch (Exception)
                 {
-                    AuthProgressVisibility = Visibility.Hidden;
-                    LoginEnabledGyazo = true;
                     StatusLabelText = "Authorization failed";
+                    BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
                 }
             }
             else
@@ -1085,13 +1085,11 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private async void Login()
+        private async void ImgurLogin()
         {
             if (settings.username == string.Empty && settings.accessToken == string.Empty)
             {
                 StatusLabelText = "Waiting for Authorization..";
-                AuthProgressVisibility = Visibility.Visible;
-                LoginEnabled = false;
                 try
                 {
                     string authCode = await GetAuthCode("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
@@ -1101,23 +1099,20 @@ namespace ScreenShotterWPF.ViewModels
                         await Uploader.GetToken(authCode);
                         Username = settings.username;
                         StatusLabelText = "Authorization complete";
+                        BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonText = "Logout";
-                        LoginEnabled = true;
-                        AuthProgressVisibility = Visibility.Hidden;
                     }
                     else
                     {
                         // auth failed
-                        AuthProgressVisibility = Visibility.Hidden;
-                        LoginEnabled = true;
                         StatusLabelText = "Authorization failed";
+                        BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
                     }
                 }
                 catch (Exception)
                 {
-                    AuthProgressVisibility = Visibility.Hidden;
-                    LoginEnabled = true;
                     StatusLabelText = "Authorization failed";
+                    BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
                 }
             }
             else
@@ -1137,16 +1132,29 @@ namespace ScreenShotterWPF.ViewModels
             string accesscode = string.Empty;
             TcpListener listener = new TcpListener(IPAddress.Loopback, 8080);
             listener.Start();
-            Byte[] bytes = new Byte[256];
+            Byte[] bytes = new Byte[512];
             bool receiving = true;
-            do
+            //bool found = false;
+            Process.Start(url);
+            while(receiving)
             {
                 Console.WriteLine(@"WAITING CONNECTION");
-                //Process.Start("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
-                Process.Start(url);
-                TcpClient client = await listener.AcceptTcpClientAsync();
+                var client = await listener.AcceptTcpClientAsync();
                 Console.WriteLine(@"CONNECTED");
                 NetworkStream stream = client.GetStream();
+                /*while (receiving)
+                {
+                    var read = await stream.ReadAsync(bytes, 0, bytes.Length);
+                    var data = Encoding.ASCII.GetString(bytes, 0, read);
+                    Console.WriteLine("RECEIVE: " + data);
+                    if (read == 0)
+                    {
+                        Console.WriteLine("END OF STREAM");
+                    }
+                    byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
+                    stream.Write(msg, 0, msg.Length);
+                    //string msg = stream.ReadAsync();
+                }*/
                 int i;
                 while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 && receiving)
                 {
@@ -1162,35 +1170,19 @@ namespace ScreenShotterWPF.ViewModels
                             byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
                             stream.Write(msg, 0, msg.Length);
                         }
+                        /*regex = new Regex(@"access_token=(.*?) ");
+                        result = regex.Match(data);
+                        if (result.Success)
+                        {
+                            accesscode = result.Groups[1].Value;
+                            byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
+                            stream.Write(msg, 0, msg.Length);
+                        }*/
                     }
-                    //Console.WriteLine("Received: {0}", data);
-                    //data = data.ToUpper();
-
-                    /*byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
-                        stream.Write(msg, 0, msg.Length);
-                        Console.WriteLine("Sent: {0}", data);*/
                 }
+                Console.WriteLine(@"CLOSING CLIENT");
                 client.Close();
-            } while (receiving);
-
-            /*System.Net.HttpListener listener = new System.Net.HttpListener();
-                listener.Prefixes.Add("http://localhost:80/");
-                listener.Start();
-                Process.Start("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
-                HttpListenerContext context = await listener.GetContextAsync();
-                HttpListenerRequest request = context.Request;
-
-                if (request.Url.AbsolutePath == "/LXtory_Auth/")
-                {
-                    accesscode = request.Url.Query.Substring(request.Url.Query.LastIndexOf('=') + 1);
-                }
-                HttpListenerResponse response = context.Response;
-                byte[] buffer = Encoding.UTF8.GetBytes(CloseWindowResponse);
-                response.ContentLength64 = buffer.Length;
-                Stream output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-                listener.Stop();*/
+            }
             listener.Stop();
             return accesscode;
         }
@@ -1259,21 +1251,5 @@ namespace ScreenShotterWPF.ViewModels
                 Registry.CurrentUser.DeleteSubKeyTree(key, false);
             }
         }
-
-        /*private void Register()
-        {
-            if (settings.shellExtActive)
-            {
-                RemoveContextMenuItems();
-                settings.shellExtActive = false;
-                RegisterButtonText = "Register";
-            }
-            else
-            {
-                AddContextMenuItems();
-                settings.shellExtActive = true;
-                RegisterButtonText = "Unregister";
-            }
-        }*/
     }
 }

@@ -11,9 +11,9 @@ namespace ScreenShotterWPF
     {
         public static TaskbarIcon Notification { private get; set; }
 
-        public static void ShowMessage(string s)
+        public static void ShowMessage(string s, BalloonIcon icon)
         {
-            Notification?.ShowBalloonTip("LXtory", s, BalloonIcon.Error);
+            Notification?.ShowBalloonTip("LXtory", s, icon);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace ScreenShotterWPF
     {
         private ObservableCollection<XImage> ximages = new ObservableCollection<XImage>();
 
-        private readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
+        private static readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
         private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
 
@@ -148,7 +148,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public bool ReadCommandLineArgs(IList<string> args)
+        public static bool ReadCommandLineArgs(IList<string> args)
         {
             if (args.Count == 0 || args == null)
                 return true;
@@ -207,12 +207,12 @@ namespace ScreenShotterWPF
             }
         }
 
-        private void AddToQueue(XImage x)
+        private static void AddToQueue(XImage x)
         {
             try
             {
                 queue.Add(x);
-                totalUploading++;
+                //totalUploading++;
             }
             catch (Exception e)
             {
@@ -331,6 +331,27 @@ namespace ScreenShotterWPF
                                     string t = $"http://puush.me/{split[2]}";
                                     
                                     result =  new Tuple<bool, string, string>(true, split[1], t);
+                                    break;
+                                case UploadSite.Dropbox:
+                                    if (settings.dropboxToken == string.Empty)
+                                    {
+                                        MessageBox.Show("Login to Dropbox first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                        continue;
+                                    }
+                                    if (((filesize / 1024f) / 1024f) > 150)
+                                    {
+                                        totalUploading--;
+                                        currentUpload.image = null;
+                                        SetStatusBarText("File too large. Skipping.");
+                                        continue;
+                                    }
+                                    response = await Uploader.HttpDropboxUpload(currentUpload);
+                                    json = StringToJson(response);
+                                    var path = json["path_display"];
+                                    response = await Uploader.GetDropboxSharedUrl(path);
+                                    Console.WriteLine(path);
+                                    result = new Tuple<bool, string, string>(true, response, "");
                                     break;
                                 case UploadSite.SFTP:
                                     if (settings.ftpProtocol == 0)

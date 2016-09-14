@@ -23,6 +23,7 @@
                         <Setter Property="ResizeMode" Value="NoResize"/>
                         <Setter Property="Width" Value="500"/>
                         <Setter Property="Height" Value="465"/>
+                        
                     </Style>
                 </prism:PopupWindowAction.WindowStyle>
                 <prism:PopupWindowAction.WindowContent>

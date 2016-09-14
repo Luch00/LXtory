@@ -19,6 +19,8 @@ namespace ScreenShotterWPF
         Gyazo = 1,
         Puush = 2,
         SFTP = 3,
+        Dropbox = 4,
+        GoogleDrive = 5,
         None = 99
     }
 }

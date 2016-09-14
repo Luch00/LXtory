@@ -27,7 +27,8 @@ namespace ScreenShotterWPF
 
         public bool SignalExternalCommandLineArgs(IList<string> args)
         {
-            return ((MainWindow)MainWindow).ReadCommandLineArgs(args);
+            //return ((MainWindow)MainWindow).ReadCommandLineArgs(args);
+            return MainLogic.ReadCommandLineArgs(args);
         }
     }
 }

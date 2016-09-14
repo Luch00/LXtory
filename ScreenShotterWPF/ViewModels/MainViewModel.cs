@@ -284,10 +284,10 @@ namespace ScreenShotterWPF.ViewModels
             Main.ReadXML();
         }
 
-        public bool PassCommandLineArgs(IList<string> args)
+        /*public bool PassCommandLineArgs(IList<string> args)
         {
             return Main.ReadCommandLineArgs(args);
-        }
+        }*/
 
         private void RegisterHotkeys()
         {

@@ -9,6 +9,9 @@ using System.Web.Script.Serialization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Handlers;
+using Hardcodet.Wpf.TaskbarNotification;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 
 namespace ScreenShotterWPF
@@ -16,12 +19,15 @@ namespace ScreenShotterWPF
     public static class Uploader
     {
         // For imgur
-        private const string ClientID = "83c1c8bf9f4d2b1";
-        private const string ClientSecret = "33dac3b1adfcefab926d83f1cb21412cf32ee36a";
+        private const string ClientID = "";
+        private const string ClientSecret = "";
         // For Gyazo
-        private const string GyazoClientID = "f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183";
-        private const string GyazoClientSecret = "e78f75312829d3e6c6816c35e07cd6a34efa908260d47bf4ad622531c26f6bee";
-        
+        private const string GyazoClientID = "";
+        private const string GyazoClientSecret = "";
+        // For Dropbox
+        private const string DropboxClientID = "";
+        private const string DropboxClientSecret = "";
+
         // Actions to main form
 
         public static Action<int> ProgressBarUpdate { private get; set; }
@@ -111,6 +117,61 @@ namespace ScreenShotterWPF
             }
         }
 
+        public static async Task GetDropboxToken(string code)
+        {
+            try
+            {
+                string s = string.Empty;
+                using (var w = new WebClient())
+                {
+                    w.Proxy = null;
+                    NameValueCollection v = new NameValueCollection();
+                    v.Add("client_id", DropboxClientID);
+                    v.Add("client_secret", DropboxClientSecret);
+                    v.Add("code", code);
+                    v.Add("grant_type", "authorization_code");
+                    v.Add("redirect_uri", "http://localhost:8080/LXtory_Auth/");
+                    var response = await w.UploadValuesTaskAsync("https://api.dropboxapi.com/oauth2/token", v);
+                    s = Encoding.UTF8.GetString(response, 0, response.Length);
+                }
+                var serializer = new JavaScriptSerializer();
+                var json = serializer.Deserialize<dynamic>(s);
+                Properties.Settings.Default.dropboxToken = json["access_token"];
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error while fetching tokens", e);
+            }
+        }
+
+        public static async Task<string> GetDropboxSharedUrl(string path)
+        {
+            try
+            {
+                string s = string.Empty;
+                using (var w = new WebClient())
+                {
+                    w.Proxy = null;
+                    JObject param = new JObject(
+                        new JProperty("path", path));
+                    w.Headers[HttpRequestHeader.Authorization] = $"Bearer {Properties.Settings.Default.dropboxToken}";
+                    w.Headers[HttpRequestHeader.ContentType] = "application/json";
+                    s = await w.UploadStringTaskAsync("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings", param.ToString(Formatting.None));
+                }
+                var serializer = new JavaScriptSerializer();
+                var json = serializer.Deserialize<dynamic>(s);
+                var url = json["url"];
+                return url;
+            }
+            catch (Exception)
+            {
+                BalloonMessage.ShowMessage("Failed to get shared url", BalloonIcon.Warning);
+                return "";
+                //throw;
+            }
+        }
+
         // Get Albums TODO MAYBE
         /*public dynamic GetAlbums()
         {
@@ -181,30 +242,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        /*private static async Task<string> UploadData(string uri, string boundary, MultipartFormDataContent formData, Dictionary<HttpRequestHeader, string> extraHeaders = null )
-        {
-            using (var wc = new NotAliveWebClient())
-            {
-                wc.Proxy = null;
-                wc.UploadProgressChanged += Wc_UploadProgressChanged;
-                wc.Headers.Add(HttpRequestHeader.ContentType, $"multipart/form-data; boundary={boundary}");
-                wc.Headers.Add(HttpRequestHeader.UserAgent, "LXtory/1.0");
-                if (extraHeaders != null)
-                {
-                    foreach (KeyValuePair<HttpRequestHeader, string> header in extraHeaders)
-                    {
-                        wc.Headers.Add(header.Key, header.Value);
-                    }
-                }
-                byte[] formBytes = formData.ReadAsByteArrayAsync().Result;
-                formData.Dispose();
-
-                byte[] response = await wc.UploadDataTaskAsync(uri, formBytes);
-                return Encoding.UTF8.GetString(response);
-            }
-        }*/
-
-        private static async Task<string> UploadData2(string uri, MultipartFormDataContent formData, Dictionary<HttpRequestHeader, string> extraHeaders = null)
+        private static async Task<string> UploadData(string uri, HttpContent formData, Dictionary<string, string> extraHeaders = null)
         {
             ProgressMessageHandler progress = new ProgressMessageHandler();
             progress.HttpSendProgress += HttpSendProgress;
@@ -222,15 +260,20 @@ namespace ScreenShotterWPF
                 
                 if (extraHeaders != null)
                 {
-                    foreach (KeyValuePair<HttpRequestHeader, string> header in extraHeaders)
+                    foreach (KeyValuePair<string, string> header in extraHeaders)
                     {
-                        client.DefaultRequestHeaders.Add(header.Key.ToString(), header.Value);
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
                     }
                 }
                 var response = await client.SendAsync(message);
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(error);
                 }
                 throw new Exception($"Upload error.\n{response.ReasonPhrase}");
             }
@@ -247,51 +290,38 @@ namespace ScreenShotterWPF
             ProgressBarUpdate(progress);
         }
 
-        /*private static string GetFileContentType(string file)
-        {
-            string ext = Path.GetExtension(file)?.ToLower() ?? ".png";
-            switch (ext)
-            {
-                default:
-                case "":
-                case ".png":
-                    return "image/png";
-                case ".jpg":
-                case ".jpeg":
-                    return "image/jpeg";
-                case ".bmp":
-                    return "image/bmp";
-                case ".gif":
-                    return "image/gif";
-            }
-        }*/
-
         public static async Task<string> HttpGyazoUpload(XImage img)
         {
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
             {
                 form.Add(new StringContent(Properties.Settings.Default.gyazoToken), "access_token");
-                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                //form.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-                //form.Headers.ContentType = new MediaTypeHeaderValue($"multipart/form-data; boundary={boundary}");
-                //form.Headers.ContentType = new MediaTypeHeaderValue($"multipart/form-data; boundary={boundary}");
-                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
-                if (img.image != null)
-                {
-                    form.Add(new StreamContent(new MemoryStream(img.image)), "imagedata", img.filename);
-                    //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "imagedata", img.filename);
-                }
-                else
-                {
-                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open)), "imagedata", img.filename);
-                }
-                
-                //img.image = null;
-
-                //return await UploadData("http://upload.gyazo.com/api/upload", boundary, form);
-                return await UploadData2("http://upload.gyazo.com/api/upload", form);
+                form.Add(
+                    img.image != null
+                        ? new StreamContent(new MemoryStream(img.image))
+                        : new StreamContent(new FileStream(img.filepath, FileMode.Open)), "imagedata", img.filename);
+                img.image = null;
+                return await UploadData("http://upload.gyazo.com/api/upload", form);
             }
+        }
+
+        public static async Task<string> HttpDropboxUpload(XImage img)
+        {
+            HttpContent content = img.image != null ? new StreamContent(new MemoryStream(img.image)) : new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            JObject args = new JObject(
+                new JProperty("path", $"{Properties.Settings.Default.dropboxPath}{img.filename}"),
+                new JProperty("mode", "add"),
+                new JProperty("autorename", true),
+                new JProperty("mute", false));
+            Console.WriteLine(args.ToString(Formatting.None));
+            content.Headers.Add("Content-Type", "application/octet-stream");
+            content.Headers.Add("Dropbox-API-Arg", args.ToString(Formatting.None));
+            var headers = new Dictionary<string, string>
+            {
+                ["Authorization"] = $"Bearer {Properties.Settings.Default.dropboxToken}"
+            };
+            img.image = null;
+            return await UploadData("https://content.dropboxapi.com/2/files/upload", content, headers);
         }
 
         public static async Task<string> HttpPuushUpload(XImage img)
@@ -301,21 +331,13 @@ namespace ScreenShotterWPF
             {
                 form.Add(new StringContent(Properties.Settings.Default.puush_key), "k");
                 form.Add(new StringContent("LXtory"), "z");
-                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                //form.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "f", img.filename);
-                if (img.image != null)
-                {
-                    form.Add(new StreamContent(new MemoryStream(img.image)), "f", img.filename);
-                }
-                else
-                {
-                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), "f", img.filename);
-                }
+                form.Add(
+                    img.image != null
+                        ? new StreamContent(new MemoryStream(img.image))
+                        : new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), "f", img.filename);
                 img.image = null;
-
-                //return await UploadData("https://puush.me/api/up", boundary, form);
-                return await UploadData2("https://puush.me/api/up", form);
+                
+                return await UploadData("https://puush.me/api/up", form);
             }
         }
 
@@ -325,59 +347,19 @@ namespace ScreenShotterWPF
             using (var form = new MultipartFormDataContent(boundary))
             {
                 form.Add(new StringContent(img.filename), "title");
-                //form.Headers.ContentType = new MediaTypeHeaderValue(GetFileContentType(img.filepath));
-                //form.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-                //form.Add(new ByteArrayContent(img.image, 0, img.image.Length), "image", img.filename);
-                if (img.image != null)
-                {
-                    form.Add(new StreamContent(new MemoryStream(img.image)), "image", img.filename);
-                }
-                else
-                {
-                    form.Add(new StreamContent(new FileStream(img.filepath, FileMode.Open)), "image", img.filename);
-                }
+                form.Add(
+                    img.image != null
+                        ? new StreamContent(new MemoryStream(img.image))
+                        : new StreamContent(new FileStream(img.filepath, FileMode.Open)), "image", img.filename);
                 img.image = null;
 
-                var extraHeaders = new Dictionary<HttpRequestHeader, string>
+                var extraHeaders = new Dictionary<string, string>
                 {
-                    [HttpRequestHeader.Authorization] = img.anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
+                    ["Authorization"] = img.anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
                 };
-                //return await UploadData("https://api.imgur.com/3/image", boundary, form, extraHeaders);
-                return await UploadData2("https://api.imgur.com/3/image", form, extraHeaders);
+                return await UploadData("https://api.imgur.com/3/image", form, extraHeaders);
             }
         }
-
-        /*private class NotAliveWebClient : WebClient
-        {
-            protected override WebRequest GetWebRequest(Uri address)
-            {
-                WebRequest request = base.GetWebRequest(address);
-                if (request is HttpWebRequest)
-                {
-                    (request as HttpWebRequest).KeepAlive = false;
-                    (request as HttpWebRequest).AllowWriteStreamBuffering = false;
-                }
-                return request;
-            }
-        }*/
-
-        //private static Exception ExceptionStatus(WebException e)
-        //{
-        //    HttpWebResponse r = (HttpWebResponse)e.Response;
-        //    if (r.StatusCode == HttpStatusCode.Forbidden)
-        //    {
-        //        return new Exception("Error: Server returned code 403", e);
-        //    }
-        //    if (r.StatusCode == HttpStatusCode.RequestEntityTooLarge)
-        //    {
-        //        return new Exception("Error: Server returned code 413", e);
-        //    }
-        //    if (r.StatusCode == HttpStatusCode.BadRequest)
-        //    {
-        //        return new Exception("Error: Server returned code 400", e);
-        //    }
-        //    return new Exception(e.Message);
-        //}
 
         public static async Task<string> FTPUpload(XImage img)
         {
@@ -454,94 +436,5 @@ namespace ScreenShotterWPF
                 }
             }
         }
-
-        // TRY DIS ON WIN10!!
-        //private async Task<bool> HttpUpload(XImage img)
-        /*private async void HttpUpload(XImage img)
-        {
-            ProgressMessageHandler progress = new ProgressMessageHandler();
-            progress.HttpSendProgress += new EventHandler<HttpProgressEventArgs>(HttpSendProgress);
-            //using (var client = new HttpClient(progress))
-            using (var client = HttpClientFactory.Create(progress))
-            {
-                using (var content = new MultipartFormDataContent("Upload----" + DateTime.Now.ToString(CultureInfo.InvariantCulture)))
-                {
-                    if (img.anonupload)
-                    {
-                        client.DefaultRequestHeaders.Add("Authorization", "Client-ID 83c1c8bf9f4d2b1");
-                    }
-                    else
-                    {
-                        client.DefaultRequestHeaders.Add("Authorization", "Bearer " + Properties.Settings.Default.accessToken);
-                    }
-                    client.DefaultRequestHeaders.TransferEncodingChunked = true;
-                    string fileContentType = "image/png";
-
-                    string ext = Path.GetExtension(img.filepath).ToLower();
-                    if (ext == "" || ext == ".png")
-                    {
-                        fileContentType = "image/png";
-                    }
-                    if (ext == ".jpg" || ext == ".jpeg")
-                    {
-                        fileContentType = "image/jpeg";
-                    }
-                    if (ext == ".bmp")
-                    {
-                        fileContentType = "image/bmp";
-                    }
-                    if (ext == ".gif")
-                    {
-                        fileContentType = "image/gif";
-                    }
-
-                    var values = new[]
-                    {
-                        new  KeyValuePair<string, string>("name", img.filename),
-                        new  KeyValuePair<string, string>("title", img.filename)
-                    };
-
-                    foreach (var vp in values)
-                    {
-                        content.Add(new StringContent(vp.Value), String.Format("\"{0}\"", vp.Key));
-                    }
-
-                    var imageContent = new ByteArrayContent(img.image);
-                    imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse(fileContentType);
-                    content.Add(imageContent, "image", img.filename);
-                    
-                    try
-                    {
-                        var message = await client.PostAsync("https://api.imgur.com/3/image", content);
-                        if (message.IsSuccessStatusCode)
-                        {
-                            var response = message.Content.ReadAsStringAsync();
-                            dynamic json = JObject.Parse(response.Result);
-                            img.image = null;
-                            string link = json.data.link;
-                            addXImageToList(img, link);
-                            //return true;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Other Errors happened");
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Errors happened: " + e.Message);
-                        //throw;
-                    }
-                }
-            }
-            return false;
-        }*/
-
-        /*private void HttpSendProgress(object sender, HttpProgressEventArgs e)
-        {
-            HttpRequestMessage request = sender as HttpRequestMessage;
-            Console.WriteLine("%: " + e.BytesTransferred);
-            progressBarUpdate(e.ProgressPercentage);
-        }*/
     }
 }

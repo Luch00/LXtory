@@ -152,8 +152,14 @@
     <Setting Name="fileUploadSite" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">99</Value>
     </Setting>
-    <Setting Name="fileUploadEnabled" Type="System.Boolean" Scope="User">
+    <Setting Name="fileUploadEnabled" Provider="PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="dropboxToken" Provider="PortableSettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="dropboxPath" Provider="PortableSettingsProvider" Type="System.String" Scope="User">
+      <Value Profile="(Default)">/Public/</Value>
     </Setting>
   </Settings>
 </SettingsFile>

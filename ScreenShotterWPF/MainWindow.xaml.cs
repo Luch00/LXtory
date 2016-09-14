@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.ComponentModel;
 using System.Windows.Interop;
@@ -15,17 +14,17 @@ namespace ScreenShotterWPF
     public partial class MainWindow
     {
 
-        private MainViewModel mainview;
+        //private MainViewModel mainview;
 
         public MainWindow()
         {   
             InitializeComponent();
         }
 
-        public bool ReadCommandLineArgs(IList<string> args)
+        /*public bool ReadCommandLineArgs(IList<string> args)
         {
             return mainview.PassCommandLineArgs(args);
-        }
+        }*/
 
         private void Startup_Minimize()
         {
@@ -77,7 +76,7 @@ namespace ScreenShotterWPF
 
         private void MainView_Loaded(object sender, RoutedEventArgs e)
         {
-            mainview = MainView.DataContext as MainViewModel;
+            MainViewModel mainview = MainView.DataContext as MainViewModel;
             WindowInteropHelper helper = new WindowInteropHelper(this);
             mainview.WindowHandle = helper.Handle;
         }
