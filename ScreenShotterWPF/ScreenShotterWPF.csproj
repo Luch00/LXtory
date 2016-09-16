@@ -168,6 +168,7 @@
     <Compile Include="Notifications\GifProgressNotification.cs" />
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
+    <Compile Include="OAuthHelpers.cs" />
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
     <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />

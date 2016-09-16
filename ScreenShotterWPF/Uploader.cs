@@ -18,132 +18,7 @@ namespace ScreenShotterWPF
 {
     public static class Uploader
     {
-        // For imgur
-        private const string ClientID = "";
-        private const string ClientSecret = "";
-        // For Gyazo
-        private const string GyazoClientID = "";
-        private const string GyazoClientSecret = "";
-        // For Dropbox
-        private const string DropboxClientID = "";
-        private const string DropboxClientSecret = "";
-
-        // Actions to main form
-
         public static Action<int> ProgressBarUpdate { private get; set; }
-
-        // Use pin to get auth token
-        /*public void GetToken(string pin)
-        {
-            string s = "";
-            using (var w = new WebClient())
-            {
-                w.Proxy = null;
-                NameValueCollection v = new NameValueCollection();
-                v.Add("client_id", ClientID);
-                v.Add("client_secret", ClientSecret);
-                v.Add("grant_type", "pin");
-                v.Add("pin", pin);
-                byte[] response = w.UploadValues("https://api.imgur.com/oauth2/token", v);
-                s = Encoding.UTF8.GetString(response, 0, response.Length);
-            }
-            dynamic json = JObject.Parse(s);
-            Properties.Settings.Default.accessToken = json.access_token;
-            Properties.Settings.Default.refreshToken = json.refresh_token;
-            Properties.Settings.Default.username = json.account_username;
-            Console.WriteLine(s);
-            GetTokenInfo();
-        }*/
-
-        public static async Task GetToken(string code)
-        {
-            try
-            {
-                string s;
-                using (var w = new WebClient())
-                {
-                    w.Proxy = null;
-                    NameValueCollection v = new NameValueCollection();
-                    v.Add("client_id", ClientID);
-                    v.Add("client_secret", ClientSecret);
-                    v.Add("grant_type", "authorization_code");
-                    v.Add("code", code);
-                    var response = await w.UploadValuesTaskAsync("https://api.imgur.com/oauth2/token", v);
-                    s = Encoding.UTF8.GetString(response, 0, response.Length);
-                }
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(s);
-                Properties.Settings.Default.accessToken = json["access_token"];
-                Properties.Settings.Default.refreshToken = json["refresh_token"];
-                Properties.Settings.Default.username = json["account_username"];
-                Properties.Settings.Default.imgurTokenExpire = json["expires_in"];
-                Properties.Settings.Default.lastRefreshTime = DateTime.Now;
-                Properties.Settings.Default.Save();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error While fetching tokens", e);
-            }
-        }
-
-        public static async Task GetGyazoToken(string code)
-        {
-            try
-            {
-                string s = string.Empty;
-                using (var w = new WebClient())
-                {
-                    w.Proxy = null;
-                    NameValueCollection v = new NameValueCollection();
-                    v.Add("client_id", GyazoClientID);
-                    v.Add("redirect_uri", "http://localhost:8080/LXtory_Auth/");
-                    v.Add("code", code);
-                    v.Add("grant_type", "authorization_code");
-                    v.Add("scope", "public");
-                    var base64 = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{GyazoClientID}:{GyazoClientSecret}"));
-                    w.Headers[HttpRequestHeader.Authorization] = $"Basic {base64}";
-
-                    var response = await w.UploadValuesTaskAsync("http://api.gyazo.com/oauth/token", "POST", v);
-                    s = Encoding.UTF8.GetString(response, 0, response.Length);
-                }
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(s);
-                Properties.Settings.Default.gyazoToken = json["access_token"];
-                Properties.Settings.Default.Save();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error while fetching tokens", e);
-            }
-        }
-
-        public static async Task GetDropboxToken(string code)
-        {
-            try
-            {
-                string s = string.Empty;
-                using (var w = new WebClient())
-                {
-                    w.Proxy = null;
-                    NameValueCollection v = new NameValueCollection();
-                    v.Add("client_id", DropboxClientID);
-                    v.Add("client_secret", DropboxClientSecret);
-                    v.Add("code", code);
-                    v.Add("grant_type", "authorization_code");
-                    v.Add("redirect_uri", "http://localhost:8080/LXtory_Auth/");
-                    var response = await w.UploadValuesTaskAsync("https://api.dropboxapi.com/oauth2/token", v);
-                    s = Encoding.UTF8.GetString(response, 0, response.Length);
-                }
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(s);
-                Properties.Settings.Default.dropboxToken = json["access_token"];
-                Properties.Settings.Default.Save();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error while fetching tokens", e);
-            }
-        }
 
         public static async Task<string> GetDropboxSharedUrl(string path)
         {
@@ -168,7 +43,27 @@ namespace ScreenShotterWPF
             {
                 BalloonMessage.ShowMessage("Failed to get shared url", BalloonIcon.Warning);
                 return "";
-                //throw;
+            }
+        }
+
+        public static async Task SetGoogleDriveFileShared(string fileID)
+        {
+            try
+            {
+                JObject permission = new JObject(
+                    new JProperty("role", "reader"),
+                    new JProperty("type", "anyone"));
+                HttpContent content = new StringContent(permission.ToString(Formatting.None), Encoding.UTF8, "application/json");
+                var headers = new Dictionary<string, string>
+                {
+                    ["Authorization"] = $"Bearer {Properties.Settings.Default.gdriveToken}"
+                };
+                await UploadData($"https://www.googleapis.com/drive/v3/files/{fileID}/permissions", content, headers);
+
+            }
+            catch (Exception)
+            {
+                BalloonMessage.ShowMessage("Failed to set file shared", BalloonIcon.Warning);
             }
         }
 
@@ -187,60 +82,6 @@ namespace ScreenShotterWPF
             Console.WriteLine(s);
             return s;
         }*/
-
-        // Refresh imgur auth token
-        public static async Task RefreshToken()
-        {
-            if (Properties.Settings.Default.refreshToken != string.Empty)
-            {
-                using (var w = new WebClient())
-                {
-                    w.Proxy = null;
-                    w.UploadValuesCompleted += webClient_TokenRefreshCompleted;
-                    NameValueCollection v = new NameValueCollection();
-                    v.Add("refresh_token", Properties.Settings.Default.refreshToken);
-                    v.Add("client_id", ClientID);
-                    v.Add("client_secret", ClientSecret);
-                    v.Add("grant_type", "refresh_token");
-                    await w.UploadValuesTaskAsync(new Uri("https://api.imgur.com/oauth2/token"), v);
-                }
-            }
-        }
-
-        // Event to run after auth token is refreshed
-        private static void webClient_TokenRefreshCompleted(object sender, UploadValuesCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                var v = e.Error as WebException;
-                if (v != null && v.Status == WebExceptionStatus.NameResolutionFailure)
-                {
-                    throw new Exception("NameResolutionFailure", e.Error);
-                    //return;
-                }
-                if (v != null && v.Status == WebExceptionStatus.UnknownError)
-                {
-                    throw new Exception("UnknownError", e.Error);
-                    //return;
-                }
-                throw new Exception("Error refreshing Imgur tokens.", e.Error);
-            }
-            var s = Encoding.UTF8.GetString(e.Result, 0, e.Result.Length);
-            try
-            {
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(s);
-                Properties.Settings.Default.accessToken = json["access_token"];
-                Properties.Settings.Default.refreshToken = json["refresh_token"];
-                Properties.Settings.Default.imgurTokenExpire = json["expires_in"];
-                Properties.Settings.Default.lastRefreshTime = DateTime.Now;
-                Properties.Settings.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error happened while parsing tokens", ex);
-            }
-        }
 
         private static async Task<string> UploadData(string uri, HttpContent formData, Dictionary<string, string> extraHeaders = null)
         {
@@ -322,6 +163,28 @@ namespace ScreenShotterWPF
             };
             img.image = null;
             return await UploadData("https://content.dropboxapi.com/2/files/upload", content, headers);
+        }
+
+        public static async Task<string> HttpGoogleDriveUpload(XImage img)
+        {
+            JObject metadata = new JObject(
+                new JProperty("name", img.filename),
+                new JProperty("viewersCanCopyContent", true));
+            string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
+            using (var form = new MultipartFormDataContent(boundary))
+            {
+                form.Add(new StringContent(metadata.ToString(Formatting.None), Encoding.UTF8, "application/json"));
+                form.Add(
+                    img.image != null
+                        ? new StreamContent(new MemoryStream(img.image))
+                        : new StreamContent(new FileStream(img.filepath, FileMode.Open)));
+                img.image = null;
+                var headers = new Dictionary<string, string>
+                {
+                    ["Authorization"] = $"Bearer {Properties.Settings.Default.gdriveToken}"
+                };
+                return await UploadData("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", form, headers);
+            }
         }
 
         public static async Task<string> HttpPuushUpload(XImage img)

@@ -220,15 +220,26 @@ namespace ScreenShotterWPF
             }
         }
 
-        private static bool TokenNeedsRefresh()
+        private static bool TokenNeedsRefresh(UploadSite site)
         {
-            if (settings.lastRefreshTime != null)
+            switch (site)
             {
-                TimeSpan diff = DateTime.Now.Subtract(settings.lastRefreshTime);
-                //return diff.TotalSeconds >= settings.imgurTokenExpire;
-                return diff.TotalSeconds >= 3600; // BECAUSE IMGUR FAILS
+                case UploadSite.Imgur:
+                    {
+                        TimeSpan diff = DateTime.Now.Subtract(settings.lastRefreshTime);
+                        //return diff.TotalSeconds >= settings.imgurTokenExpire;
+                        return diff.TotalSeconds >= 3600; // BECAUSE IMGUR FAILS
+                    }
+                    
+                case UploadSite.GoogleDrive:
+                    {
+                        TimeSpan diff = DateTime.Now.Subtract(settings.gdriveRefreshTime);
+                        return diff.TotalSeconds >= settings.gdriveTokenExpire;
+                    }
+                default:
+                    return true;
+
             }
-            return true;
         }
 
         private static dynamic StringToJson(string s)
@@ -271,12 +282,12 @@ namespace ScreenShotterWPF
                                         SetStatusBarText("File too large. Skipping.");
                                         continue;
                                     }
-                                    // refresh imgur token if using accound
-                                    if (TokenNeedsRefresh() && currentUpload.anonupload == false)
+                                    // refresh imgur token if using account
+                                    if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.anonupload == false)
                                     {
                                         SetStatusBarText("Refreshing Imgur login..");
                                         ChangeTrayIcon("R");
-                                        await Uploader.RefreshToken();
+                                        await OAuthHelpers.RefreshImgurToken();
                                     }
                                     response = await Uploader.HttpImgurUpload(currentUpload);
                                     json = StringToJson(response);
@@ -352,6 +363,34 @@ namespace ScreenShotterWPF
                                     response = await Uploader.GetDropboxSharedUrl(path);
                                     Console.WriteLine(path);
                                     result = new Tuple<bool, string, string>(true, response, "");
+                                    break;
+                                case UploadSite.GoogleDrive:
+                                    if (settings.gdriveToken == string.Empty)
+                                    {
+                                        MessageBox.Show("Login to Google Drive first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                        continue;
+                                    }
+                                    if (((filesize / 1024f) / 1024f) > 150)
+                                    {
+                                        totalUploading--;
+                                        currentUpload.image = null;
+                                        SetStatusBarText("File too large. Skipping.");
+                                        continue;
+                                    }
+                                    if (TokenNeedsRefresh(UploadSite.GoogleDrive))
+                                    {
+                                        SetStatusBarText("Refreshing GDrive login..");
+                                        ChangeTrayIcon("R");
+                                        await OAuthHelpers.RefreshGoogleDriveToken();
+                                    }
+                                    response = await Uploader.HttpGoogleDriveUpload(currentUpload);
+                                    //https://drive.google.com/file/d/0B685Zhwu_twsc0R5Z0N6eVZZQ2M/view
+                                    json = StringToJson(response);
+                                    var id = json["id"];
+                                    await Uploader.SetGoogleDriveFileShared(id);
+                                    var url = $"https://drive.google.com/file/d/{id}/view";
+                                    result = new Tuple<bool, string, string>(true, url, "");
                                     break;
                                 case UploadSite.SFTP:
                                     if (settings.ftpProtocol == 0)

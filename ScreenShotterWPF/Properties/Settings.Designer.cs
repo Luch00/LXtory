@@ -705,5 +705,56 @@ namespace ScreenShotterWPF.Properties {
                 this["dropboxPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string gdriveToken {
+            get {
+                return ((string)(this["gdriveToken"]));
+            }
+            set {
+                this["gdriveToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string gdriveRefreshToken {
+            get {
+                return ((string)(this["gdriveRefreshToken"]));
+            }
+            set {
+                this["gdriveRefreshToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.DateTime gdriveRefreshTime {
+            get {
+                return ((global::System.DateTime)(this["gdriveRefreshTime"]));
+            }
+            set {
+                this["gdriveRefreshTime"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int gdriveTokenExpire {
+            get {
+                return ((int)(this["gdriveTokenExpire"]));
+            }
+            set {
+                this["gdriveTokenExpire"] = value;
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.Win32;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
@@ -109,6 +112,7 @@ namespace ScreenShotterWPF.ViewModels
         private static bool contextMenuEnabled;
         private static bool fileUploadEnabled;
         private string loginButtonTextDropbox;
+        private string loginButtonTextGDrive;
 
         public INotification Notification
         {
@@ -136,8 +140,6 @@ namespace ScreenShotterWPF.ViewModels
             this.ConfirmCommand = new DelegateCommand(Confirm);
             this.CancelCommand = new DelegateCommand(Cancel);
             this.BrowseCommand = new DelegateCommand(Browse);
-            //this.LoginCommand = new DelegateCommand(Login);
-            //this.LoginCommandGyazo = new DelegateCommand(GyazoLogin);
             this.LoginCommand = new DelegateCommand<UploadSite?>(Login);
             this.BrowseKeyCommand = new DelegateCommand(BrowseKey);
             this.PasswordChangedCommand = new DelegateCommand<PasswordBox>(PasswordChanged);
@@ -299,6 +301,7 @@ namespace ScreenShotterWPF.ViewModels
                     ["Gyazo"] = UploadSite.Gyazo,
                     ["Puush"] = UploadSite.Puush,
                     ["Dropbox"] = UploadSite.Dropbox,
+                    ["Google Drive"] = UploadSite.GoogleDrive,
                     ["S/FTP"] = UploadSite.SFTP
                 };
             }
@@ -313,6 +316,7 @@ namespace ScreenShotterWPF.ViewModels
                     ["None"] = UploadSite.None,
                     ["Puush"] = UploadSite.Puush,
                     ["Dropbox"] = UploadSite.Dropbox,
+                    ["Google Drive"] = UploadSite.GoogleDrive,
                     ["S/FTP"] = UploadSite.SFTP
                 };
             }
@@ -667,7 +671,12 @@ namespace ScreenShotterWPF.ViewModels
         }
         public string LoginButtonTextDropbox {
             get { return loginButtonTextDropbox; }
-            private set { SetProperty(ref loginButtonTextDropbox, value); } }
+            private set { SetProperty(ref loginButtonTextDropbox, value); }
+        }
+        public string LoginButtonTextGDrive {
+            get { return loginButtonTextGDrive; }
+            private set { SetProperty(ref loginButtonTextGDrive, value); }
+        }
 
         public string StatusLabelText
         {
@@ -767,6 +776,7 @@ namespace ScreenShotterWPF.ViewModels
             }
             LoginButtonTextGyazo = settings.gyazoToken != "" ? "Logout" : "Login";
             LoginButtonTextDropbox = settings.dropboxToken != "" ? "Logout" : "Login";
+            LoginButtonTextGDrive = settings.gdriveToken != "" ? "Logout" : "Login";
         }
 
         private void SetHotkeys()
@@ -1004,12 +1014,75 @@ namespace ScreenShotterWPF.ViewModels
                     DropboxLogin();
                     break;
                 case UploadSite.GoogleDrive:
+                    GoogleDriveLogin();
                     break;
                 case UploadSite.None:
                     break;
                 default:
                     break;
             }
+        }
+
+        private async void GoogleDriveLogin()
+        {
+            if (settings.gdriveToken == string.Empty)
+            {
+                StatusLabelText = "Waiting for Authorization..";
+                try
+                {
+                    string code_verifier = randomDataBase64url(32);
+                    string code_challenge = base64urlencodeNoPadding(sha256(code_verifier));
+                    const string code_challenge_method = "S256";
+
+                    string endpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+                    string scope = "openid%20profile%20https://www.googleapis.com/auth/drive";
+                    string redirect_uri = "http://127.0.0.1:12745/";
+
+                    var code = await GetAuthCode2($"{endpoint}?response_type=code&scope={scope}&redirect_uri={redirect_uri}&client_id={OAuthHelpers.GoogleDriveID}&code_challenge={code_challenge}&code_challenge_method={code_challenge_method}", redirect_uri);
+                    if (code.Get("code") != null)
+                    {
+                        await OAuthHelpers.GetGoogleDriveToken(code.Get("code"), redirect_uri, code_verifier);
+                        StatusLabelText = "Authorization complete";
+                        LoginButtonTextGDrive = "Logout";
+                        BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
+                    }
+                }
+                catch (Exception e)
+                {
+                    StatusLabelText = "Authorization failed";
+                    BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
+                }
+            }
+            else
+            {
+                settings.gdriveToken = "";
+                LoginButtonTextGDrive = "Login";
+                settings.Save();
+            }
+        }
+
+        private async Task<NameValueCollection> GetAuthCode2(string uri, string redirectUri)
+        {
+            var http = new HttpListener();
+            http.Prefixes.Add(redirectUri);
+            Console.WriteLine("Listening..");
+            http.Start();
+            
+            Process.Start(uri);
+
+            var context = await http.GetContextAsync();
+            var response = context.Response;
+            var buffer = Encoding.UTF8.GetBytes(CloseWindowResponse);
+            response.ContentLength64 = buffer.Length;
+            var output = response.OutputStream;
+            Task t = output.WriteAsync(buffer, 0, buffer.Length).ContinueWith((task) =>
+            {
+                output.Close();
+                http.Stop();
+                Console.WriteLine("Listener stopped");
+            });
+
+            return context.Request.QueryString;
         }
 
         private async void DropboxLogin()
@@ -1023,7 +1096,7 @@ namespace ScreenShotterWPF.ViewModels
                     if (authCode != string.Empty)
                     {
                         // finished
-                        await Uploader.GetDropboxToken(authCode);
+                        await OAuthHelpers.GetDropboxToken(authCode);
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonTextDropbox = "Logout";
@@ -1059,7 +1132,7 @@ namespace ScreenShotterWPF.ViewModels
                     if (authCode != string.Empty)
                     {
                         // get access token
-                        await Uploader.GetGyazoToken(authCode);
+                        await OAuthHelpers.GetGyazoToken(authCode);
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonTextGyazo = "Logout";
@@ -1096,7 +1169,7 @@ namespace ScreenShotterWPF.ViewModels
                     if (authCode != string.Empty)
                     {
                         //get tokens
-                        await Uploader.GetToken(authCode);
+                        await OAuthHelpers.GetImgurToken(authCode);
                         Username = settings.username;
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
@@ -1250,6 +1323,49 @@ namespace ScreenShotterWPF.ViewModels
             {
                 Registry.CurrentUser.DeleteSubKeyTree(key, false);
             }
+        }
+
+        /// <summary>
+        /// Returns URI-safe data with a given input length.
+        /// </summary>
+        /// <param name="length">Input length (nb. output will be longer)</param>
+        /// <returns></returns>
+        public static string randomDataBase64url(uint length)
+        {
+            RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+            byte[] bytes = new byte[length];
+            rng.GetBytes(bytes);
+            return base64urlencodeNoPadding(bytes);
+        }
+
+        /// <summary>
+        /// Returns the SHA256 hash of the input string.
+        /// </summary>
+        /// <param name="inputStirng"></param>
+        /// <returns></returns>
+        public static byte[] sha256(string inputStirng)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(inputStirng);
+            SHA256Managed sha256 = new SHA256Managed();
+            return sha256.ComputeHash(bytes);
+        }
+
+        /// <summary>
+        /// Base64url no-padding encodes the given input buffer.
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static string base64urlencodeNoPadding(byte[] buffer)
+        {
+            string base64 = Convert.ToBase64String(buffer);
+
+            // Converts base64 to base64url.
+            base64 = base64.Replace("+", "-");
+            base64 = base64.Replace("/", "_");
+            // Strips padding.
+            base64 = base64.Replace("=", "");
+
+            return base64;
         }
     }
 }

@@ -61,7 +61,14 @@
                     </Button>
                     <Label Content="Path"/>
                     <TextBox Text="{Binding DropboxPath}" ToolTip="Filepath in your dropbox folder"/>
-
+                </StackPanel>
+            </GroupBox>
+        </ControlTemplate>
+        <ControlTemplate x:Key="GoogleDriveTemplate">
+            <GroupBox Header="Google Drive">
+                <StackPanel>
+                    <Label Content="Authentication"/>
+                    <Button Content="{Binding LoginButtonTextGDrive}" Margin="4" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.GoogleDrive}"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -345,6 +352,9 @@
                                         <Setter Property="Template" Value="{StaticResource DropboxTemplate}"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding ElementName=ImageUploadSelector, Path=SelectedIndex}" Value="4">
+                                        <Setter Property="Template" Value="{StaticResource GoogleDriveTemplate}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=ImageUploadSelector, Path=SelectedIndex}" Value="5">
                                         <Setter Property="Template" Value="{StaticResource SFTPTemplate}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -377,6 +387,9 @@
                                         <Setter Property="Template" Value="{StaticResource DropboxTemplate}"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding ElementName=FileUploadSelector, Path=SelectedIndex}" Value="3">
+                                        <Setter Property="Template" Value="{StaticResource GoogleDriveTemplate}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ElementName=FileUploadSelector, Path=SelectedIndex}" Value="4">
                                         <Setter Property="Template" Value="{StaticResource SFTPTemplate}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
