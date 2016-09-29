@@ -9,6 +9,7 @@ using System.Web.Script.Serialization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Handlers;
+using System.Threading;
 using Hardcodet.Wpf.TaskbarNotification;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -46,7 +47,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public static async Task SetGoogleDriveFileShared(string fileID)
+        public static async Task SetGoogleDriveFileShared(string fileID, CancellationToken token)
         {
             try
             {
@@ -58,7 +59,7 @@ namespace ScreenShotterWPF
                 {
                     ["Authorization"] = $"Bearer {Properties.Settings.Default.gdriveToken}"
                 };
-                await UploadData($"https://www.googleapis.com/drive/v3/files/{fileID}/permissions", content, headers);
+                await UploadData($"https://www.googleapis.com/drive/v3/files/{fileID}/permissions", content, token, headers);
 
             }
             catch (Exception)
@@ -83,7 +84,7 @@ namespace ScreenShotterWPF
             return s;
         }*/
 
-        private static async Task<string> UploadData(string uri, HttpContent formData, Dictionary<string, string> extraHeaders = null)
+        private static async Task<string> UploadData(string uri, HttpContent formData, CancellationToken token, Dictionary<string, string> extraHeaders = null)
         {
             ProgressMessageHandler progress = new ProgressMessageHandler();
             progress.HttpSendProgress += HttpSendProgress;
@@ -98,6 +99,7 @@ namespace ScreenShotterWPF
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "LXtory/1.0");
                 client.DefaultRequestHeaders.Add("Connection", "Close");
+                client.Timeout = Timeout.InfiniteTimeSpan;
                 
                 if (extraHeaders != null)
                 {
@@ -106,7 +108,7 @@ namespace ScreenShotterWPF
                         client.DefaultRequestHeaders.Add(header.Key, header.Value);
                     }
                 }
-                var response = await client.SendAsync(message);
+                var response = await client.SendAsync(message, token);
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStringAsync();
@@ -114,9 +116,8 @@ namespace ScreenShotterWPF
                 else
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(error);
+                    throw new Exception($"Upload error.\r\n{response.ReasonPhrase}\r\n{error}");
                 }
-                throw new Exception($"Upload error.\n{response.ReasonPhrase}");
             }
         }
 
@@ -131,7 +132,7 @@ namespace ScreenShotterWPF
             ProgressBarUpdate(progress);
         }
 
-        public static async Task<string> HttpGyazoUpload(XImage img)
+        public static async Task<string> HttpGyazoUpload(XImage img, CancellationToken token)
         {
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
@@ -142,11 +143,11 @@ namespace ScreenShotterWPF
                         ? new StreamContent(new MemoryStream(img.image))
                         : new StreamContent(new FileStream(img.filepath, FileMode.Open)), "imagedata", img.filename);
                 img.image = null;
-                return await UploadData("http://upload.gyazo.com/api/upload", form);
+                return await UploadData("http://upload.gyazo.com/api/upload", form, token);
             }
         }
 
-        public static async Task<string> HttpDropboxUpload(XImage img)
+        public static async Task<string> HttpDropboxUpload(XImage img, CancellationToken token)
         {
             HttpContent content = img.image != null ? new StreamContent(new MemoryStream(img.image)) : new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
             JObject args = new JObject(
@@ -162,10 +163,10 @@ namespace ScreenShotterWPF
                 ["Authorization"] = $"Bearer {Properties.Settings.Default.dropboxToken}"
             };
             img.image = null;
-            return await UploadData("https://content.dropboxapi.com/2/files/upload", content, headers);
+            return await UploadData("https://content.dropboxapi.com/2/files/upload", content, token, headers);
         }
 
-        public static async Task<string> HttpGoogleDriveUpload(XImage img)
+        public static async Task<string> HttpGoogleDriveUpload(XImage img, CancellationToken token)
         {
             JObject metadata = new JObject(
                 new JProperty("name", img.filename),
@@ -183,11 +184,11 @@ namespace ScreenShotterWPF
                 {
                     ["Authorization"] = $"Bearer {Properties.Settings.Default.gdriveToken}"
                 };
-                return await UploadData("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", form, headers);
+                return await UploadData("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", form, token, headers);
             }
         }
 
-        public static async Task<string> HttpPuushUpload(XImage img)
+        public static async Task<string> HttpPuushUpload(XImage img, CancellationToken token)
         {
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
@@ -200,11 +201,11 @@ namespace ScreenShotterWPF
                         : new StreamContent(new FileStream(img.filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)), "f", img.filename);
                 img.image = null;
                 
-                return await UploadData("https://puush.me/api/up", form);
+                return await UploadData("https://puush.me/api/up", form, token);
             }
         }
 
-        public static async Task<string> HttpImgurUpload(XImage img)
+        public static async Task<string> HttpImgurUpload(XImage img, CancellationToken token)
         {
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
@@ -220,7 +221,7 @@ namespace ScreenShotterWPF
                 {
                     ["Authorization"] = img.anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
                 };
-                return await UploadData("https://api.imgur.com/3/image", form, extraHeaders);
+                return await UploadData("https://api.imgur.com/3/image", form, token, extraHeaders);
             }
         }
 
@@ -249,7 +250,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public static string SFTPUpload(XImage img, ConnectionInfo ftpConnectionInfo)
+        public static string SFTPUpload(XImage img, ConnectionInfo ftpConnectionInfo, CancellationToken token)
         {
             if (ftpConnectionInfo == null)
             {
@@ -270,6 +271,11 @@ namespace ScreenShotterWPF
                             client.UploadFile(stream, path,
                                 bytesUploaded =>
                                 {
+                                    // Maybe works as cancel?
+                                    if (token.IsCancellationRequested)
+                                    {
+                                        if (client != null) client.Disconnect();
+                                    }
                                     int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
                                     ProgressBarUpdate(percent);
                                 });
@@ -283,6 +289,11 @@ namespace ScreenShotterWPF
                             client.UploadFile(stream, path,
                                 bytesUploaded =>
                                 {
+                                    // Maybe works as cancel?
+                                    if (token.IsCancellationRequested)
+                                    {
+                                        if (client != null) client.Disconnect();
+                                    }
                                     int percent = (int)(((double)bytesUploaded / fileSize) * 100.0);
                                     ProgressBarUpdate(percent);
                                 });

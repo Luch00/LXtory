@@ -92,7 +92,8 @@ namespace ScreenShotterWPF.ViewModels
         private string loginButtonText;
         private string loginButtonTextGyazo;
         private string statusLabelText;
-        private bool anonUpload;
+        //private bool anonUpload;
+        private bool imgurUploadToAccount;
         private UploadSite uploadValue;
         private UploadSite fileuploadValue;
         private string dateTimeString;
@@ -266,6 +267,12 @@ namespace ScreenShotterWPF.ViewModels
         #endregion
 
         #region Properties
+
+        public bool ImgurUploadToAccount
+        {
+            get { return imgurUploadToAccount; }
+            set { SetProperty(ref imgurUploadToAccount, value); }
+        }
 
         public bool FileUploadEnabled
         {
@@ -696,7 +703,7 @@ namespace ScreenShotterWPF.ViewModels
             set { SetProperty(ref fileuploadValue, value); }
         }
 
-        public bool AnonUpload
+        /*public bool AnonUpload
         {
             get { return anonUpload; }
             set
@@ -705,9 +712,9 @@ namespace ScreenShotterWPF.ViewModels
                 OnPropertyChanged("AnonOn");
                 OnPropertyChanged("AnonOff");
             }
-        }
+        }*/
 
-        public bool AnonOn
+        /*public bool AnonOn
         {
             get { return AnonUpload.Equals(true); }
             set { AnonUpload = true; }
@@ -717,7 +724,7 @@ namespace ScreenShotterWPF.ViewModels
         {
             get { return AnonUpload.Equals(false); }
             set { AnonUpload = false; }
-        }
+        }*/
 
         #endregion
 
@@ -758,9 +765,9 @@ namespace ScreenShotterWPF.ViewModels
             ContextMenuEnabled = settings.shellExtActive;
             FileUploadEnabled = settings.fileUploadEnabled;
 
-            AnonUpload = settings.anonUpload;
-            UploadValue = (UploadSite)settings.upload_site;
-            FileuploadValue = (UploadSite)settings.fileUploadSite;
+            ImgurUploadToAccount = !settings.anonUpload;
+            UploadValue = settings.imageUploadSite;
+            FileuploadValue = settings.fileUploadSite;
             DropboxPath = settings.dropboxPath;
             PuushApiKey = settings.puush_key;
             SetHotkeys();
@@ -873,11 +880,14 @@ namespace ScreenShotterWPF.ViewModels
 
         private void Confirm()
         {
-            if (UploadValue == UploadSite.Puush || FileuploadValue == UploadSite.Puush && PuushApiKey.Length < 1)
+            if (UploadValue == UploadSite.Puush || FileuploadValue == UploadSite.Puush)
             {
-                StatusLabelText = "Enter Puush API Key";
-                BalloonMessage.ShowMessage("Enter Puush API Key", BalloonIcon.Warning);
-                return;
+                if (PuushApiKey.Length < 1)
+                {
+                    StatusLabelText = "Enter Puush API Key";
+                    BalloonMessage.ShowMessage("Enter Puush API Key", BalloonIcon.Warning);
+                    return;
+                }
             }
             if (UploadValue == UploadSite.Gyazo && settings.gyazoToken == string.Empty)
             {
@@ -885,7 +895,7 @@ namespace ScreenShotterWPF.ViewModels
                 BalloonMessage.ShowMessage("Gyazo login needed", BalloonIcon.Warning);
                 return;
             }
-            if (UploadValue == UploadSite.Imgur && anonUpload == false && settings.accessToken == string.Empty)
+            if (UploadValue == UploadSite.Imgur && imgurUploadToAccount && settings.accessToken == string.Empty)
             {
                 StatusLabelText = "Imgur login needed";
                 BalloonMessage.ShowMessage("Imgur login needed", BalloonIcon.Warning);
@@ -912,8 +922,8 @@ namespace ScreenShotterWPF.ViewModels
                 settings.hkD3DCap = new HotKey(d3dCtrl, d3dAlt, d3dShift, d3dKey);
             }
 
-            settings.upload_site = (int)UploadValue;
-            settings.fileUploadSite = (int)FileuploadValue;
+            settings.imageUploadSite = UploadValue;
+            settings.fileUploadSite = FileuploadValue;
 
             SetStartUp(RunAtStart);
 
@@ -922,7 +932,7 @@ namespace ScreenShotterWPF.ViewModels
             settings.openInBrowser = OpenInBrowser;
             settings.runAtStart = RunAtStart;
             settings.saveLocal = LocalEnabled;
-            settings.anonUpload = AnonUpload;
+            settings.anonUpload = !ImgurUploadToAccount;
             settings.autoUpload = UploadEnabled;
             settings.closeToTray = CloseToTray;
             settings.startMinimized = StartMinimized;
@@ -1092,11 +1102,14 @@ namespace ScreenShotterWPF.ViewModels
                 StatusLabelText = "Waiting for Authorization..";
                 try
                 {
-                    string authCode = await GetAuthCode("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F");
-                    if (authCode != string.Empty)
+                    //string authCode = await GetAuthCode("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F");
+                    var authCode = await GetAuthCode2("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F", "http://127.0.0.1:8080");
+                    //if (authCode != string.Empty)
+                    if(authCode.Get("code") != null)
                     {
                         // finished
-                        await OAuthHelpers.GetDropboxToken(authCode);
+                        //await OAuthHelpers.GetDropboxToken(authCode);
+                        await OAuthHelpers.GetDropboxToken(authCode.Get("code"));
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonTextDropbox = "Logout";
@@ -1128,11 +1141,14 @@ namespace ScreenShotterWPF.ViewModels
                 statusLabelText = StatusLabelText = "Waiting for Authorization..";
                 try
                 {
-                    string authCode = await GetAuthCode("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public");
-                    if (authCode != string.Empty)
+                    //string authCode = await GetAuthCode("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public");
+                    var authCode = await GetAuthCode2("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public", "http://127.0.0.1:8080");
+                    //if (authCode != string.Empty)
+                    if(authCode.Get("code") != null)
                     {
                         // get access token
-                        await OAuthHelpers.GetGyazoToken(authCode);
+                        //await OAuthHelpers.GetGyazoToken(authCode);
+                        await OAuthHelpers.GetGyazoToken(authCode.Get("code"));
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                         LoginButtonTextGyazo = "Logout";
@@ -1165,11 +1181,13 @@ namespace ScreenShotterWPF.ViewModels
                 StatusLabelText = "Waiting for Authorization..";
                 try
                 {
-                    string authCode = await GetAuthCode("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
-                    if (authCode != string.Empty)
+                    //string authCode = await GetAuthCode("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
+                    var authCode = await GetAuthCode2("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory", "http://127.0.0.1:8080");
+                    //if (authCode != string.Empty)
+                    if(authCode.Get("code") != null)
                     {
                         //get tokens
-                        await OAuthHelpers.GetImgurToken(authCode);
+                        await OAuthHelpers.GetImgurToken(authCode.Get("code"));
                         Username = settings.username;
                         StatusLabelText = "Authorization complete";
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
@@ -1199,66 +1217,66 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private static async Task<string> GetAuthCode(string url)
-        {
-            //IPAddress local = IPAddress.Loopback;
-            string accesscode = string.Empty;
-            TcpListener listener = new TcpListener(IPAddress.Loopback, 8080);
-            listener.Start();
-            Byte[] bytes = new Byte[512];
-            bool receiving = true;
-            //bool found = false;
-            Process.Start(url);
-            while(receiving)
-            {
-                Console.WriteLine(@"WAITING CONNECTION");
-                var client = await listener.AcceptTcpClientAsync();
-                Console.WriteLine(@"CONNECTED");
-                NetworkStream stream = client.GetStream();
-                /*while (receiving)
-                {
-                    var read = await stream.ReadAsync(bytes, 0, bytes.Length);
-                    var data = Encoding.ASCII.GetString(bytes, 0, read);
-                    Console.WriteLine("RECEIVE: " + data);
-                    if (read == 0)
-                    {
-                        Console.WriteLine("END OF STREAM");
-                    }
-                    byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
-                    stream.Write(msg, 0, msg.Length);
-                    //string msg = stream.ReadAsync();
-                }*/
-                int i;
-                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 && receiving)
-                {
-                    var data = Encoding.ASCII.GetString(bytes, 0, i);
-                    if (data.StartsWith("GET /LXtory_Auth/"))
-                    {
-                        receiving = false;
-                        var regex = new Regex(@"code=(.*?) ");
-                        var result = regex.Match(data);
-                        if (result.Success)
-                        {
-                            accesscode = result.Groups[1].Value;
-                            byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
-                            stream.Write(msg, 0, msg.Length);
-                        }
-                        /*regex = new Regex(@"access_token=(.*?) ");
-                        result = regex.Match(data);
-                        if (result.Success)
-                        {
-                            accesscode = result.Groups[1].Value;
-                            byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
-                            stream.Write(msg, 0, msg.Length);
-                        }*/
-                    }
-                }
-                Console.WriteLine(@"CLOSING CLIENT");
-                client.Close();
-            }
-            listener.Stop();
-            return accesscode;
-        }
+        //private static async Task<string> GetAuthCode(string url)
+        //{
+        //    //IPAddress local = IPAddress.Loopback;
+        //    string accesscode = string.Empty;
+        //    TcpListener listener = new TcpListener(IPAddress.Loopback, 8080);
+        //    listener.Start();
+        //    Byte[] bytes = new Byte[512];
+        //    bool receiving = true;
+        //    //bool found = false;
+        //    Process.Start(url);
+        //    while(receiving)
+        //    {
+        //        Console.WriteLine(@"WAITING CONNECTION");
+        //        var client = await listener.AcceptTcpClientAsync();
+        //        Console.WriteLine(@"CONNECTED");
+        //        NetworkStream stream = client.GetStream();
+        //        /*while (receiving)
+        //        {
+        //            var read = await stream.ReadAsync(bytes, 0, bytes.Length);
+        //            var data = Encoding.ASCII.GetString(bytes, 0, read);
+        //            Console.WriteLine("RECEIVE: " + data);
+        //            if (read == 0)
+        //            {
+        //                Console.WriteLine("END OF STREAM");
+        //            }
+        //            byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
+        //            stream.Write(msg, 0, msg.Length);
+        //            //string msg = stream.ReadAsync();
+        //        }*/
+        //        int i;
+        //        while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 && receiving)
+        //        {
+        //            var data = Encoding.ASCII.GetString(bytes, 0, i);
+        //            if (data.StartsWith("GET /LXtory_Auth/"))
+        //            {
+        //                receiving = false;
+        //                var regex = new Regex(@"code=(.*?) ");
+        //                var result = regex.Match(data);
+        //                if (result.Success)
+        //                {
+        //                    accesscode = result.Groups[1].Value;
+        //                    byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
+        //                    stream.Write(msg, 0, msg.Length);
+        //                }
+        //                /*regex = new Regex(@"access_token=(.*?) ");
+        //                result = regex.Match(data);
+        //                if (result.Success)
+        //                {
+        //                    accesscode = result.Groups[1].Value;
+        //                    byte[] msg = Encoding.ASCII.GetBytes(CloseWindowResponse);
+        //                    stream.Write(msg, 0, msg.Length);
+        //                }*/
+        //            }
+        //        }
+        //        Console.WriteLine(@"CLOSING CLIENT");
+        //        client.Close();
+        //    }
+        //    listener.Stop();
+        //    return accesscode;
+        //}
 
         private static void EnableContextMenu(bool imagesonly)
         {

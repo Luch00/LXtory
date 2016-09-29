@@ -193,16 +193,30 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="27"/>
                                 <ColumnDefinition Width="130"/>
                             </Grid.ColumnDefinitions>
                         </Grid>
                     </ItemsPanelTemplate>
                 </StatusBar.ItemsPanel>
                 <StatusBarItem>
-                    <TextBlock x:Name="statusBarText" Text="{Binding Main.StatusText}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="statusBarText" Text="{Binding Main.StatusText}"/>
+                        
+                    </Grid>
+                </StatusBarItem>
+                <StatusBarItem Grid.Column="1">
+                    <Button x:Name="cancelButton" Grid.Column="1" Width="20" HorizontalAlignment="Right" IsEnabled="{Binding Main.CancelEnabled}" Command="{Binding Main.CancelCommand}" ToolTip="Cancel current upload">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">X</TextBlock>
+                    </Button>
                 </StatusBarItem>
                 <StatusBarItem Grid.Column="2" Height="22">
-                    <ProgressBar x:Name="progressBar1" Width="120" ClipToBounds="True" Height="16" Value="{Binding Main.ProgressValue, Mode=OneWay}" />
+                    <ProgressBar x:Name="progressBar1" Grid.Column="2" Width="120" ClipToBounds="True" Height="16" Value="{Binding Main.ProgressValue, Mode=OneWay}" />
                 </StatusBarItem>
             </StatusBar>
         </Grid>

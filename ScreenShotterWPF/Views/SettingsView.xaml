@@ -22,23 +22,24 @@
             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">No upload site selected.</TextBlock>
         </ControlTemplate>
         <ControlTemplate x:Key="ImgurTemplate">
-            <GroupBox Header="Imgur" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+            <GroupBox Header="Imgur" Margin="6">
                 <StackPanel>
-                    <RadioButton x:Name="radioAnon" Content="Use anonymous upload" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload" IsChecked="{Binding AnonOn, Mode=TwoWay}"/>
-                    <RadioButton x:Name="radioAccount" Content="Upload to Imgur account" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" GroupName="imgur_upload" IsChecked="{Binding AnonOff, Mode=TwoWay}"/>
-                    <Button x:Name="btnLogin" Content="{Binding LoginButtonText}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Imgur}"/>
+                    <CheckBox Content="Upload to Imgur account" IsChecked="{Binding ImgurUploadToAccount}" Margin="4"/>
+                    <Button x:Name="btnLogin" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Imgur}"/>
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Logged in as:" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
                         <Label x:Name="labelUsername" Content="{Binding Username}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
                     </StackPanel>
+                    <Label Content="File size limit: 10MB" Margin="4"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
         <ControlTemplate x:Key="GyazoTemplate">
-            <GroupBox Header="Gyazo" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+            <GroupBox Header="Gyazo" Margin="6">
                 <StackPanel>
                     <Label Content="Authentication"/>
-                    <Button x:Name="btnLoginGyazo" Content="{Binding LoginButtonTextGyazo}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top" Width="75" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Gyazo}"/>
+                    <Button x:Name="btnLoginGyazo" Content="{Binding LoginButtonTextGyazo}" Margin="4" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Gyazo}"/>
+                    <Label Content="File size limit: 40MB" Margin="4"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -47,11 +48,12 @@
                 <StackPanel>
                     <Label Content="Puush API key" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Stretch" Height="23" Margin="4" VerticalAlignment="Top" AcceptsReturn="False" TextWrapping="NoWrap" MaxLines="1" Text="{Binding PuushApiKey}"/>
+                    <Label Content="File size limit: 20MB"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
         <ControlTemplate x:Key="DropboxTemplate">
-            <GroupBox Header="Dropbox">
+            <GroupBox Header="Dropbox" Margin="6">
                 <StackPanel>
                     <Label Content="Authentication"/>
                     <Button Content="{Binding LoginButtonTextDropbox}" Margin="4" Command="{Binding LoginCommand}">
@@ -61,14 +63,16 @@
                     </Button>
                     <Label Content="Path"/>
                     <TextBox Text="{Binding DropboxPath}" ToolTip="Filepath in your dropbox folder"/>
+                    <Label Content="File size limit: 150MB"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
         <ControlTemplate x:Key="GoogleDriveTemplate">
-            <GroupBox Header="Google Drive">
+            <GroupBox Header="Google Drive" Margin="6">
                 <StackPanel>
                     <Label Content="Authentication"/>
                     <Button Content="{Binding LoginButtonTextGDrive}" Margin="4" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.GoogleDrive}"/>
+                    <Label Content="File size limit: 300MB"/>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>

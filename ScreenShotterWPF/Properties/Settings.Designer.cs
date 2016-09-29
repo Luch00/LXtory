@@ -657,10 +657,10 @@ namespace ScreenShotterWPF.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("99")]
-        public int fileUploadSite {
+        [global::System.Configuration.DefaultSettingValueAttribute("None")]
+        public global::ScreenShotterWPF.UploadSite fileUploadSite {
             get {
-                return ((int)(this["fileUploadSite"]));
+                return ((global::ScreenShotterWPF.UploadSite)(this["fileUploadSite"]));
             }
             set {
                 this["fileUploadSite"] = value;
@@ -754,6 +754,19 @@ namespace ScreenShotterWPF.Properties {
             }
             set {
                 this["gdriveTokenExpire"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Imgur")]
+        public global::ScreenShotterWPF.UploadSite imageUploadSite {
+            get {
+                return ((global::ScreenShotterWPF.UploadSite)(this["imageUploadSite"]));
+            }
+            set {
+                this["imageUploadSite"] = value;
             }
         }
     }

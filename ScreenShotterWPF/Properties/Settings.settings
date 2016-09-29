@@ -149,8 +149,8 @@
     <Setting Name="ftpProtocol" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="fileUploadSite" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">99</Value>
+    <Setting Name="fileUploadSite" Provider="PortableSettingsProvider" Type="ScreenShotterWPF.UploadSite" Scope="User">
+      <Value Profile="(Default)">None</Value>
     </Setting>
     <Setting Name="fileUploadEnabled" Provider="PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -172,6 +172,9 @@
     </Setting>
     <Setting Name="gdriveTokenExpire" Provider="PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="imageUploadSite" Provider="PortableSettingsProvider" Type="ScreenShotterWPF.UploadSite" Scope="User">
+      <Value Profile="(Default)">Imgur</Value>
     </Setting>
   </Settings>
 </SettingsFile>

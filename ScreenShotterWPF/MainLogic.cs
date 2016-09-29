@@ -17,9 +17,12 @@ using System.Xml.Serialization;
 using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using ScreenShotterWPF.Notifications;
-using System.Web.Script.Serialization;
+using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Prism.Commands;
 using Renci.SshNet;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace ScreenShotterWPF
 {
@@ -32,12 +35,6 @@ namespace ScreenShotterWPF
         private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
 
         private static readonly Properties.Settings settings = Properties.Settings.Default;
-        
-        private int uploading = 0;
-        private int totalUploading = 0;
-        private bool refreshing = false;
-
-        //readonly Action<XImage, string> addXImageToList;
 
         // For selecting window to capture
         private MouseKeyHook mHook;
@@ -49,13 +46,15 @@ namespace ScreenShotterWPF
 
         private int progressValue;
         private string statusText;
+        private bool cancelEnabled;
 
         private bool gifCapturing;
-
-        //private static readonly List<string> ImageExtensions = new List<string> { ".jpg", ".jpeg", ".bmp", ".gif", ".png" };
+        
         private const string defaultDateTimePattern = @"dd-MM-yy_HH-mm-ss";
 
         private readonly SynchronizationContext uiContext;
+
+        private CancellationTokenSource cancelUpload;
 
         private readonly bool windows8;
         
@@ -63,6 +62,8 @@ namespace ScreenShotterWPF
         public InteractionRequest<IConfirmation> GifOverlayRequest { get; private set; }
         public InteractionRequest<IConfirmation> GifEditorRequest { get; private set; }
         public InteractionRequest<IConfirmation> GifProgressRequest { get; private set; }
+
+        public ICommand CancelCommand { get; private set; }
 
         private readonly System.Timers.Timer timer = new System.Timers.Timer();
 
@@ -74,14 +75,15 @@ namespace ScreenShotterWPF
             uiContext = SynchronizationContext.Current;
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
-            //uploader = new Uploader(ProgressAndIconChange);
             Uploader.ProgressBarUpdate = ProgressAndIconChange;
             CreateSFTPConnectionInfo();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
             this.GifProgressRequest = new InteractionRequest<IConfirmation>();
+            this.CancelCommand = new DelegateCommand(CancelUpload);
             LoadIcons();
+            CancelEnabled = false;
             SetIcon("Default");
             timer.Interval = 5000;
             timer.Elapsed += timerTick_DelayIconChange;
@@ -90,6 +92,11 @@ namespace ScreenShotterWPF
                 SetDefaults();
             }
             StartUploads();
+        }
+
+        private void CancelUpload()
+        {
+            cancelUpload?.Cancel();
         }
 
         public void CreateSFTPConnectionInfo()
@@ -170,12 +177,12 @@ namespace ScreenShotterWPF
                     //if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
                     if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
-                        img.uploadsite = (UploadSite)settings.upload_site;
+                        img.uploadsite = settings.imageUploadSite;
                         AddToQueue(img);
                     }
-                    else if ((UploadSite)settings.fileUploadSite != UploadSite.None)
+                    else if (settings.fileUploadSite != UploadSite.None)
                     {
-                        img.uploadsite = (UploadSite)settings.fileUploadSite;
+                        img.uploadsite = settings.fileUploadSite;
                         AddToQueue(img);
                     }
                 }
@@ -184,13 +191,14 @@ namespace ScreenShotterWPF
             return true;
         }
 
-        private async void StartUploads()
+        private void StartUploads()
         {
-            var uploadTask = new Task(() => Upload());
-            uploadTask.Start();
+            Task.Run(() => Upload());
+            //var uploadTask = new Task(() => Upload());
+            //uploadTask.Start();
             Console.WriteLine(@"Uploads Started");
-            await uploadTask;
-            Console.WriteLine(@"Everything was finished");
+            //await uploadTask;
+            //Console.WriteLine(@"Everything was finished");
         }
 
         public void SetAsComplete()
@@ -242,214 +250,208 @@ namespace ScreenShotterWPF
             }
         }
 
-        private static dynamic StringToJson(string s)
+        private static bool CheckFileSizeLimit(long fileSize, int maxMB)
         {
-            var serializer = new JavaScriptSerializer();
-            return serializer.Deserialize<dynamic>(s);
+            return ((fileSize / 1024L) / 1024L) > maxMB;
         }
 
         private async void Upload()
         {
             while (!queue.IsCompleted)
             {
-                if (!refreshing)
+                CancelEnabled = false;
+                XImage currentUpload;
+                if (queue.TryTake(out currentUpload, Timeout.Infinite))
                 {
-                    XImage currentUpload;
-                    if (queue.TryTake(out currentUpload, Timeout.Infinite))
+                    try
                     {
-                        try
+                        var filesize = currentUpload.image?.Length ?? new FileInfo(currentUpload.filepath).Length;
+                        if (filesize == 0)
                         {
-                            var filesize = currentUpload.image?.Length ?? new FileInfo(currentUpload.filepath).Length;
-                            //if (currentUpload.image == null)
-                            if (filesize == 0)
-                            {
-                                Console.WriteLine(@"Tried to upload an empty file");
-                                continue;
-                            }
-                            uploading++;
-                            SetStatusBarText("Uploading.." + uploading + "/" + totalUploading);
-                            Tuple<bool, string, string> result;
-                            string response;
-                            dynamic json;
-                            switch (currentUpload.uploadsite)
-                            {
-                                case UploadSite.Imgur:
-                                default:
-                                    if (((filesize / 1024f) / 1024f) > 10)
-                                    {
-                                        totalUploading--;
-                                        currentUpload.image = null;
-                                        SetStatusBarText("File too large. Skipping.");
-                                        continue;
-                                    }
-                                    // refresh imgur token if using account
-                                    if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.anonupload == false)
-                                    {
-                                        SetStatusBarText("Refreshing Imgur login..");
-                                        ChangeTrayIcon("R");
-                                        await OAuthHelpers.RefreshImgurToken();
-                                    }
-                                    response = await Uploader.HttpImgurUpload(currentUpload);
-                                    json = StringToJson(response);
-                                    string thumb = $"http://i.imgur.com/{json["data"]["id"]}m.jpg";
-
-                                    result =  new Tuple<bool, string, string>(true, json["data"]["link"], thumb);
-                                    break;
-                                case UploadSite.Gyazo:
-                                    if (settings.gyazoToken == string.Empty)
-                                    {
-                                        // login first
-                                        MessageBox.Show("Login to Gyazo first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
-                                        continue;
-                                    }
-                                    if (((filesize / 1024f) / 1024f) > 20)
-                                    {
-                                        totalUploading--;
-                                        currentUpload.image = null;
-                                        SetStatusBarText("File too large. Skipping.");
-                                        continue;
-                                    }
-                                    response = await Uploader.HttpGyazoUpload(currentUpload);
-                                    json = StringToJson(response);
-                                    string link = json["url"];
-                                    string thumbnail = json["thumb_url"];
-                                    
-                                    result = new Tuple<bool, string, string>(true, link, thumbnail);
-                                    break;
-                                case UploadSite.Puush:
-                                    if (settings.puush_key == string.Empty)
-                                    {
-                                        MessageBox.Show("Puush api key required!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
-                                        continue;
-                                    }
-                                    if (((filesize / 1024f) / 1024f) > 20)
-                                    {
-                                        totalUploading--;
-                                        currentUpload.image = null;
-                                        SetStatusBarText("File too large. Skipping.");
-                                        continue;
-                                    }
-                                    response = await Uploader.HttpPuushUpload(currentUpload);
-                                    if (response.StartsWith("-"))
-                                    {
-                                        result = new Tuple<bool, string, string>(false, "", "");
-                                        break;
-                                    }
-                                    //Console.WriteLine(response);
-                                    string[] split = response.Split(',');
-                                    string t = $"http://puush.me/{split[2]}";
-                                    
-                                    result =  new Tuple<bool, string, string>(true, split[1], t);
-                                    break;
-                                case UploadSite.Dropbox:
-                                    if (settings.dropboxToken == string.Empty)
-                                    {
-                                        MessageBox.Show("Login to Dropbox first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
-                                        continue;
-                                    }
-                                    if (((filesize / 1024f) / 1024f) > 150)
-                                    {
-                                        totalUploading--;
-                                        currentUpload.image = null;
-                                        SetStatusBarText("File too large. Skipping.");
-                                        continue;
-                                    }
-                                    response = await Uploader.HttpDropboxUpload(currentUpload);
-                                    json = StringToJson(response);
-                                    var path = json["path_display"];
-                                    response = await Uploader.GetDropboxSharedUrl(path);
-                                    Console.WriteLine(path);
-                                    result = new Tuple<bool, string, string>(true, response, "");
-                                    break;
-                                case UploadSite.GoogleDrive:
-                                    if (settings.gdriveToken == string.Empty)
-                                    {
-                                        MessageBox.Show("Login to Google Drive first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
-                                        continue;
-                                    }
-                                    if (((filesize / 1024f) / 1024f) > 150)
-                                    {
-                                        totalUploading--;
-                                        currentUpload.image = null;
-                                        SetStatusBarText("File too large. Skipping.");
-                                        continue;
-                                    }
-                                    if (TokenNeedsRefresh(UploadSite.GoogleDrive))
-                                    {
-                                        SetStatusBarText("Refreshing GDrive login..");
-                                        ChangeTrayIcon("R");
-                                        await OAuthHelpers.RefreshGoogleDriveToken();
-                                    }
-                                    response = await Uploader.HttpGoogleDriveUpload(currentUpload);
-                                    //https://drive.google.com/file/d/0B685Zhwu_twsc0R5Z0N6eVZZQ2M/view
-                                    json = StringToJson(response);
-                                    var id = json["id"];
-                                    await Uploader.SetGoogleDriveFileShared(id);
-                                    var url = $"https://drive.google.com/file/d/{id}/view";
-                                    result = new Tuple<bool, string, string>(true, url, "");
-                                    break;
-                                case UploadSite.SFTP:
-                                    if (settings.ftpProtocol == 0)
-                                    {
-                                        response = await Uploader.FTPUpload(currentUpload);
-                                    }
-                                    else
-                                    {
-                                        response = Uploader.SFTPUpload(currentUpload, ftpConnectionInfo);
-                                    }
-                                    
-                                    result = new Tuple<bool, string, string>(true, response, "");
-                                    break;
-                            }
-
-                            if (result.Item1)
-                            {
-                                uiContext.Post(x => AddXimageToList(currentUpload, result.Item2, result.Item3), null);
-                                //AddXimageToList(currentUpload, result.Item2);
-                                ChangeTrayIcon("F");
-                            }
-                            else
-                            {
-                                ChangeTrayIcon("E");
-                                /*MessageBox.Show(result.Item2, "Something went wrong.", MessageBoxButton.OK,
-                                    MessageBoxImage.Exclamation);*/
-                                throw new Exception("Something went wrong.");
-                            }
-
-                            if (queue.Count == 0)
-                            {
-                                uploading = 0;
-                                totalUploading = 0;
-                                SetStatusBarText("Done");
-                            }
+                            Console.WriteLine(@"Tried to upload an empty file");
+                            continue;
                         }
-                        catch (Exception e)
-                        {
-                            ChangeTrayIcon("E");
-                            MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
-                                MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
 
-                            /*TaskDialog dialog = new TaskDialog();
-                            dialog.Caption = "LXtory Error";
-                            dialog.InstructionText = "LXtory Error";
-                            dialog.Text = e.Message;
-                            dialog.Icon = TaskDialogStandardIcon.Error;
-                            dialog.Cancelable = false;
-                            dialog.DetailsExpanded = false;
-                            dialog.DetailsCollapsedLabel = "Show Stack Trace";
-                            dialog.DetailsExpandedLabel = "Hide Stack Trace";
-                            dialog.DetailsExpandedText = e.StackTrace;
-                            dialog.Show();*/
+                        SetStatusBarText("Uploading..");
+                        cancelUpload = new CancellationTokenSource();
+                        CancelEnabled = true;
+                        Tuple<string, string> result = null;
+                        string response;
+                        dynamic json;
+                        switch (currentUpload.uploadsite)
+                        {
+                            case UploadSite.Imgur:
+                            default:
+                                // check if filesize exceeds service limitations
+                                if (CheckFileSizeLimit(filesize, 10))
+                                {
+                                    currentUpload.image = null;
+                                    SetStatusBarText("File too large. Skipping.");
+                                    continue;
+                                }
+
+                                // refresh imgur token if using account
+                                if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.anonupload == false)
+                                {
+                                    SetStatusBarText("Refreshing Imgur login..");
+                                    ChangeTrayIcon("R");
+                                    await OAuthHelpers.RefreshImgurToken();
+                                    SetStatusBarText("Uploading..");
+                                }
+
+                                // do the upload
+                                response = await Uploader.HttpImgurUpload(currentUpload, cancelUpload.Token);
+
+                                // parse response
+                                json = JsonConvert.DeserializeObject<ExpandoObject>(response);
+                                string thumb = $"http://i.imgur.com/{json.data.id}m.jpg";
+
+                                result = new Tuple<string, string>(json.data.link, thumb);
+                                break;
+                            case UploadSite.Gyazo:
+                                if (settings.gyazoToken == string.Empty)
+                                {
+                                    // login first
+                                    MessageBox.Show("Login to Gyazo first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                        MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                    continue;
+                                }
+
+                                if(CheckFileSizeLimit(filesize, 40))
+                                {
+                                    currentUpload.image = null;
+                                    SetStatusBarText("File too large. Skipping.");
+                                    continue;
+                                }
+                                response = await Uploader.HttpGyazoUpload(currentUpload, cancelUpload.Token);
+
+                                json = JsonConvert.DeserializeObject<ExpandoObject>(response);
+                                string link = json.url;
+                                string thumbnail = json.thumb_url;
+                                    
+                                result = new Tuple<string, string>(link, thumbnail);
+                                break;
+                            case UploadSite.Puush:
+                                if (settings.puush_key == string.Empty)
+                                {
+                                    MessageBox.Show("Puush api key required!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                        MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                    continue;
+                                }
+
+                                if(CheckFileSizeLimit(filesize, 20))
+                                {
+                                    currentUpload.image = null;
+                                    SetStatusBarText("File too large. Skipping.");
+                                    continue;
+                                }
+                                response = await Uploader.HttpPuushUpload(currentUpload, cancelUpload.Token);
+
+                                string[] split = response.Split(',');
+                                string t = $"http://puush.me/{split[2]}";
+                                    
+                                result =  new Tuple<string, string>(split[1], t);
+                                break;
+                            case UploadSite.Dropbox:
+                                if (settings.dropboxToken == string.Empty)
+                                {
+                                    MessageBox.Show("Login to Dropbox first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                        MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                    continue;
+                                }
+                                if(CheckFileSizeLimit(filesize, 150))
+                                {
+                                    currentUpload.image = null;
+                                    SetStatusBarText("File too large. Skipping.");
+                                    continue;
+                                }
+                                response = await Uploader.HttpDropboxUpload(currentUpload, cancelUpload.Token);
+
+                                json = JsonConvert.DeserializeObject<ExpandoObject>(response);
+                                var path = json.path_display;
+                                response = await Uploader.GetDropboxSharedUrl(path);
+
+                                result = new Tuple<string, string>(response, "");
+                                break;
+                            case UploadSite.GoogleDrive:
+                                if (settings.gdriveToken == string.Empty)
+                                {
+                                    MessageBox.Show("Login to Google Drive first!", "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                                        MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
+                                    continue;
+                                }
+
+                                if(CheckFileSizeLimit(filesize, 300))
+                                {
+                                    currentUpload.image = null;
+                                    SetStatusBarText("File too large. Skipping.");
+                                    continue;
+                                }
+
+                                if (TokenNeedsRefresh(UploadSite.GoogleDrive))
+                                {
+                                    SetStatusBarText("Refreshing GDrive login..");
+                                    ChangeTrayIcon("R");
+                                    await OAuthHelpers.RefreshGoogleDriveToken();
+                                    SetStatusBarText("Uploading..");
+                                }
+
+                                response = await Uploader.HttpGoogleDriveUpload(currentUpload, cancelUpload.Token);
+
+                                json = JsonConvert.DeserializeObject<ExpandoObject>(response);
+                                var id = json.id;
+                                await Uploader.SetGoogleDriveFileShared(id, cancelUpload.Token);
+                                var url = $"https://drive.google.com/file/d/{id}/view";
+
+                                result = new Tuple<string, string>(url, "");
+                                break;
+                            case UploadSite.SFTP:
+                                if (settings.ftpProtocol == 0)
+                                {
+                                    response = await Uploader.FTPUpload(currentUpload);
+                                }
+                                else
+                                {
+                                    response = Uploader.SFTPUpload(currentUpload, ftpConnectionInfo, cancelUpload.Token);
+                                }
+
+                                result = new Tuple<string, string>(response, "");
+                                break;
+                        }
+                        uiContext.Post(x => AddXimageToList(currentUpload, result.Item1, result.Item2), null);
+                        ChangeTrayIcon("F");
+                        BalloonMessage.ShowMessage("Upload complete", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+
+                        if (queue.Count == 0)
+                        {
+                            SetStatusBarText("Done");
                         }
                     }
-                }
-                else
-                {
-                    Thread.Sleep(500);
+                    catch (Exception e)
+                    {
+                        if (e is TaskCanceledException)
+                        {
+                            ChangeTrayIcon("Default");
+                            StatusText = "Upload task cancelled";
+                            BalloonMessage.ShowMessage("Upload task cancelled", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                            continue;
+                        }
+                        ChangeTrayIcon("E");
+                        /*MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
+                            MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);*/
+
+                        TaskDialog dialog = new TaskDialog();
+                        dialog.Caption = "LXtory Error";
+                        dialog.InstructionText = "LXtory Error";
+                        dialog.Text = e.Message;
+                        dialog.Icon = TaskDialogStandardIcon.Error;
+                        dialog.Cancelable = false;
+                        dialog.DetailsExpanded = false;
+                        dialog.DetailsCollapsedLabel = "Show Stack Trace";
+                        dialog.DetailsExpandedLabel = "Hide Stack Trace";
+                        dialog.DetailsExpandedText = e.StackTrace;
+                        dialog.Show();
+                    }
                 }
             }
             Console.WriteLine(@"STOPPED :O");
@@ -471,6 +473,12 @@ namespace ScreenShotterWPF
         private void SetStatusBarText(string s)
         {
             StatusText = s;
+        }
+
+        public bool CancelEnabled
+        {
+            get { return cancelEnabled; }
+            private set { SetProperty(ref cancelEnabled, value); }
         }
 
         public ObservableCollection<XImage> Ximages
@@ -497,14 +505,6 @@ namespace ScreenShotterWPF
         {
             get { return icon; }
             set { SetProperty(ref icon, value); }
-            /*set
-            {
-                if (value != icon)
-                {
-                    icon = value;
-                    OnPropertyChanged("Icon"); 
-                }
-            }*/
         }
 
         private void SetIcon(string s)
@@ -806,7 +806,7 @@ namespace ScreenShotterWPF
                                 img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
                                 img.date = date;
-                                img.uploadsite = (UploadSite)settings.upload_site;
+                                img.uploadsite = settings.imageUploadSite;
                                 if (settings.gifUpload)
                                 {
                                     img.anonupload = settings.anonUpload;
@@ -941,7 +941,7 @@ namespace ScreenShotterWPF
                 filename = $"{f}.png",
                 url = "",
                 filepath = "",
-                uploadsite = (UploadSite)settings.upload_site
+                uploadsite = settings.imageUploadSite
             };
             const string p = "dd.MM.yy HH:mm:ss";
             x.datetime = DateTime.Now;
