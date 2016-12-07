@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -126,8 +125,7 @@ namespace ScreenShotterWPF.ViewModels
         {
             if (b)
             {
-                NativeMethods.POINT p;
-                NativeMethods.GetCursorPos(out p);
+                NativeMethods.GetCursorPos(out NativeMethods.POINT p);
                 Main.CapWindowFromPoint(p.X, p.Y);
             }
             MouseKeyHook.Unhook();

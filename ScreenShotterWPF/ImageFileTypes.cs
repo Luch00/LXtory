@@ -10,7 +10,6 @@ namespace ScreenShotterWPF
         {
             get { return supportedTypes;}
         }
-
     }
 
     public enum UploadSite

@@ -24,9 +24,11 @@ namespace ScreenShotterWPF
         [XmlIgnore]
         public byte[] image;
         [XmlIgnore]
-        public bool anonupload { get; set; }
+        public bool Anonupload { get; set; }
         [XmlIgnore]
-        public UploadSite uploadsite { get; set; }
+        public UploadSite Uploadsite { get; set; }
+        [XmlIgnore]
+        public bool IsImage { get; set; } = true;
         public string url
         {
             get { return this._url; }
@@ -104,7 +106,7 @@ namespace ScreenShotterWPF
                 Clipboard.Clear();
                 Clipboard.SetDataObject(this.url);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //RetryClipboard(x.url);
             }

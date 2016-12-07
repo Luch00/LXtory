@@ -25,12 +25,16 @@
             <GroupBox Header="Imgur" Margin="6">
                 <StackPanel>
                     <CheckBox Content="Upload to Imgur account" IsChecked="{Binding ImgurUploadToAccount}" Margin="4"/>
-                    <Button x:Name="btnLogin" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Imgur}"/>
-                    <StackPanel Orientation="Horizontal">
-                        <Label Content="Logged in as:" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
-                        <Label x:Name="labelUsername" Content="{Binding Username}" HorizontalAlignment="Left" Margin="4" VerticalAlignment="Top"/>
-                    </StackPanel>
-                    <Label Content="File size limit: 10MB" Margin="4"/>
+                    <Button x:Name="btnLogin" Margin="4" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Imgur}"/>
+                    <TextBlock>
+                        <TextBlock Text="Logged in as:" Margin="4"/>
+                        <TextBlock x:Name="labelUsername" Text="{Binding Username}" Margin="4"/>
+                    </TextBlock>
+                    <TextBlock Margin="4">
+                        <TextBlock>File size limit:</TextBlock>
+                        <TextBlock Text="{Binding FileSizeImgur}" />
+                        <TextBlock>MB</TextBlock>
+                    </TextBlock>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -39,16 +43,24 @@
                 <StackPanel>
                     <Label Content="Authentication"/>
                     <Button x:Name="btnLoginGyazo" Content="{Binding LoginButtonTextGyazo}" Margin="4" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Gyazo}"/>
-                    <Label Content="File size limit: 40MB" Margin="4"/>
+                    <TextBlock Margin="4">
+                        <TextBlock>File size limit:</TextBlock>
+                        <TextBlock Text="{Binding FileSizeGyazo}" />
+                        <TextBlock>MB</TextBlock>
+                    </TextBlock>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
         <ControlTemplate x:Key="PuushTemplate">
-            <GroupBox Header="Puush" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+            <GroupBox Header="Puush" Margin="6">
                 <StackPanel>
-                    <Label Content="Puush API key" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Stretch" Height="23" Margin="4" VerticalAlignment="Top" AcceptsReturn="False" TextWrapping="NoWrap" MaxLines="1" Text="{Binding PuushApiKey}"/>
-                    <Label Content="File size limit: 20MB"/>
+                    <Label Content="Puush API key"/>
+                    <TextBox x:Name="txtPuushApiKey" HorizontalAlignment="Stretch" Height="23" AcceptsReturn="False" TextWrapping="NoWrap" MaxLines="1" Text="{Binding PuushApiKey}"/>
+                    <TextBlock Margin="4">
+                        <TextBlock>File size limit:</TextBlock>
+                        <TextBlock Text="{Binding FileSizePuush}" />
+                        <TextBlock>MB</TextBlock>
+                    </TextBlock>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -63,7 +75,11 @@
                     </Button>
                     <Label Content="Path"/>
                     <TextBox Text="{Binding DropboxPath}" ToolTip="Filepath in your dropbox folder"/>
-                    <Label Content="File size limit: 150MB"/>
+                    <TextBlock Margin="4">
+                        <TextBlock>File size limit:</TextBlock>
+                        <TextBlock Text="{Binding FileSizeDropbox}" />
+                        <TextBlock>MB</TextBlock>
+                    </TextBlock>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -72,7 +88,11 @@
                 <StackPanel>
                     <Label Content="Authentication"/>
                     <Button Content="{Binding LoginButtonTextGDrive}" Margin="4" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.GoogleDrive}"/>
-                    <Label Content="File size limit: 300MB"/>
+                    <TextBlock Margin="4">
+                        <TextBlock>File size limit:</TextBlock>
+                        <TextBlock Text="{Binding FileSizeGDrive}" />
+                        <TextBlock>MB</TextBlock>
+                    </TextBlock>
                 </StackPanel>
             </GroupBox>
         </ControlTemplate>
@@ -176,7 +196,7 @@
                             <CheckBox x:Name="checkRunatStart" Content="Run at Windows startup" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding RunAtStart}"/>
                             <CheckBox x:Name="checkStartMinimized" Content="Start minimized" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding StartMinimized}"/>
                             <CheckBox x:Name="checkClosetoTray" Content="Close to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CloseToTray}"/>
-                            <CheckBox x:Name="checkOpeninBrowser" Content="Open in browser after upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding OpenInBrowser}"/>
+                            <CheckBox x:Name="checkOpeninBrowser" Content="Open in browser after upload" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding OpenInBrowser}" ToolTip="Images only"/>
                             <CheckBox x:Name="checkCopytoClipboard" Content="Copy last url to clipboard" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding CopyToClipboard}"/>
                             <CheckBox x:Name="disableWebThumbs" Content="Disable web thumbnails" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding DisableWebThumbs}"/>
                             <CheckBox Content="Enable file context menu" Margin="4" IsChecked="{Binding ContextMenuEnabled}" ToolTip="Add LXtory entry to Windows Explorer file context menu for .jpg .png .bmp and .gif files"/>

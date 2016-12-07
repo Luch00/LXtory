@@ -7,7 +7,7 @@ namespace ScreenShotterWPF.Notifications
         public Gif Gif { get; set; }
 
         public GifEditorNotification()
-        {   
+        {
         }
     }
 }

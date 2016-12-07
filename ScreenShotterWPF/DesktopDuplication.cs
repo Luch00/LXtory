@@ -2,7 +2,6 @@
 using SharpDX;
 using System;
 using System.Collections.Generic;
-using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -141,11 +140,11 @@ namespace ScreenShotterWPF
             {
                 try
                 {
-                    SharpDX.DXGI.Resource screenResource;
-                    OutputDuplicateFrameInformation duplicateFrameInformation;
-                    
                     // Try to get duplicated frame within given time
-                    duplicatedOutput.AcquireNextFrame(500, out duplicateFrameInformation, out screenResource);
+                    duplicatedOutput.AcquireNextFrame(
+                        500,
+                        out OutputDuplicateFrameInformation duplicateFrameInformation,
+                        out SharpDX.DXGI.Resource screenResource);
 
                     if (j > 0)
                     {

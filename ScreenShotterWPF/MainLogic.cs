@@ -173,16 +173,17 @@ namespace ScreenShotterWPF
                     img.datetime = DateTime.Now;
                     string d = DateTime.Now.ToString(p);
                     img.date = d;
-                    img.anonupload = settings.anonUpload;
+                    img.Anonupload = settings.anonUpload;
                     //if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
                     if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
-                        img.uploadsite = settings.imageUploadSite;
+                        img.Uploadsite = settings.imageUploadSite;
                         AddToQueue(img);
                     }
                     else if (settings.fileUploadSite != UploadSite.None)
                     {
-                        img.uploadsite = settings.fileUploadSite;
+                        img.IsImage = false;
+                        img.Uploadsite = settings.fileUploadSite;
                         AddToQueue(img);
                     }
                 }
@@ -260,8 +261,7 @@ namespace ScreenShotterWPF
             while (!queue.IsCompleted)
             {
                 CancelEnabled = false;
-                XImage currentUpload;
-                if (queue.TryTake(out currentUpload, Timeout.Infinite))
+                if (queue.TryTake(out XImage currentUpload, Timeout.Infinite))
                 {
                     try
                     {
@@ -278,12 +278,12 @@ namespace ScreenShotterWPF
                         Tuple<string, string> result = null;
                         string response;
                         dynamic json;
-                        switch (currentUpload.uploadsite)
+                        switch (currentUpload.Uploadsite)
                         {
                             case UploadSite.Imgur:
                             default:
                                 // check if filesize exceeds service limitations
-                                if (CheckFileSizeLimit(filesize, 10))
+                                if (CheckFileSizeLimit(filesize, settings.fileSizeImgur))
                                 {
                                     currentUpload.image = null;
                                     SetStatusBarText("File too large. Skipping.");
@@ -291,7 +291,7 @@ namespace ScreenShotterWPF
                                 }
 
                                 // refresh imgur token if using account
-                                if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.anonupload == false)
+                                if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.Anonupload == false)
                                 {
                                     SetStatusBarText("Refreshing Imgur login..");
                                     ChangeTrayIcon("R");
@@ -317,7 +317,7 @@ namespace ScreenShotterWPF
                                     continue;
                                 }
 
-                                if(CheckFileSizeLimit(filesize, 40))
+                                if(CheckFileSizeLimit(filesize, settings.fileSizeGyazo))
                                 {
                                     currentUpload.image = null;
                                     SetStatusBarText("File too large. Skipping.");
@@ -339,7 +339,7 @@ namespace ScreenShotterWPF
                                     continue;
                                 }
 
-                                if(CheckFileSizeLimit(filesize, 20))
+                                if(CheckFileSizeLimit(filesize, settings.fileSizePuush))
                                 {
                                     currentUpload.image = null;
                                     SetStatusBarText("File too large. Skipping.");
@@ -348,6 +348,10 @@ namespace ScreenShotterWPF
                                 response = await Uploader.HttpPuushUpload(currentUpload, cancelUpload.Token);
 
                                 string[] split = response.Split(',');
+                                if (split.Length < 3)
+                                {
+                                    throw new Exception($"Puush error\r\n{response}");
+                                }
                                 string t = $"http://puush.me/{split[2]}";
                                     
                                 result =  new Tuple<string, string>(split[1], t);
@@ -359,7 +363,7 @@ namespace ScreenShotterWPF
                                         MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);
                                     continue;
                                 }
-                                if(CheckFileSizeLimit(filesize, 150))
+                                if(CheckFileSizeLimit(filesize, settings.fileSizeDropbox))
                                 {
                                     currentUpload.image = null;
                                     SetStatusBarText("File too large. Skipping.");
@@ -381,7 +385,7 @@ namespace ScreenShotterWPF
                                     continue;
                                 }
 
-                                if(CheckFileSizeLimit(filesize, 300))
+                                if(CheckFileSizeLimit(filesize, settings.fileSizeGDrive))
                                 {
                                     currentUpload.image = null;
                                     SetStatusBarText("File too large. Skipping.");
@@ -420,7 +424,8 @@ namespace ScreenShotterWPF
                         }
                         uiContext.Post(x => AddXimageToList(currentUpload, result.Item1, result.Item2), null);
                         ChangeTrayIcon("F");
-                        BalloonMessage.ShowMessage("Upload complete", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                        //BalloonMessage.ShowMessage("Upload complete", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                        BalloonMessage.ShowMessage("Upload complete");
 
                         if (queue.Count == 0)
                         {
@@ -621,8 +626,7 @@ namespace ScreenShotterWPF
         {
             if (b)
             {
-                NativeMethods.POINT p;
-                NativeMethods.GetCursorPos(out p);
+                NativeMethods.GetCursorPos(out NativeMethods.POINT p);
                 CapWindowFromPoint(p.X, p.Y);
             }
             MouseKeyHook.Unhook();
@@ -635,18 +639,18 @@ namespace ScreenShotterWPF
                 MessageBox.Show("DirectX capture requires Windows 8 or higher.", "Fail", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return;
             }
-                
+            var title = GetActiveWindowTitle();
             try
             {
                 if (!settings.d3dAllScreens)
                 {
                     //DesktopDuplication.DuplicatePrimaryScreen();
                     //GC.Collect();
-                    ImageManager(DesktopDuplication.DuplicatePrimaryScreen(), "D3DScreenshot");
+                    ImageManager(DesktopDuplication.DuplicatePrimaryScreen(), title);
                 }
                 else
                 {
-                    ImageManager(DesktopDuplication.DuplicateAllScreens(), "D3DScreenshot");
+                    ImageManager(DesktopDuplication.DuplicateAllScreens(), title);
                 }
             }
             catch (Exception e)
@@ -806,10 +810,10 @@ namespace ScreenShotterWPF
                                 img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
                                 img.date = date;
-                                img.uploadsite = settings.imageUploadSite;
+                                img.Uploadsite = settings.imageUploadSite;
                                 if (settings.gifUpload)
                                 {
-                                    img.anonupload = settings.anonUpload;
+                                    img.Anonupload = settings.anonUpload;
                                     AddToQueue(img);
                                 }
                                 else
@@ -858,7 +862,7 @@ namespace ScreenShotterWPF
             StringBuilder buff = new StringBuilder(nChars);
             var handle = NativeMethods.GetForegroundWindow();
             
-            return NativeMethods.GetWindowText(handle, buff, nChars) > 0 ? buff.ToString() : "null";
+            return NativeMethods.GetWindowText(handle, buff, nChars) > 0 ? buff.ToString() : "image";
         }
 
         // convert image into png encoded byte array
@@ -941,7 +945,7 @@ namespace ScreenShotterWPF
                 filename = $"{f}.png",
                 url = "",
                 filepath = "",
-                uploadsite = settings.imageUploadSite
+                Uploadsite = settings.imageUploadSite
             };
             const string p = "dd.MM.yy HH:mm:ss";
             x.datetime = DateTime.Now;
@@ -961,7 +965,7 @@ namespace ScreenShotterWPF
 
             if (settings.autoUpload)
             {
-                x.anonupload = settings.anonUpload;
+                x.Anonupload = settings.anonUpload;
                 AddToQueue(x);
             }
             else
@@ -1010,7 +1014,7 @@ namespace ScreenShotterWPF
                     }
                 }
             }
-            if (url.Length > 0)
+            if (url.Length > 0 && x.IsImage)
             {
                 if (settings.openInBrowser)
                 {
@@ -1089,8 +1093,7 @@ namespace ScreenShotterWPF
 
         private static NativeMethods.USERNOTIFICATIONSTATE NotificationState()
         {
-            NativeMethods.USERNOTIFICATIONSTATE state;
-            var value = NativeMethods.SHQueryUserNotificationState(out state);
+            var value = NativeMethods.SHQueryUserNotificationState(out NativeMethods.USERNOTIFICATIONSTATE state);
             return state;
         }
     }

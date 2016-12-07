@@ -394,8 +394,7 @@ namespace ScreenShotterWPF.ViewModels
             get { return ftpPort.ToString(); }
             set
             {
-                int port;
-                if (!Int32.TryParse(value, out port))
+                if (!Int32.TryParse(value, out int port))
                 {
                     SetProperty(ref ftpPort, 22);
                 }
@@ -703,28 +702,30 @@ namespace ScreenShotterWPF.ViewModels
             set { SetProperty(ref fileuploadValue, value); }
         }
 
-        /*public bool AnonUpload
+        public string FileSizeImgur
         {
-            get { return anonUpload; }
-            set
-            {
-                anonUpload = value;
-                OnPropertyChanged("AnonOn");
-                OnPropertyChanged("AnonOff");
-            }
-        }*/
-
-        /*public bool AnonOn
-        {
-            get { return AnonUpload.Equals(true); }
-            set { AnonUpload = true; }
+            get { return settings.fileSizeImgur.ToString(); }
         }
 
-        public bool AnonOff
+        public string FileSizePuush
         {
-            get { return AnonUpload.Equals(false); }
-            set { AnonUpload = false; }
-        }*/
+            get { return settings.fileSizePuush.ToString(); }
+        }
+
+        public string FileSizeGyazo
+        {
+            get { return settings.fileSizeGyazo.ToString(); }
+        }
+
+        public string FileSizeGDrive
+        {
+            get { return settings.fileSizeGDrive.ToString(); }
+        }
+
+        public string FileSizeDropbox
+        {
+            get { return settings.fileSizeDropbox.ToString(); }
+        }
 
         #endregion
 
@@ -1057,7 +1058,7 @@ namespace ScreenShotterWPF.ViewModels
                         BalloonMessage.ShowMessage("Authorization complete", BalloonIcon.Info);
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     StatusLabelText = "Authorization failed";
                     BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
@@ -1103,7 +1104,7 @@ namespace ScreenShotterWPF.ViewModels
                 try
                 {
                     //string authCode = await GetAuthCode("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F");
-                    var authCode = await GetAuthCode2("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F", "http://127.0.0.1:8080");
+                    var authCode = await GetAuthCode2("https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=r36i3mn05mghy8d&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F", "http://127.0.0.1:8080/");
                     //if (authCode != string.Empty)
                     if(authCode.Get("code") != null)
                     {
@@ -1142,7 +1143,7 @@ namespace ScreenShotterWPF.ViewModels
                 try
                 {
                     //string authCode = await GetAuthCode("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public");
-                    var authCode = await GetAuthCode2("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public", "http://127.0.0.1:8080");
+                    var authCode = await GetAuthCode2("https://api.gyazo.com/oauth/authorize?response_type=code&client_id=f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2FLXtory_Auth%2F&scope=public", "http://127.0.0.1:8080/");
                     //if (authCode != string.Empty)
                     if(authCode.Get("code") != null)
                     {
@@ -1182,7 +1183,7 @@ namespace ScreenShotterWPF.ViewModels
                 try
                 {
                     //string authCode = await GetAuthCode("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory");
-                    var authCode = await GetAuthCode2("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory", "http://127.0.0.1:8080");
+                    var authCode = await GetAuthCode2("https://api.imgur.com/oauth2/authorize?client_id=83c1c8bf9f4d2b1&response_type=code&state=LXtory", "http://127.0.0.1:8080/");
                     //if (authCode != string.Empty)
                     if(authCode.Get("code") != null)
                     {
@@ -1200,7 +1201,7 @@ namespace ScreenShotterWPF.ViewModels
                         BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     StatusLabelText = "Authorization failed";
                     BalloonMessage.ShowMessage("Authorization failed", BalloonIcon.Error);

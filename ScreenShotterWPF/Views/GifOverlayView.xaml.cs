@@ -10,13 +10,20 @@ namespace ScreenShotterWPF.Views
     /// </summary>
     public partial class GifOverlayView : UserControl
     {
+        //private double top;
+        //private double left;
         public GifOverlayView()
-        {
+        {   
             InitializeComponent();
+            //border1.Focus();
+            //left = Window.GetWindow(this)?.Left ?? 0;
+            //top = Window.GetWindow(this)?.Top ?? 0;
         }
 
         private void Border_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
+            //Keyboard.ClearFocus();
+            //border1.Focus();            
             Window.GetWindow(this)?.DragMove();
         }
 
@@ -27,6 +34,32 @@ namespace ScreenShotterWPF.Views
             Resizable_BorderLess_Chrome.CornerRadius = new CornerRadius(0);
             Resizable_BorderLess_Chrome.CaptionHeight = 5.0;
             WindowChrome.SetWindowChrome(Window.GetWindow(this), Resizable_BorderLess_Chrome);
+        }
+
+        private void Border_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            /*switch (e.Key)
+            {
+                case Key.None:
+                    break;
+                case Key.Left:
+                    Window.GetWindow(this).Left--;
+                    break;
+                case Key.Up:
+                    Window.GetWindow(this).Top--;
+                    break;
+                case Key.Right:
+                    Window.GetWindow(this).Left++;
+                    break;
+                case Key.Down:
+                    Window.GetWindow(this).Top++;
+                    break;
+                default:
+                    break;
+            }*/
+            //e.Handled = true;
+            //Keyboard.ClearFocus();
+            //border1.Focus();
         }
     }
 }

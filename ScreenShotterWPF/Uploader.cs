@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Collections.Specialized;
 using System.IO;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -116,6 +115,10 @@ namespace ScreenShotterWPF
                 else
                 {
                     var error = await response.Content.ReadAsStringAsync();
+                    if (error.Length > 512)
+                    {
+                        error = "";
+                    }
                     throw new Exception($"Upload error.\r\n{response.ReasonPhrase}\r\n{error}");
                 }
             }
@@ -219,7 +222,7 @@ namespace ScreenShotterWPF
 
                 var extraHeaders = new Dictionary<string, string>
                 {
-                    ["Authorization"] = img.anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
+                    ["Authorization"] = img.Anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
                 };
                 return await UploadData("https://api.imgur.com/3/image", form, token, extraHeaders);
             }
