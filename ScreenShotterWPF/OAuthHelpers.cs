@@ -10,17 +10,18 @@ namespace ScreenShotterWPF
 {
     static class OAuthHelpers
     {
-        public static string ImgurID => "";
-        public static string ImgurSecret => "";
-
-        public static string GyazoID => "";
-        public static string GyazoSecret => "";
-
-        public static string DropboxID => "";
-        public static string DropboxSecret => "";
-
-        public static string GoogleDriveID => "";
-        public static string GoogleDriveSecret => "";
+        // For imgur
+        public static string ImgurID => "83c1c8bf9f4d2b1";
+        public static string ImgurSecret => "33dac3b1adfcefab926d83f1cb21412cf32ee36a";
+        // For Gyazo
+        public static string GyazoID => "f6f7ea4ac48869d64d585050fb041a9a85b28f531a1a43833028f75a0a3a6183";
+        public static string GyazoSecret => "e78f75312829d3e6c6816c35e07cd6a34efa908260d47bf4ad622531c26f6bee";
+        // For Dropbox
+        public static string DropboxID => "r36i3mn05mghy8d";
+        public static string DropboxSecret => "iu8l87axu8xd4gy";
+        // For GDrive
+        public static string GoogleDriveID => "171361248554-rabflja6dhqhujc23361asu4uo0l3jur.apps.googleusercontent.com";
+        public static string GoogleDriveSecret => "D-kys2D2urHmLLvGRUyBqrGu";
 
         private static async Task<string> GetTokenResponse(string uri, NameValueCollection values, Dictionary<HttpRequestHeader, string> headers = null)
         {

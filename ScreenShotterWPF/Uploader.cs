@@ -13,6 +13,7 @@ using Hardcodet.Wpf.TaskbarNotification;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Renci.SshNet;
+using System.Net.Http.Formatting;
 
 namespace ScreenShotterWPF
 {
@@ -208,7 +209,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public static async Task<string> HttpImgurUpload(XImage img, CancellationToken token)
+        public static async Task<string> HttpImgurUpload(XImage img, bool noAccount, CancellationToken token)
         {
             string boundary = DateTime.Now.Ticks.ToString("x", CultureInfo.InvariantCulture);
             using (var form = new MultipartFormDataContent(boundary))
@@ -222,7 +223,7 @@ namespace ScreenShotterWPF
 
                 var extraHeaders = new Dictionary<string, string>
                 {
-                    ["Authorization"] = img.Anonupload ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
+                    ["Authorization"] = noAccount ? "Client-ID 83c1c8bf9f4d2b1" : $"Bearer {Properties.Settings.Default.accessToken}"
                 };
                 return await UploadData("https://api.imgur.com/3/image", form, token, extraHeaders);
             }

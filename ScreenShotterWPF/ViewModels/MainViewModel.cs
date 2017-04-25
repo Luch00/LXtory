@@ -77,8 +77,10 @@ namespace ScreenShotterWPF.ViewModels
 
         private void RaiseSettings()
         {
-            SettingsNotification notification = new SettingsNotification();
-            notification.Title = "Settings";
+            SettingsNotification notification = new SettingsNotification()
+            {
+                Title = "Settings"
+            };
             this.SettingsRequest.Raise(
                 notification, returned =>
                 {
@@ -187,7 +189,8 @@ namespace ScreenShotterWPF.ViewModels
             {
                 selectedItem = value;
                 GetPicture(selectedItem);
-                OnPropertyChanged("SelectedItem");
+                //OnPropertyChanged("SelectedItem");
+                RaisePropertyChanged("SelectedItem");
             }
         }
 

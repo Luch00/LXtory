@@ -23,8 +23,8 @@ namespace ScreenShotterWPF
         public DateTime datetime { get; set; }
         [XmlIgnore]
         public byte[] image;
-        [XmlIgnore]
-        public bool Anonupload { get; set; }
+        //[XmlIgnore]
+        //public bool Anonupload { get; set; }
         [XmlIgnore]
         public UploadSite Uploadsite { get; set; }
         [XmlIgnore]
@@ -35,7 +35,8 @@ namespace ScreenShotterWPF
             set
             {
                 this._url = value;
-                OnPropertyChanged("url");
+                //OnPropertyChanged("url");
+                RaisePropertyChanged("url");
             }
         }
         public string thumbnail

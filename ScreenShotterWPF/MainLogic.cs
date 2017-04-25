@@ -76,6 +76,8 @@ namespace ScreenShotterWPF
             //addXImageToList = AddXimageToList;
             mouseAction = HookMouseAction;
             Uploader.ProgressBarUpdate = ProgressAndIconChange;
+            ClipboardMonitor.ClipboardEvent += new EventHandler(ClipboardChanged);
+            BalloonMessage.ClipboardNotificationClicked += new EventHandler(ClipboardUpload);
             CreateSFTPConnectionInfo();
             OverlayRequest = new InteractionRequest<IConfirmation>();
             this.GifOverlayRequest = new InteractionRequest<IConfirmation>();
@@ -93,6 +95,142 @@ namespace ScreenShotterWPF
             }
             StartUploads();
         }
+
+        private void ClipboardChanged(object sender, EventArgs e)
+        {
+            if (Clipboard.ContainsImage())
+            {
+                BalloonMessage.ClipboardNotification();
+            }
+            if (settings.clipboardFileDrop && Clipboard.ContainsFileDropList())
+            {
+                var files = Clipboard.GetFileDropList();
+                var ext = Path.GetExtension(files[0]);
+                if (ImageFileTypes.SupportedTypes.Contains(ext))
+                {
+                    BalloonMessage.ClipboardNotification();
+                }
+            }
+        }
+
+        private void ClipboardUpload(object sender, EventArgs e)
+        {
+            Image img = GetImageFromClipboard();
+            if (img != null)
+            {
+                string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
+                string date = DateTime.Now.ToString(datePattern);
+                string f = $"clipboard_{date}";
+                XImage x = new XImage
+                {
+                    image = EncodeImage(img),
+                    filename = $"{f}.png",
+                    url = "",
+                    filepath = "",
+                    Uploadsite = settings.imageUploadSite
+                };
+                const string p = "dd.MM.yy HH:mm:ss";
+                x.datetime = DateTime.Now;
+                string d = DateTime.Now.ToString(p);
+                x.date = d;
+                img.Dispose();
+                AddToQueue(x);
+            }
+
+            if (settings.clipboardFileDrop && Clipboard.ContainsFileDropList())
+            {
+                var files = Clipboard.GetFileDropList();
+                var ext = Path.GetExtension(files[0]);
+                if (ImageFileTypes.SupportedTypes.Contains(ext))
+                {
+                    string p = "dd.MM.yy HH:mm:ss";
+                    string d = DateTime.Now.ToString(p);
+                    XImage x = new XImage()
+                    {
+                        filename = Path.GetFileName(files[0]),
+                        filepath = files[0],
+                        datetime = DateTime.Now,
+                        date = d,
+                        //Anonupload = settings.anonUpload
+                    };
+                    x.Uploadsite = settings.imageUploadSite;
+                    AddToQueue(x);
+                }
+            }
+        }
+
+        private Image GetImageFromClipboard()
+        {
+            if (Clipboard.ContainsData("PNG"))
+            {
+                var png = Clipboard.GetData("PNG");
+                if (png is MemoryStream)
+                {
+                    return Image.FromStream((MemoryStream)png);
+                }
+            }
+
+            if (Clipboard.ContainsData(DataFormats.Dib))
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (MemoryStream dib_stream = Clipboard.GetData(DataFormats.Dib) as MemoryStream)
+                    {
+                        PngBitmapEncoder enc = new PngBitmapEncoder();
+                        enc.Interlace = PngInterlaceOption.Off;
+                        enc.Frames.Add(DIBHelper.ImageFromClipboardDib(dib_stream));
+                        enc.Save(ms);
+                        return Image.FromStream(ms);
+                    }
+                }
+            }
+
+            if (Clipboard.ContainsImage())
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    PngBitmapEncoder enc = new PngBitmapEncoder();
+                    enc.Interlace = PngInterlaceOption.Off;
+                    enc.Frames.Add(BitmapFrame.Create(Clipboard.GetImage()));
+                    enc.Save(ms);
+                    return Image.FromStream(ms);
+                }
+                //return BitmapFromSource(Clipboard.GetImage());
+            }
+
+            return null;
+        }
+
+        public Bitmap BitmapFromSource(BitmapSource bitmapsource)
+        {
+            //convert image format
+            var src = new FormatConvertedBitmap();
+            src.BeginInit();
+            src.Source = bitmapsource;
+            src.DestinationFormat = PixelFormats.Bgra32;
+            src.EndInit();
+
+            //copy to bitmap
+            Bitmap bitmap = new Bitmap(src.PixelWidth, src.PixelHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var data = bitmap.LockBits(new Rectangle(System.Drawing.Point.Empty, bitmap.Size), ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            src.CopyPixels(Int32Rect.Empty, data.Scan0, data.Height * data.Stride, data.Stride);
+            bitmap.UnlockBits(data);
+
+            return bitmap;
+        }
+
+        //private static byte[] GetBytesFromBitmapSource(BitmapSource bmp)
+        //{
+        //    int width = bmp.PixelWidth;
+        //    int height = bmp.PixelHeight;
+        //    int stride = width * ((bmp.Format.BitsPerPixel + 7) / 8);
+
+        //    byte[] pixels = new byte[height * stride];
+
+        //    bmp.CopyPixels(pixels, stride, 0);
+
+        //    return pixels;
+        //}
 
         private void CancelUpload()
         {
@@ -165,16 +303,16 @@ namespace ScreenShotterWPF
                 for (int i = 1; i < args.Count; i++)
                 {
                     string extension = Path.GetExtension(args[i]);
-
-                    XImage img = new XImage();
-                    img.filename = Path.GetFileName(args[i]);
-                    img.filepath = args[i];
                     string p = "dd.MM.yy HH:mm:ss";
-                    img.datetime = DateTime.Now;
                     string d = DateTime.Now.ToString(p);
-                    img.date = d;
-                    img.Anonupload = settings.anonUpload;
-                    //if (extension != null && ImageExtensions.Contains(extension.ToLowerInvariant()))
+                    XImage img = new XImage()
+                    {
+                        filename = Path.GetFileName(args[i]),
+                        filepath = args[i],
+                        datetime = DateTime.Now,
+                        date = d,
+                        //Anonupload = settings.anonUpload
+                    };
                     if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
                         img.Uploadsite = settings.imageUploadSite;
@@ -291,7 +429,7 @@ namespace ScreenShotterWPF
                                 }
 
                                 // refresh imgur token if using account
-                                if (TokenNeedsRefresh(UploadSite.Imgur) && currentUpload.Anonupload == false)
+                                if (TokenNeedsRefresh(UploadSite.Imgur) && settings.anonUpload == false)
                                 {
                                     SetStatusBarText("Refreshing Imgur login..");
                                     ChangeTrayIcon("R");
@@ -300,7 +438,7 @@ namespace ScreenShotterWPF
                                 }
 
                                 // do the upload
-                                response = await Uploader.HttpImgurUpload(currentUpload, cancelUpload.Token);
+                                response = await Uploader.HttpImgurUpload(currentUpload, settings.anonUpload, cancelUpload.Token);
 
                                 // parse response
                                 json = JsonConvert.DeserializeObject<ExpandoObject>(response);
@@ -445,16 +583,18 @@ namespace ScreenShotterWPF
                         /*MessageBox.Show(e.ToString(), "LXtory Error", MessageBoxButton.OK, MessageBoxImage.Error,
                             MessageBoxResult.None, MessageBoxOptions.DefaultDesktopOnly);*/
 
-                        TaskDialog dialog = new TaskDialog();
-                        dialog.Caption = "LXtory Error";
-                        dialog.InstructionText = "LXtory Error";
-                        dialog.Text = e.Message;
-                        dialog.Icon = TaskDialogStandardIcon.Error;
-                        dialog.Cancelable = false;
-                        dialog.DetailsExpanded = false;
-                        dialog.DetailsCollapsedLabel = "Show Stack Trace";
-                        dialog.DetailsExpandedLabel = "Hide Stack Trace";
-                        dialog.DetailsExpandedText = e.StackTrace;
+                        TaskDialog dialog = new TaskDialog()
+                        {
+                            Caption = "LXtory Error",
+                            InstructionText = "LXtory Error",
+                            Text = e.Message,
+                            Icon = TaskDialogStandardIcon.Error,
+                            Cancelable = false,
+                            DetailsExpanded = false,
+                            DetailsCollapsedLabel = "Show Stack Trace",
+                            DetailsExpandedLabel = "Hide Stack Trace",
+                            DetailsExpandedText = e.StackTrace
+                        };
                         dialog.Show();
                     }
                 }
@@ -723,12 +863,14 @@ namespace ScreenShotterWPF
             if (!overlay_created)
             {
                 overlay_created = true;
-                OverlayNotification notification = new OverlayNotification();
-                notification.Title = "Overlay";
-                notification.WindowTop = SystemParameters.VirtualScreenTop;
-                notification.WindowLeft = SystemParameters.VirtualScreenLeft;
-                notification.WindowWidth = SystemParameters.VirtualScreenWidth;
-                notification.WindowHeight = SystemParameters.VirtualScreenHeight;
+                OverlayNotification notification = new OverlayNotification()
+                {
+                    Title = "Overlay",
+                    WindowTop = SystemParameters.VirtualScreenTop,
+                    WindowLeft = SystemParameters.VirtualScreenLeft,
+                    WindowWidth = SystemParameters.VirtualScreenWidth,
+                    WindowHeight = SystemParameters.VirtualScreenHeight
+                };
                 this.OverlayRequest.Raise(
                     notification, returned =>
                     {
@@ -757,10 +899,13 @@ namespace ScreenShotterWPF
                 return;
 
             gifCapturing = true;
-            GifOverlayNotification notification = new GifOverlayNotification();
-            notification.Title = "GifOverlay";
-            var returned = await this.GifOverlayRequest.RaiseAsync(notification);
-            if (returned != null && returned.Confirmed)
+            GifOverlayNotification notification = new GifOverlayNotification()
+            {
+                Title = "GifOverlay"
+            };
+            //var returned = await this.GifOverlayRequest.RaiseAsync(notification);
+            this.GifOverlayRequest.Raise(notification);
+            if (notification != null && notification.Confirmed)
             {
                 int x = notification.WindowLeft;
                 int y = notification.WindowTop;
@@ -783,37 +928,45 @@ namespace ScreenShotterWPF
                     bool cancelled = false;
                     if (settings.gifEditorEnabled)
                     {
-                        GifEditorNotification gen = new GifEditorNotification();
-                        gen.Title = "Gif Editor";
-                        gen.Gif = gif;
-                        var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
-                        if (gen_returned != null && !gen_returned.Confirmed)
+                        GifEditorNotification gen = new GifEditorNotification()
+                        {
+                            Title = "Gif Editor",
+                            Gif = gif
+                        };
+                        //var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
+                        this.GifEditorRequest.Raise(gen);
+                        if (gen != null && !gen.Confirmed)
                         {
                             cancelled = true;
                         }
                     }
                     if (!cancelled)
                     {
-                        GifProgressNotification gpn = new GifProgressNotification();
-                        gpn.Title = "Encoding Gif..";
-                        gpn.Gif = gif;
-                        var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
-                        if (gpn_returned != null && gpn_returned.Confirmed)
+                        GifProgressNotification gpn = new GifProgressNotification()
+                        {
+                            Title = "Encoding Gif..",
+                            Gif = gif
+                        };
+                        //var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
+                        this.GifProgressRequest.Raise(gpn);
+                        if (gpn != null && gpn.Confirmed)
                         {
                             var filename = gpn.Name;
                             if (filename != string.Empty)
                             {
-                                XImage img = new XImage();
-                                img.filename = filename;
-                                img.filepath = Path.Combine(settings.filePath, filename);
                                 string p = "dd.MM.yy HH:mm:ss";
-                                img.datetime = DateTime.Now;
                                 string date = DateTime.Now.ToString(p);
-                                img.date = date;
-                                img.Uploadsite = settings.imageUploadSite;
+                                XImage img = new XImage()
+                                {
+                                    filename = filename,
+                                    filepath = Path.Combine(settings.filePath, filename),
+                                    datetime = DateTime.Now,
+                                    date = date,
+                                    Uploadsite = settings.imageUploadSite
+                                };
                                 if (settings.gifUpload)
                                 {
-                                    img.Anonupload = settings.anonUpload;
+                                    //img.Anonupload = settings.anonUpload;
                                     AddToQueue(img);
                                 }
                                 else
@@ -965,7 +1118,7 @@ namespace ScreenShotterWPF
 
             if (settings.autoUpload)
             {
-                x.Anonupload = settings.anonUpload;
+                //x.Anonupload = settings.anonUpload;
                 AddToQueue(x);
             }
             else
@@ -979,7 +1132,6 @@ namespace ScreenShotterWPF
         {
             if (x == null)
             {
-                Console.WriteLine("ERROR");
                 return;
             }
             if (!settings.saveLocal && x.filepath.Length == 0)

@@ -29,10 +29,12 @@ namespace ScreenShotterWPF.Views
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowChrome Resizable_BorderLess_Chrome = new WindowChrome();
-            Resizable_BorderLess_Chrome.GlassFrameThickness = new Thickness(0);
-            Resizable_BorderLess_Chrome.CornerRadius = new CornerRadius(0);
-            Resizable_BorderLess_Chrome.CaptionHeight = 5.0;
+            WindowChrome Resizable_BorderLess_Chrome = new WindowChrome()
+            {
+                GlassFrameThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(0),
+                CaptionHeight = 5.0
+            };
             WindowChrome.SetWindowChrome(Window.GetWindow(this), Resizable_BorderLess_Chrome);
         }
 

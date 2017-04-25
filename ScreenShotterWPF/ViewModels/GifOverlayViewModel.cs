@@ -46,7 +46,8 @@ namespace ScreenShotterWPF.ViewModels
                 if (value is GifOverlayNotification)
                 {
                     this.notification = value as GifOverlayNotification;
-                    this.OnPropertyChanged(() => this.Notification);
+                    //this.OnPropertyChanged(() => this.Notification);
+                    this.RaisePropertyChanged(nameof(this.Notification));
                     GifDuration = Properties.Settings.Default.gifDuration;
                     GifFramerate = Properties.Settings.Default.gifFrameRate;
                 }

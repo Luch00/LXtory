@@ -75,7 +75,8 @@ namespace ScreenShotterWPF.ViewModels
                     RectHeight = 0;
                     Text = "";
                     GetDPIMultiplier();
-                    this.OnPropertyChanged(() => this.Notification);
+                    //this.OnPropertyChanged(() => this.Notification);
+                    this.RaisePropertyChanged(nameof(this.Notification));
                 }
             }
         }

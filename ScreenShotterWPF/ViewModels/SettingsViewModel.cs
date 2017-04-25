@@ -10,12 +10,12 @@ using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
+//using System.Net.Sockets;
 using Microsoft.Win32;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Security.Principal;
-using System.Text.RegularExpressions;
+//using System.Security.Principal;
+//using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
 using Prism.Commands;
@@ -130,7 +130,8 @@ namespace ScreenShotterWPF.ViewModels
                     // Usually you would want to raise this event for other properties too.
                     this.notification = value as SettingsNotification;
                     SetValues();
-                    this.OnPropertyChanged(() => this.Notification);
+                    //this.OnPropertyChanged(() => this.Notification);
+                    this.RaisePropertyChanged(nameof(this.Notification));
                 }
             }
         }
@@ -589,7 +590,8 @@ namespace ScreenShotterWPF.ViewModels
                 {
                     UploadEnabled = true;
                 }
-                OnPropertyChanged("LocalEnabled");
+                //OnPropertyChanged("LocalEnabled");
+                RaisePropertyChanged("LocalEnabled");
             }
         }
 
@@ -603,7 +605,8 @@ namespace ScreenShotterWPF.ViewModels
                 {
                     LocalEnabled = true;
                 }
-                OnPropertyChanged("UploadEnabled");
+                //OnPropertyChanged("UploadEnabled");
+                RaisePropertyChanged("UploadEnabled");
             }
         }
 

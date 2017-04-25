@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Luch")]
 [assembly: AssemblyProduct("LXtory")]
-[assembly: AssemblyCopyright("Copyright © 2013-2016 Luch")]
+[assembly: AssemblyCopyright("Copyright © 2013-2017 Luch")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
