@@ -10,6 +10,7 @@ using Prism.Mvvm;
 using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
 using ScreenShotterWPF.Notifications;
+using System.Windows.Media;
 
 namespace ScreenShotterWPF.ViewModels
 {
@@ -53,7 +54,7 @@ namespace ScreenShotterWPF.ViewModels
         public MainViewModel()
         {
             Main = new MainLogic();
-            GetContent();
+            //GetContent();
             
             areaButtonText = "Select Area";
             windowButtonText = "Select Window";
@@ -280,10 +281,10 @@ namespace ScreenShotterWPF.ViewModels
             }
         }
 
-        private void GetContent()
-        {
-            Main.ReadXML();
-        }
+        //private void GetContent()
+        //{
+        //    Main.ReadXML();
+        //}
 
         /*public bool PassCommandLineArgs(IList<string> args)
         {
@@ -386,7 +387,7 @@ namespace ScreenShotterWPF.ViewModels
         {
             _source.RemoveHook(HwndHook);
             _source = null;
-            Main.SetAsComplete();
+            MainLogic.SetAsComplete();
             UnregisterHotKey();
         }
     }

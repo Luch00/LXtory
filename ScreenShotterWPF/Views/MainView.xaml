@@ -221,7 +221,8 @@
             </StatusBar>
         </Grid>
 
-        <tb:TaskbarIcon x:Name="tbi" IconSource="{Binding Main.Icon}" ToolTipText="LXtory" TrayMouseDoubleClick="tbi_TrayMouseDoubleClick">
+        <!--<tb:TaskbarIcon x:Name="tbi" IconSource="{Binding Main.Icon}" ToolTipText="LXtory" TrayMouseDoubleClick="tbi_TrayMouseDoubleClick">-->
+        <tb:TaskbarIcon x:Name="tbi" ToolTipText="LXtory" TrayMouseDoubleClick="tbi_TrayMouseDoubleClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Restore" Click="MenuItem_Click"/>

@@ -13,7 +13,6 @@ using Hardcodet.Wpf.TaskbarNotification;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Renci.SshNet;
-using System.Net.Http.Formatting;
 
 namespace ScreenShotterWPF
 {
