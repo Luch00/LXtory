@@ -189,7 +189,6 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBox x:Name="textFilepath" HorizontalAlignment="Left" Height="23" MaxLines="1" TextWrapping="NoWrap" VerticalAlignment="Top" Width="163" Margin="4" Text="{Binding TextFilepath}"/>
                                 <Button x:Name="settingsBrowse" Content="..." HorizontalAlignment="Left" VerticalAlignment="Center" Width="27" Margin="4" Visibility="Visible" Command="{Binding BrowseCommand}"/>
-                                <!-- this needs folder browse?-->
                             </StackPanel>
                             <CheckBox x:Name="checkUpload" Content="Auto-Upload Screenshots" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding UploadEnabled}"/>
                             <CheckBox x:Name="checkMinimizeTray" Content="Minimize to tray" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4" IsChecked="{Binding MinimizeToTray}"/>
@@ -218,18 +217,26 @@
                                 <CheckBox x:Name="checkGifCaptureCursor" Content="Capture Mouse Cursor" Margin="4" IsChecked="{Binding GifCaptureCursor}"/>
                                 <DockPanel>
                                     <Label Content="Frame Rate (5-60)" Margin="4"/>
-                                    <xctk:IntegerUpDown x:Name="gifFrameRate" VerticalAlignment="Center" Value="{Binding GifFramerate}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                                    <!--<xctk:IntegerUpDown x:Name="gifFrameRate" VerticalAlignment="Center" Value="{Binding GifFramerate}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>-->
+                                    <local:UpDown Margin="4" HorizontalAlignment="Right" Width="45" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60"/>
                                 </DockPanel>
                                 <DockPanel>
                                     <Label Content="Duration (1-30s)" Margin="4"/>
-                                    <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                                    <!--<xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>-->
+                                    <local:UpDown Margin="4" HorizontalAlignment="Right"  Width="45" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30"/>
                                 </DockPanel>
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox x:Name="groupBox2" Header="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="2,3,6,6" VerticalAlignment="Top" Height="113">
+                        <GroupBox x:Name="groupBox2" Header="D3D Capture (Windows 8+)" HorizontalAlignment="Left" Margin="2,3,6,6" VerticalAlignment="Top" Height="75">
                             <StackPanel>
                                 <CheckBox x:Name="detectExclusive" Content="Try to Autodetect (Window Capture)" Margin="4" ToolTip="When using Window Capture try to detect if an application is running in exclusive fullscreen mode and automatically use directx to capture the screen(s)." IsChecked="{Binding DetectExclusive}"/>
                                 <CheckBox x:Name="fullscreenD3D" Content="Capture All Screens" Margin="4" IsChecked="{Binding FullscreenD3D}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox x:Name="groupBox3" Header="Clipboard Monitoring" Margin="2,3,0,0" VerticalAlignment="Top" Height="110" HorizontalAlignment="Left" Width="231">
+                            <StackPanel>
+                                <CheckBox x:Name="clipboardMonitor" Content="Enable monitoring" Margin="4" ToolTip="Detects when image is copied to clipboard from another source\n E.g. web browser, photo editor, clipping tool etc." IsChecked="{Binding ClipboardMonitor}"/>
+                                <CheckBox x:Name="clipboardFileDrop" Content="Detect file drops" Margin="4" ToolTip="Detects when image file is copied to clipboard from file explorer" IsChecked="{Binding ClipboardFileDrop}"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

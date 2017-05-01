@@ -33,7 +33,7 @@ namespace ScreenShotterWPF
             SetIcon("Default");
         }
 
-        private static Icon defaulticon = new Icon(App.GetResourceStream(new Uri($"pack://application:,,,/Resources/Hoshimemo5.ico", UriKind.Absolute)).Stream, 48, 48);
+        private static readonly Icon defaulticon = new Icon(App.GetResourceStream(new Uri($"pack://application:,,,/Resources/Hoshimemo5.ico", UriKind.Absolute)).Stream, 48, 48);
         public static EventHandler ClipboardNotificationClicked;
         private static bool isClipboard = false;
 

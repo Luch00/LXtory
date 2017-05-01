@@ -145,7 +145,10 @@ namespace ScreenShotterWPF.ViewModels
             set
             {
                 SetProperty(ref windowWidth, value);
-                notification.WindowWidth = value;
+                if (notification != null)
+                {
+                    notification.WindowWidth = value;
+                }
             }
         }
 
@@ -155,7 +158,10 @@ namespace ScreenShotterWPF.ViewModels
             set
             {
                 SetProperty(ref windowHeight, value);
-                notification.WindowHeight = value;
+                if (notification != null)
+                {
+                    notification.WindowHeight = value;
+                }
             }
         }
 

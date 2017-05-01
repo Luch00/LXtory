@@ -1,11 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenShotterWPF", "ScreenShotterWPF\ScreenShotterWPF.csproj", "{0FA20FAF-279F-4E3E-B9D9-E07B45825AB9}"
 	ProjectSection(ProjectDependencies) = postProject
-		{72E591D6-8F83-4D8C-8F67-9C325E623234} = {72E591D6-8F83-4D8C-8F67-9C325E623234}
 		{A59307EA-FCB0-4110-BC42-0417871C24C4} = {A59307EA-FCB0-4110-BC42-0417871C24C4}
 	EndProjectSection
 EndProject

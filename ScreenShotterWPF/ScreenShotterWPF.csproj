@@ -77,6 +77,7 @@
   <PropertyGroup />
   <PropertyGroup />
   <PropertyGroup />
+  <PropertyGroup />
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
@@ -137,7 +138,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
       <Private>True</Private>
@@ -169,6 +169,9 @@
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
     <Compile Include="OAuthHelpers.cs" />
+    <Compile Include="UpDown.xaml.cs">
+      <DependentUpon>UpDown.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\GifProgressViewModel.cs" />
     <Compile Include="ViewModels\OverlayViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
@@ -224,6 +227,10 @@
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="UpDown.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\GifEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -304,10 +311,6 @@
     <ProjectReference Include="..\..\nquant-master\nQuant.Core\nQuant.Core.csproj">
       <Project>{a59307ea-fcb0-4110-bc42-0417871c24c4}</Project>
       <Name>nQuant.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\wpftoolkit-114314\Main\Source\ExtendedWPFToolkitSolution\Src\Xceed.Wpf.Toolkit\Xceed.Wpf.Toolkit.csproj">
-      <Project>{72e591d6-8f83-4d8c-8f67-9c325e623234}</Project>
-      <Name>Xceed.Wpf.Toolkit</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

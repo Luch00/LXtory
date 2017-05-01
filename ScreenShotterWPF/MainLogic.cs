@@ -32,8 +32,6 @@ namespace ScreenShotterWPF
 
         private static readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
-        //private readonly Dictionary<string, BitmapImage> trayicons = new Dictionary<string, BitmapImage>();
-
         private static readonly Properties.Settings settings = Properties.Settings.Default;
 
         // For selecting window to capture
@@ -65,8 +63,6 @@ namespace ScreenShotterWPF
 
         public ICommand CancelCommand { get; private set; }
 
-        //private readonly System.Timers.Timer timer = new System.Timers.Timer();
-
         private ConnectionInfo ftpConnectionInfo;
 
         public MainLogic()
@@ -84,12 +80,8 @@ namespace ScreenShotterWPF
             this.GifEditorRequest = new InteractionRequest<IConfirmation>();
             this.GifProgressRequest = new InteractionRequest<IConfirmation>();
             this.CancelCommand = new DelegateCommand(CancelUpload);
-            //LoadIcons();
             Ximages = ReadXML();
             CancelEnabled = false;
-            //SetIcon("Default");
-            //timer.Interval = 5000;
-            //timer.Elapsed += timerTick_DelayIconChange;
             if (settings.filePath == "")
             {
                 SetDefaults();
@@ -119,21 +111,6 @@ namespace ScreenShotterWPF
             Image img = GetImageFromClipboard();
             if (img != null)
             {
-                //string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
-                //string date = DateTime.Now.ToString(datePattern);
-                //string f = $"clipboard_{date}";
-                //XImage x = new XImage
-                //{
-                //    image = EncodeImage(img),
-                //    filename = $"{f}.png",
-                //    url = "",
-                //    filepath = "",
-                //    Uploadsite = settings.imageUploadSite
-                //};
-                //const string p = "dd.MM.yy HH:mm:ss";
-                //x.datetime = DateTime.Now;
-                //string d = DateTime.Now.ToString(p);
-                //x.date = d;
                 var x = CreateXImage(EncodeImage(img), "clipboard");
                 img.Dispose();
                 AddToQueue(x);
@@ -145,17 +122,6 @@ namespace ScreenShotterWPF
                 var ext = Path.GetExtension(files[0]);
                 if (ImageFileTypes.SupportedTypes.Contains(ext))
                 {
-                    //string p = "dd.MM.yy HH:mm:ss";
-                    //string d = DateTime.Now.ToString(p);
-                    //XImage x = new XImage()
-                    //{
-                    //    filename = Path.GetFileName(files[0]),
-                    //    filepath = files[0],
-                    //    datetime = DateTime.Now,
-                    //    date = d,
-                    //    //Anonupload = settings.anonUpload
-                    //};
-                    //x.Uploadsite = settings.imageUploadSite;
                     AddToQueue(CreateXImage(Path.GetFileName(files[0]), files[0]));
                 }
             }
@@ -243,26 +209,6 @@ namespace ScreenShotterWPF
             return Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version >= win8;
         }
 
-        //private void LoadIcons()
-        //{
-        //    string[] ico = { "Default", "F", "E", "R", "10", "20", "30", "40", "50", "60", "70", "80", "90" };
-        //    foreach (var i in ico)
-        //    {
-        //        var bitmapImage = new BitmapImage(new Uri($"pack://application:,,,/Resources/{i}.ico", UriKind.Absolute));
-        //        bitmapImage.Freeze();
-        //        trayicons.Add(i, bitmapImage);
-        //    }
-        //}
-
-        //private void timerTick_DelayIconChange(object sender, EventArgs e)
-        //{
-        //    lock (timer)
-        //    {
-        //        timer.Stop();
-        //        ChangeTrayIcon("Default");
-        //    }
-        //}
-
         public static bool ReadCommandLineArgs(IList<string> args)
         {
             if (args.Count == 0 || args == null)
@@ -273,16 +219,6 @@ namespace ScreenShotterWPF
                 for (int i = 1; i < args.Count; i++)
                 {
                     var extension = Path.GetExtension(args[i]);
-                    //string p = "dd.MM.yy HH:mm:ss";
-                    //string d = DateTime.Now.ToString(p);
-                    //XImage img = new XImage()
-                    //{
-                    //    filename = Path.GetFileName(args[i]),
-                    //    filepath = args[i],
-                    //    datetime = DateTime.Now,
-                    //    date = d,
-                    //    //Anonupload = settings.anonUpload
-                    //};
                     var img = CreateXImage(Path.GetFileName(args[i]), args[i]);
                     if (extension != null && ImageFileTypes.SupportedTypes.Contains(extension.ToLowerInvariant()))
                     {
@@ -306,9 +242,7 @@ namespace ScreenShotterWPF
             Task.Run(() => Upload());
             //var uploadTask = new Task(() => Upload());
             //uploadTask.Start();
-            //Console.WriteLine(@"Uploads Started");
             //await uploadTask;
-            //Console.WriteLine(@"Everything was finished");
         }
 
         public static void SetAsComplete()
@@ -376,7 +310,7 @@ namespace ScreenShotterWPF
                         var filesize = currentUpload.image?.Length ?? new FileInfo(currentUpload.filepath).Length;
                         if (filesize == 0)
                         {
-                            //Console.WriteLine(@"Tried to upload an empty file");
+                            // Empty file, get next in queue
                             continue;
                         }
 
@@ -566,7 +500,6 @@ namespace ScreenShotterWPF
                     }
                 }
             }
-            Console.WriteLine(@"STOPPED :O");
         }
 
         // Set some default settings values
@@ -611,129 +544,43 @@ namespace ScreenShotterWPF
             private set { SetProperty(ref statusText, value); }
         }
 
-        //private ImageSource icon;
-
-        //public ImageSource Icon
-        //{
-        //    get { return icon; }
-        //    set { SetProperty(ref icon, value); }
-        //}
-
-        //private void SetIcon(string s)
-        //{
-        //    if (!string.IsNullOrEmpty(s))
-        //    {
-        //        Icon = trayicons[s];
-        //    }
-        //    else
-        //    {
-        //        Icon = trayicons["Default"];
-        //    }
-        //}
-
-        //private void ChangeTrayIcon(string ico)
-        //{
-        //    lock (timer)
-        //    {
-        //        timer.Stop();
-        //    }
-        //    switch (ico)
-        //    {
-        //        //case "R":
-        //        //    SetIcon("R");
-        //        //    break;
-        //        //case "F":
-        //        //    SetIcon("F");
-        //        //    lock (timer)
-        //        //    {
-        //        //        timer.Start();
-        //        //    }
-        //        //    break;
-        //        //case "E":
-        //        //    SetIcon("E");
-        //        //    break;
-        //        //case "Default":
-        //        //    SetIcon("Default");
-        //        //    break;
-        //        //case "00":
-        //        //    SetIcon("00");
-        //        //    break;
-        //        //case "10":
-        //        //    SetIcon("10");
-        //        //    break;
-        //        //case "20":
-        //        //    SetIcon("20");
-        //        //    break;
-        //        //case "30":
-        //        //    SetIcon("30");
-        //        //    break;
-        //        //case "40":
-        //        //    SetIcon("40");
-        //        //    break;
-        //        //case "50":
-        //        //    SetIcon("50");
-        //        //    break;
-        //        //case "60":
-        //        //    SetIcon("60");
-        //        //    break;
-        //        //case "70":
-        //        //    SetIcon("70");
-        //        //    break;
-        //        //case "80":
-        //        //    SetIcon("80");
-        //        //    break;
-        //        //case "90":
-        //        //    SetIcon("90");
-        //        //    break;
-        //    }
-        //}
-
         private void ProgressAndIconChange(int pctComplete)
         {
             ProgressValue = pctComplete;
             if (pctComplete >= 10 && pctComplete < 20)
             {
-                //ChangeTrayIcon("10");
                 BalloonMessage.SetIcon("10");
             }
             else if (pctComplete >= 20 && pctComplete < 30)
             {
-                //ChangeTrayIcon("20");
                 BalloonMessage.SetIcon("20");
             }
             else if (pctComplete >= 30 && pctComplete < 40)
             {
-                //ChangeTrayIcon("30");
                 BalloonMessage.SetIcon("30");
             }
             else if (pctComplete >= 40 && pctComplete < 50)
             {
-                //ChangeTrayIcon("40");
                 BalloonMessage.SetIcon("40");
             }
             else if (pctComplete >= 50 && pctComplete < 60)
             {
-                //ChangeTrayIcon("50");
                 BalloonMessage.SetIcon("50");
             }
             else if (pctComplete >= 60 && pctComplete < 70)
             {
-                //ChangeTrayIcon("60");
                 BalloonMessage.SetIcon("60");
             }
             else if (pctComplete >= 70 && pctComplete < 80)
             {
-                //ChangeTrayIcon("70");
                 BalloonMessage.SetIcon("70");
             }
             else if (pctComplete >= 80 && pctComplete < 90)
             {
-                //ChangeTrayIcon("80");
                 BalloonMessage.SetIcon("80");
             }
             else if (pctComplete >= 90)
             {
-                //ChangeTrayIcon("90");
                 BalloonMessage.SetIcon("90");
             }
         }
@@ -875,7 +722,6 @@ namespace ScreenShotterWPF
             {
                 Title = "GifOverlay"
             };
-            //var returned = await this.GifOverlayRequest.RaiseAsync(notification);
             this.GifOverlayRequest.Raise(notification);
             if (notification != null && notification.Confirmed)
             {
@@ -905,7 +751,6 @@ namespace ScreenShotterWPF
                             Title = "Gif Editor",
                             Gif = gif
                         };
-                        //var gen_returned = await this.GifEditorRequest.RaiseAsync(gen);
                         this.GifEditorRequest.Raise(gen);
                         if (gen != null && !gen.Confirmed)
                         {
@@ -919,32 +764,19 @@ namespace ScreenShotterWPF
                             Title = "Encoding Gif..",
                             Gif = gif
                         };
-                        //var gpn_returned = await this.GifProgressRequest.RaiseAsync(gpn);
                         this.GifProgressRequest.Raise(gpn);
                         if (gpn != null && gpn.Confirmed)
                         {
                             var filename = gpn.Name;
                             if (filename != string.Empty)
                             {
-                                //string p = "dd.MM.yy HH:mm:ss";
-                                //string date = DateTime.Now.ToString(p);
-                                //XImage img = new XImage()
-                                //{
-                                //    filename = filename,
-                                //    filepath = Path.Combine(settings.filePath, filename),
-                                //    datetime = DateTime.Now,
-                                //    date = date,
-                                //    Uploadsite = settings.imageUploadSite
-                                //};
                                 var img = CreateXImage(filename, Path.Combine(settings.filePath, filename));
                                 if (settings.gifUpload)
                                 {
-                                    //img.Anonupload = settings.anonUpload;
                                     AddToQueue(img);
                                 }
                                 else
                                 {
-                                    //addXImageToList(img, "");
                                     AddXimageToList(img, "", "");
                                 }
                             }
@@ -997,6 +829,7 @@ namespace ScreenShotterWPF
             using (MemoryStream ms = new MemoryStream())
             {
                 image.Save(ms, ImageFormat.Png);
+                image.Dispose();
                 return ms.ToArray();
             }
         }
@@ -1078,7 +911,7 @@ namespace ScreenShotterWPF
 
         private static XImage CreateXImage(string filename, string filepath)
         {
-            string p = "dd.MM.yy HH:mm:ss";
+            const string p = "dd.MM.yy HH:mm:ss";
             XImage x = new XImage()
             {
                 filename = filename,
@@ -1092,23 +925,6 @@ namespace ScreenShotterWPF
 
         private void ImageManager(byte[] image, string filename)
         {
-            //const string datePattern = @"dd-MM-yy_HH-mm-ss";
-            //string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
-            //string date = DateTime.Now.ToString(datePattern);
-            //string f = $"{filename}_{date}";
-
-            //XImage x = new XImage
-            //{
-            //    image = image,
-            //    filename = $"{f}.png",
-            //    url = "",
-            //    filepath = "",
-            //    Uploadsite = settings.imageUploadSite
-            //};
-            //const string p = "dd.MM.yy HH:mm:ss";
-            //x.datetime = DateTime.Now;
-            //string d = DateTime.Now.ToString(p);
-            //x.date = d;
             var x = CreateXImage(image, filename);
             if (settings.saveLocal)
             {

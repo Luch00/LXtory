@@ -134,7 +134,7 @@ namespace ScreenShotterWPF
             Bitmap bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
             // Duplicate the output
             var duplicatedOutput = output1.DuplicateOutput(device);
-
+            
             bool captureDone = false;
             for (int j = 0; !captureDone; j++)
             {
@@ -154,7 +154,7 @@ namespace ScreenShotterWPF
 
                         // Get the desktop capture texture
                         var mapSource = device.ImmediateContext.MapSubresource(screenTexture, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
-
+                        
                         // Create Drawing.Bitmap
                         
                         var boundsRect = new System.Drawing.Rectangle(0, 0, width, height);

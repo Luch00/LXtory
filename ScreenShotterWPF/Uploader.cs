@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Text;
 using System.IO;
 using System.Globalization;
 using System.Threading.Tasks;
-using System.Web.Script.Serialization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Handlers;
@@ -24,7 +24,7 @@ namespace ScreenShotterWPF
         {
             try
             {
-                string s = string.Empty;
+                string s;
                 using (var w = new WebClient())
                 {
                     w.Proxy = null;
@@ -34,10 +34,8 @@ namespace ScreenShotterWPF
                     w.Headers[HttpRequestHeader.ContentType] = "application/json";
                     s = await w.UploadStringTaskAsync("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings", param.ToString(Formatting.None));
                 }
-                var serializer = new JavaScriptSerializer();
-                var json = serializer.Deserialize<dynamic>(s);
-                var url = json["url"];
-                return url;
+                dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(s);
+                return json.url;
             }
             catch (Exception)
             {

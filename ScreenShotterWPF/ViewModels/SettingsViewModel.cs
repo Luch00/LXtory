@@ -115,6 +115,9 @@ namespace ScreenShotterWPF.ViewModels
         private string loginButtonTextDropbox;
         private string loginButtonTextGDrive;
 
+        private bool clipboardMonitor;
+        private bool clipboardFileDrop;
+
         public INotification Notification
         {
             get
@@ -268,6 +271,18 @@ namespace ScreenShotterWPF.ViewModels
         #endregion
 
         #region Properties
+
+        public bool ClipboardMonitor
+        {
+            get { return clipboardMonitor; }
+            set { SetProperty(ref clipboardMonitor, value); }
+        }
+
+        public bool ClipboardFileDrop
+        {
+            get { return clipboardFileDrop; }
+            set { SetProperty(ref clipboardFileDrop, value); }
+        }
 
         public bool ImgurUploadToAccount
         {
@@ -769,6 +784,9 @@ namespace ScreenShotterWPF.ViewModels
             ContextMenuEnabled = settings.shellExtActive;
             FileUploadEnabled = settings.fileUploadEnabled;
 
+            ClipboardMonitor = settings.clipboardMonitor;
+            ClipboardFileDrop = settings.clipboardFileDrop;
+
             ImgurUploadToAccount = !settings.anonUpload;
             UploadValue = settings.imageUploadSite;
             FileuploadValue = settings.fileUploadSite;
@@ -979,6 +997,9 @@ namespace ScreenShotterWPF.ViewModels
             }
             settings.shellExtActive = ContextMenuEnabled;
             settings.fileUploadEnabled = FileUploadEnabled;
+
+            settings.clipboardMonitor = ClipboardMonitor;
+            settings.clipboardFileDrop = ClipboardFileDrop;
 
             settings.dateTimeString = DateTimeString;
 
