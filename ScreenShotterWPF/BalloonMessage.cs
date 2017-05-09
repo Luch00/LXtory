@@ -69,7 +69,7 @@ namespace ScreenShotterWPF
             }
         }
 
-        public static void LoadIcons()
+        private static void LoadIcons()
         {
             string[] ico = { "Default", "F", "E", "R", "10", "20", "30", "40", "50", "60", "70", "80", "90" };
             foreach (var i in ico)
@@ -103,7 +103,7 @@ namespace ScreenShotterWPF
             Notification?.ShowBalloonTip("LXtory", $"Image on clipboard{Environment.NewLine}Click to upload", defaulticon, true);
         }
 
-        private static void Notification_TrayBalloonTipClicked(object sender, System.Windows.RoutedEventArgs e)
+        private static void Notification_TrayBalloonTipClicked(object sender, RoutedEventArgs e)
         {
             if (isClipboard)
             {

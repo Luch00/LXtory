@@ -13,6 +13,14 @@ public class PortableSettingsProvider : SettingsProvider
     const string SETTINGSROOT = "Settings";
     //XML Root Node
 
+    // portable mode
+    private static bool isPortable = false;
+
+    public static void SetPortable()
+    {
+        isPortable = true;
+    }
+
     public override void Initialize(string name, NameValueCollection col)
     {
         base.Initialize(this.ApplicationName, col);

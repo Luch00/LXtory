@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Text;
@@ -20,6 +21,8 @@ using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
 using Prism.Commands;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace ScreenShotterWPF.ViewModels
 {
@@ -40,6 +43,8 @@ namespace ScreenShotterWPF.ViewModels
         public ICommand BrowseKeyCommand { get; private set; }
         public ICommand PasswordChangedCommand { get; private set; }
         public ICommand PassphraseChangedCommand { get; private set; }
+
+        public ICommand GetAlbumsCommand { get; private set; }
 
         private bool fullscreenCtrl;
         private bool fullscreenShift;
@@ -118,6 +123,16 @@ namespace ScreenShotterWPF.ViewModels
         private bool clipboardMonitor;
         private bool clipboardFileDrop;
 
+        private string albumId;
+        //private Dictionary<string, string> imgurAlbums;
+        private ObservableCollection<Album> imgurAlbums;
+
+        public class Album
+        {
+            public string Title { get; set; }
+            public string Id { get; set; }
+        }
+
         public INotification Notification
         {
             get
@@ -132,6 +147,7 @@ namespace ScreenShotterWPF.ViewModels
                     // as it's required to update the bindings when this property is populated.
                     // Usually you would want to raise this event for other properties too.
                     this.notification = value as SettingsNotification;
+                    ImgurAlbums = new ObservableCollection<Album>{ new Album {Title = "(none)", Id = ""} };
                     SetValues();
                     //this.OnPropertyChanged(() => this.Notification);
                     this.RaisePropertyChanged(nameof(this.Notification));
@@ -149,6 +165,7 @@ namespace ScreenShotterWPF.ViewModels
             this.BrowseKeyCommand = new DelegateCommand(BrowseKey);
             this.PasswordChangedCommand = new DelegateCommand<PasswordBox>(PasswordChanged);
             this.PassphraseChangedCommand = new DelegateCommand<PasswordBox>(PassphraseChanged);
+            this.GetAlbumsCommand = new DelegateCommand(GetAlbums);
         }
 
         private void PasswordChanged(PasswordBox obj)
@@ -159,6 +176,26 @@ namespace ScreenShotterWPF.ViewModels
         private void PassphraseChanged(PasswordBox obj)
         {
             FTPPassphrase = obj.Password;
+        }
+
+        private async void GetAlbums()
+        {
+            if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(settings.accessToken))
+            {
+                ImgurAlbums.Clear();
+                ImgurAlbums.Add(new Album {Title = "(none)", Id = ""});
+                var albumsJsonString = await Uploader.GetImgurAlbums();
+                dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(albumsJsonString);
+                foreach (var album in json.data)
+                {
+                    ImgurAlbums.Add(new Album {Title = album.title, Id = album.id});
+                }
+                //this.RaisePropertyChanged(nameof(this.ImgurAlbums));
+            }
+            else
+            {
+                StatusLabelText = "Login first";
+            }
         }
 
         private void Browse()
@@ -271,6 +308,18 @@ namespace ScreenShotterWPF.ViewModels
         #endregion
 
         #region Properties
+
+        public string AlbumId
+        {
+            get { return albumId; }
+            set { SetProperty(ref albumId, value); }
+        }
+
+        public ObservableCollection<Album> ImgurAlbums
+        {
+            get { return imgurAlbums; }
+            private set { SetProperty(ref imgurAlbums, value); }
+        }
 
         public bool ClipboardMonitor
         {
@@ -771,6 +820,8 @@ namespace ScreenShotterWPF.ViewModels
 
             DisableWebThumbs = settings.disableWebThumbs;
 
+            AlbumId = settings.imgurAlbumId;
+
             FTPHost = settings.ftpHost;
             FTPPort = settings.ftpPort.ToString();
             FTPPath = settings.ftpPath;
@@ -971,6 +1022,8 @@ namespace ScreenShotterWPF.ViewModels
             settings.puush_key = PuushApiKey;
 
             settings.disableWebThumbs = DisableWebThumbs;
+
+            settings.imgurAlbumId = AlbumId;
 
             settings.ftpHost = FTPHost;
             settings.ftpPort = ftpPort;

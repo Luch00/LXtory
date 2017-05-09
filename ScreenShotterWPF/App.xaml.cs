@@ -17,6 +17,7 @@ namespace ScreenShotterWPF
         {
             if (SingleInstance<App>.InitializeAsFirstInstance(Unique))
             {
+                var args = Environment.GetCommandLineArgs();
                 var application = new App();
                 application.InitializeComponent();
                 application.Run();

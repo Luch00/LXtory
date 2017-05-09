@@ -226,6 +226,32 @@ namespace ScreenShotterWPF
             }
         }
 
+        public static async Task<string> GetImgurAlbums()
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {Properties.Settings.Default.accessToken}");
+                var response = await client.GetStringAsync($"https://api.imgur.com/3/account/{Properties.Settings.Default.username}/albums/");
+                return response;
+            }
+        }
+
+        public static async Task AddToImgurAlbum(string id)
+        {
+            if (string.IsNullOrEmpty(Properties.Settings.Default.imgurAlbumId))
+                return;
+
+            using (var w = new WebClient())
+            {
+                w.Proxy = null;
+                JObject param = new JObject(
+                    new JProperty("ids", id));
+                w.Headers[HttpRequestHeader.Authorization] = $"Bearer {Properties.Settings.Default.accessToken}";
+                w.Headers[HttpRequestHeader.ContentType] = "application/json";
+                await w.UploadStringTaskAsync($"https://api.imgur.com/3/album/{Properties.Settings.Default.imgurAlbumId}/add", param.ToString(Formatting.None));
+            }
+        }
+
         public static async Task<string> FTPUpload(XImage img)
         {
             using (var wc = new WebClient())

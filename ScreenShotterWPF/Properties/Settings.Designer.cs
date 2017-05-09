@@ -847,5 +847,18 @@ namespace ScreenShotterWPF.Properties {
                 this["clipboardFileDrop"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsProviderAttribute(typeof(PortableSettingsProvider))]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string imgurAlbumId {
+            get {
+                return ((string)(this["imgurAlbumId"]));
+            }
+            set {
+                this["imgurAlbumId"] = value;
+            }
+        }
     }
 }

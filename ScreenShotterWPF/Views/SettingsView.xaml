@@ -24,12 +24,18 @@
         <ControlTemplate x:Key="ImgurTemplate">
             <GroupBox Header="Imgur" Margin="6">
                 <StackPanel>
-                    <CheckBox Content="Upload to Imgur account" IsChecked="{Binding ImgurUploadToAccount}" Margin="4"/>
+                    <CheckBox Content="Upload to Imgur account" IsChecked="{Binding ImgurUploadToAccount}" Margin="5,5,5,6"/>
                     <Button x:Name="btnLogin" Margin="4" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" CommandParameter="{x:Static local:UploadSite.Imgur}"/>
                     <TextBlock>
                         <TextBlock Text="Logged in as:" Margin="4"/>
                         <TextBlock x:Name="labelUsername" Text="{Binding Username}" Margin="4"/>
                     </TextBlock>
+                    <Label Content="Album:"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Get Albums" Command="{Binding GetAlbumsCommand}" Width="80" Margin="4"/>
+                        <ComboBox ItemsSource="{Binding ImgurAlbums}" DisplayMemberPath="Title" SelectedValue="{Binding AlbumId, Mode=TwoWay}" SelectedValuePath="Id" Width="80" Margin="4"/>
+                        <TextBox Width="50" Text="{Binding AlbumId, Mode=TwoWay}" Margin="4" ToolTip="Leave empty to disable"/>
+                    </StackPanel>
                     <TextBlock Margin="4">
                         <TextBlock>File size limit:</TextBlock>
                         <TextBlock Text="{Binding FileSizeImgur}" />
@@ -357,18 +363,22 @@
             </TabItem>
             <TabItem Header="Image Upload">
                 <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30*"/>
+                        <ColumnDefinition Width="449*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="35"/>
                         <RowDefinition/>
                         <RowDefinition Height="25"/>
                     </Grid.RowDefinitions>
-                    <ComboBox Name="ImageUploadSelector" Grid.Row="0" ItemsSource="{Binding ImageUploadSites}" DisplayMemberPath="Key" SelectedValue="{Binding UploadValue}" SelectedValuePath="Value" FontSize="20">
+                    <ComboBox Name="ImageUploadSelector" Grid.Row="0" ItemsSource="{Binding ImageUploadSites}" DisplayMemberPath="Key" SelectedValue="{Binding UploadValue}" SelectedValuePath="Value" FontSize="20" Grid.ColumnSpan="2">
                         <!--<ComboBoxItem Content="Imgur"/>
                         <ComboBoxItem Content="Gyazo"/>
                         <ComboBoxItem Content="Puush"/>
                         <ComboBoxItem Content="S/FTP"/>-->
                     </ComboBox>
-                    <ContentControl Grid.Row="1">
+                    <ContentControl Grid.Row="1" Grid.ColumnSpan="2">
                         <ContentControl.Style>
                             <Style TargetType="ContentControl">
                                 <Setter Property="Template" Value="{StaticResource ImgurTemplate}"/>
@@ -392,7 +402,7 @@
                             </Style>
                         </ContentControl.Style>
                     </ContentControl>
-                    <UserControl Grid.Row="2" Template="{StaticResource OkCancelTemplate}"/>
+                    <UserControl Grid.Row="2" Template="{StaticResource OkCancelTemplate}" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem Header="File Upload">

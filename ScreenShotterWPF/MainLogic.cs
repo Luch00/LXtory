@@ -346,6 +346,12 @@ namespace ScreenShotterWPF
 
                                 // parse response
                                 json = JsonConvert.DeserializeObject<ExpandoObject>(response);
+                                // add to album if specified
+                                if (!settings.anonUpload)
+                                {
+                                    await Uploader.AddToImgurAlbum(json.data.id);
+                                }
+
                                 string thumb = $"http://i.imgur.com/{json.data.id}m.jpg";
 
                                 result = new Tuple<string, string>(json.data.link, thumb);
