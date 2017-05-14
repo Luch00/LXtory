@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
 namespace ScreenShotterWPF
@@ -41,10 +40,11 @@ namespace ScreenShotterWPF
         private void valueText_TextChanged(object sender, TextChangedEventArgs e)
         {
             var tb = (TextBox)sender;
-            if (!_numMatch.IsMatch(tb.Text)) ResetText(tb);
+            //if (!_numMatch.IsMatch(tb.Text)) ResetText(tb);
+            //TextValue = tb.Text;
             Value = Convert.ToInt32(tb.Text);
-            if (Value < Minimum) Value = Minimum;
-            if (Value > Maximum) Value = Maximum;
+            //if (Value < Minimum) Value = Minimum;
+            //if (Value > Maximum) Value = Maximum;
             RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
         }
 
@@ -66,6 +66,43 @@ namespace ScreenShotterWPF
             }
         }
 
+        //public string TextValue
+        //{
+        //    get
+        //    {
+        //        //return "";
+        //        return GetValue(ValueProperty).ToString();
+        //    }
+        //    set
+        //    {
+        //        SetActualValue(Convert.ToInt32(value));
+        //        valueText.Text = value;
+        //    }
+        //}
+
+        private void SetActualValue(int value)
+        {
+            Value = value;
+            if (value < Minimum) Value = Minimum;
+            if (value > Maximum) Value = Maximum;
+            RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
+        }
+        //private int realValue;
+        public int RealValue
+        {
+            get
+            {
+                //return realValue;
+                return (int)GetValue(RealValueProperty);
+            }
+            set
+            {
+                if (value < Minimum) RealValue = Minimum;
+                if (value > Maximum) RealValue = Maximum;
+                SetValue(RealValueProperty, value);
+            }
+        }
+
         public int Value
         {
             get
@@ -74,7 +111,8 @@ namespace ScreenShotterWPF
             }
             set
             {
-                valueText.Text = value.ToString();
+                //valueText.Text = value.ToString();
+                RealValue = value;
                 SetValue(ValueProperty, value);
             }
         }
@@ -83,9 +121,16 @@ namespace ScreenShotterWPF
             DependencyProperty.Register("Value", typeof(int), typeof(UpDown),
               new PropertyMetadata(0, new PropertyChangedCallback(OnSomeValuePropertyChanged)));
 
+        public static readonly DependencyProperty RealValueProperty =
+            DependencyProperty.Register("RealValue", typeof(int), typeof(UpDown),
+                new PropertyMetadata(0, new PropertyChangedCallback(OnRealValueChanged)));
 
-        private static void OnSomeValuePropertyChanged(
-        DependencyObject target, DependencyPropertyChangedEventArgs e)
+        private static void OnRealValueChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            //
+        }
+
+        private static void OnSomeValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
             UpDown upDownBox = target as UpDown;
             upDownBox.valueText.Text = e.NewValue.ToString();

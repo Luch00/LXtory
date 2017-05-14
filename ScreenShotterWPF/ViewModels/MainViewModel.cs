@@ -89,6 +89,7 @@ namespace ScreenShotterWPF.ViewModels
                     {
                         Properties.Settings.Default.Save();
                         RegisterHotkeys();
+                        Main.ToggleClipboardMonitor();
                         Main.CreateSFTPConnectionInfo();
                     }
                 });

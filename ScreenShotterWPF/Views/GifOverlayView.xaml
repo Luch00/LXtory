@@ -8,6 +8,7 @@
              prism:ViewModelLocator.AutoWireViewModel="True"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" MouseDown="Border_PreviewMouseDown" Loaded="UserControl_Loaded" Focusable="True" KeyDown="Border_PreviewKeyDown" KeyboardNavigation.DirectionalNavigation="Once">
     <UserControl.Background>
@@ -24,21 +25,21 @@
                 CornerRadius="0">
             <StackPanel VerticalAlignment="Center" Margin="10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <!--<xctk:IntegerUpDown x:Name="windowSizeWidth" VerticalAlignment="Center" Value="{Binding WindowWidth, Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>-->
-                    <local:UpDown Value="{Binding WindowWidth,Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" Width="58"/>
+                    <xctk:IntegerUpDown x:Name="windowSizeWidth" VerticalAlignment="Center" Value="{Binding WindowWidth, Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
+                    <!--<local:UpDown Value="{Binding WindowWidth,Mode=TwoWay}" Minimum="170" Maximum="{Binding MaxWidth}" Margin="4" HorizontalAlignment="Right" Width="58"/>-->
                     <Label Content="X"/>
-                    <!--<xctk:IntegerUpDown x:Name="windowSizeHeigth" VerticalAlignment="Center" Value="{Binding WindowHeight, Mode=TwoWay}" Minimum="155" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>-->
-                    <local:UpDown Value="{Binding WindowHeight,Mode=TwoWay}" Minimum="155" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" Width="58"/>
+                    <xctk:IntegerUpDown x:Name="windowSizeHeigth" VerticalAlignment="Center" Value="{Binding WindowHeight, Mode=TwoWay}" Minimum="155" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" AllowTextInput="True" Width="58"/>
+                    <!--<local:UpDown Value="{Binding WindowHeight,Mode=TwoWay}" Minimum="155" Maximum="{Binding MaxHeight}" Margin="4" HorizontalAlignment="Right" Width="58"/>-->
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Label Margin="0,0,25,0">Duration</Label>
-                    <!--<xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>-->
-                    <local:UpDown VerticalAlignment="Center" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Center" Width="58" />
+                    <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
+                    <!--<local:UpDown VerticalAlignment="Center" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Center" Width="58" />-->
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Label Margin="0,0,52,0">FPS</Label>
-                    <!--<xctk:IntegerUpDown x:Name="gifFramerate" VerticalAlignment="Center" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>-->
-                    <local:UpDown Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" Width="58" />
+                    <xctk:IntegerUpDown x:Name="gifFramerate" VerticalAlignment="Center" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" AllowTextInput="True" Width="58"/>
+                    <!--<local:UpDown Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Center" Width="58" />-->
                 </StackPanel>
                 <!--<Button Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">Start</Button>-->
                 <!--<xctk:SplitButton Content="Start" Width="100" Margin="0,0,0,4" Command="{Binding StartCaptureCommand}">

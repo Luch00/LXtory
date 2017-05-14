@@ -51,7 +51,8 @@ namespace ScreenShotterWPF.ViewModels
                     this.notification = value as GifEditorNotification;
                     notification.Gif.LoadThumbnails();
                     SelectedIndex = 0;
-                    this.OnPropertyChanged(() => this.Notification);
+                    //this.OnPropertyChanged(() => this.Notification);
+                    RaisePropertyChanged();
                 }
             }
         }
@@ -92,9 +93,11 @@ namespace ScreenShotterWPF.ViewModels
             get { return selectedIndex; }
             set
             {
-                selectedIndex = value > -1 ? value : 0;                
+                selectedIndex = value > -1 ? value : 0;
                 SetPreviewImage();
-                OnPropertyChanged("SelectedIndex"); }
+                //OnPropertyChanged("SelectedIndex"); }
+                RaisePropertyChanged();
+            }
         }
 
         public ImageSource PreviewImage

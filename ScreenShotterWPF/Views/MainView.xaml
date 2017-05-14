@@ -103,6 +103,7 @@
                         <Setter Property="Left" Value="{Binding WindowLeft, Mode=TwoWay}"/>
                         <Setter Property="Opacity" Value="1"/>
                         <Setter Property="AllowsTransparency" Value="True"/>
+                        <Setter Property="ShowInTaskbar" Value="False"/>
                         <Setter Property="Background">
                             <Setter.Value>
                                 <SolidColorBrush Color="White" Opacity="0.35"/>

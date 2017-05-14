@@ -223,13 +223,13 @@
                                 <CheckBox x:Name="checkGifCaptureCursor" Content="Capture Mouse Cursor" Margin="4" IsChecked="{Binding GifCaptureCursor}"/>
                                 <DockPanel>
                                     <Label Content="Frame Rate (5-60)" Margin="4"/>
-                                    <!--<xctk:IntegerUpDown x:Name="gifFrameRate" VerticalAlignment="Center" Value="{Binding GifFramerate}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>-->
-                                    <local:UpDown Margin="4" HorizontalAlignment="Right" Width="45" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60"/>
+                                    <xctk:IntegerUpDown x:Name="gifFrameRate" VerticalAlignment="Center" Value="{Binding GifFramerate}" Minimum="5" Maximum="60" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                                    <!--<local:UpDown Margin="4" HorizontalAlignment="Right" Width="45" Value="{Binding GifFramerate, Mode=TwoWay}" Minimum="5" Maximum="60"/>-->
                                 </DockPanel>
                                 <DockPanel>
                                     <Label Content="Duration (1-30s)" Margin="4"/>
-                                    <!--<xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>-->
-                                    <local:UpDown Margin="4" HorizontalAlignment="Right"  Width="45" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30"/>
+                                    <xctk:IntegerUpDown x:Name="gifDuration" VerticalAlignment="Center" Value="{Binding GifDuration}" Minimum="1" Maximum="30" Margin="4" HorizontalAlignment="Right" AllowTextInput="False"/>
+                                    <!--<local:UpDown Margin="4" HorizontalAlignment="Right"  Width="45" Value="{Binding GifDuration, Mode=TwoWay}" Minimum="1" Maximum="30"/>-->
                                 </DockPanel>
                             </StackPanel>
                         </GroupBox>

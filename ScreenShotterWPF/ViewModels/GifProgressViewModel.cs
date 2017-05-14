@@ -26,7 +26,8 @@ namespace ScreenShotterWPF.ViewModels
                 if (value is GifProgressNotification)
                 {
                     this.notification = value as GifProgressNotification;
-                    this.OnPropertyChanged(() => this.Notification);
+                    //OnPropertyChanged(() => Notification);
+                    RaisePropertyChanged();
                     StartEncode();
                 }
             }

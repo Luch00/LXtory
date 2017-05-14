@@ -49,6 +49,10 @@ namespace ScreenShotterWPF
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AddClipboardFormatListener(IntPtr hwnd);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+
         //internal delegate void WinEventDelegate(IntPtr hWinventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
 
         [StructLayout(LayoutKind.Sequential)]

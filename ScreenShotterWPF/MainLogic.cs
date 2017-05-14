@@ -82,11 +82,24 @@ namespace ScreenShotterWPF
             this.CancelCommand = new DelegateCommand(CancelUpload);
             Ximages = ReadXML();
             CancelEnabled = false;
+            ToggleClipboardMonitor();
             if (settings.filePath == "")
             {
                 SetDefaults();
             }
             StartUploads();
+        }
+
+        public void ToggleClipboardMonitor()
+        {
+            if (settings.clipboardMonitor)
+            {
+                ClipboardMonitor.EnableMonitor();
+            }
+            else
+            {
+                ClipboardMonitor.DisableMonitor();
+            }
         }
 
         private static void ClipboardChanged(object sender, EventArgs e)
@@ -108,6 +121,8 @@ namespace ScreenShotterWPF
 
         private static void ClipboardUpload(object sender, EventArgs e)
         {
+            var obj = Clipboard.GetDataObject();
+            var formats = obj.GetFormats();
             Image img = GetImageFromClipboard();
             if (img != null)
             {
@@ -146,8 +161,12 @@ namespace ScreenShotterWPF
                     {
                         PngBitmapEncoder enc = new PngBitmapEncoder();
                         enc.Interlace = PngInterlaceOption.Off;
-                        enc.Frames.Add(DIBHelper.ImageFromClipboardDib(dib_stream));
+                        BitmapFrame frame = DIBHelper.ImageFromClipboardDib(dib_stream);
+                        enc.Frames.Add(frame);
+                        //enc.Frames.Add(DIBHelper.ImageFromClipboardDib(dib_stream));
+                        //var mem = new MemoryStream();
                         enc.Save(ms);
+                        DIBHelper.Cleanup();
                         return Image.FromStream(ms);
                     }
                 }
