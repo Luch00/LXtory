@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Prism.Mvvm;
@@ -107,7 +106,7 @@ namespace LXtory
                 for (int i = 0; i < this.frameCount; i++)
                 {
                     Stopwatch sw = Stopwatch.StartNew();
-                    Image img = CaptureArea(width, height, posX, posY);
+                    Image img = ScreenCapture.CaptureArea(width, height, posX, posY, Properties.Settings.Default.gifCaptureCursor);
                     ImageBuffer.Add(img);
                     if (i + 1 < frameCount)
                     {
@@ -172,36 +171,6 @@ namespace LXtory
             });
         }
 
-        private static Image CaptureArea(int w, int h, int x, int y)
-        {
-            Image img = new Bitmap(w, h, PixelFormat.Format32bppRgb);
-            using (var gfx = Graphics.FromImage(img))
-            {
-                gfx.CopyFromScreen(x,
-                                    y,
-                                    0,
-                                    0,
-                                    new Size(w, h),
-                                    CopyPixelOperation.SourceCopy);
-                if (Properties.Settings.Default.gifCaptureCursor)
-                {
-                    NativeMethods.CURSORINFO pci;
-                    pci.cbSize = Marshal.SizeOf(typeof(NativeMethods.CURSORINFO));
-
-                    if (NativeMethods.GetCursorInfo(out pci))
-                    {
-                        if (pci.flags == NativeMethods.CURSOR_SHOWING)
-                        {
-                            var hdc = gfx.GetHdc();
-                            NativeMethods.DrawIconEx(hdc, pci.ptScreenPos.x - x, pci.ptScreenPos.y - y, pci.hCursor, 0, 0, 0, IntPtr.Zero, NativeMethods.DI_NORMAL);
-                            gfx.ReleaseHdc();
-                        }
-                    }
-                }
-            }
-            return img;
-        }
-
         public Task<string> EncodeGif(GifProgressNotification gpn)
         {
             return Task.Run(() =>
@@ -224,7 +193,7 @@ namespace LXtory
                         filePaths.Add(frame.Filepath);
                     }
                 }
-                //Console.WriteLine("SELECTED: " + filePaths.Count);
+
                 try
                 {
                     using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
@@ -232,19 +201,20 @@ namespace LXtory
                         using (var encoder = new GifEncoder(gif))
                         {
                             var quantizer = new WuQuantizer();
+                            var histogram = new Histogram();
                             
                             for (int i = 0; i < filePaths.Count; i++)
                             {
                                 if (gpn.Cancelled)
                                 {
-                                    //Console.WriteLine("CANCEL REQUESTED");
                                     break;
                                 }
                                 
                                 using (var image = new Bitmap(Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i])))))
                                 //using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i]))))
                                 {
-                                    using (var quantImage = quantizer.QuantizeImage(image))
+                                    //using (var quantImage = quantizer.QuantizeImage(image))
+                                    using (var quantImage = quantizer.QuantizeImage(image, 10, 70, histogram, 256))
                                     //using (var quantImage = quantizer.QuantizeImage(new Bitmap(image)))
                                     {
                                         encoder.AddFrame(quantImage, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
@@ -264,7 +234,6 @@ namespace LXtory
 
                 if (gpn.Cancelled)
                 {
-                    //Console.WriteLine("DELETE UNFINISHED");
                     File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));
                     gifname = string.Empty;
                 }

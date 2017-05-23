@@ -4,8 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-             xmlns:prism="http://prismlibrary.com/" 
-             xmlns:local="clr-namespace:LXtory.Views"
+             xmlns:prism="http://prismlibrary.com/"
              prism:ViewModelLocator.AutoWireViewModel="True"
              xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:tb="http://www.hardcodet.net/taskbar"
@@ -106,7 +105,7 @@
                         <Setter Property="ShowInTaskbar" Value="False"/>
                         <Setter Property="Background">
                             <Setter.Value>
-                                <SolidColorBrush Color="White" Opacity="0.35"/>
+                                <SolidColorBrush Color="White" Opacity="0.10"/>
                             </Setter.Value>
                         </Setter>
                     </Style>

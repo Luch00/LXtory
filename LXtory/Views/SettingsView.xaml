@@ -239,9 +239,9 @@
                                 <CheckBox x:Name="fullscreenD3D" Content="Capture All Screens" Margin="4" IsChecked="{Binding FullscreenD3D}"/>
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox x:Name="groupBox3" Header="Clipboard Monitoring" Margin="2,3,0,0" VerticalAlignment="Top" Height="110" HorizontalAlignment="Left" Width="231">
+                        <GroupBox x:Name="groupBox3" Header="Other" Margin="2,3,0,0" VerticalAlignment="Top" Height="110" HorizontalAlignment="Left" Width="231">
                             <StackPanel>
-                                <CheckBox x:Name="clipboardMonitor" Content="Enable monitoring" Margin="4" ToolTip="Detects when image is copied to clipboard from another source\n E.g. web browser, photo editor, clipping tool etc." IsChecked="{Binding ClipboardMonitor}"/>
+                                <CheckBox x:Name="clipboardMonitor" Content="Clipboard monitoring" Margin="4" ToolTip="Detects when image is copied to clipboard from another source\n E.g. web browser, graphics editor, clipping tool etc." IsChecked="{Binding ClipboardMonitor}"/>
                                 <!--<CheckBox x:Name="clipboardFileDrop" Content="Detect file drops" Margin="4" ToolTip="Detects when image file is copied to clipboard from file explorer" IsChecked="{Binding ClipboardFileDrop}"/>-->
                             </StackPanel>
                         </GroupBox>

@@ -36,6 +36,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AssemblyName>LXtory_Debug</AssemblyName>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -169,6 +170,7 @@
     <Compile Include="Notifications\OverlayNotification.cs" />
     <Compile Include="Notifications\SettingsNotification.cs" />
     <Compile Include="OAuthHelpers.cs" />
+    <Compile Include="ScreenCapture.cs" />
     <Compile Include="UpDown.xaml.cs">
       <DependentUpon>UpDown.xaml</DependentUpon>
     </Compile>
@@ -302,6 +304,7 @@
     <Resource Include="Resources\main.ico" />
     <Resource Include="Resources\meh.ico" />
     <Resource Include="Resources\R.ico" />
+    <Resource Include="TextFile1.txt" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="FodyWeavers.xml" />
@@ -315,9 +318,6 @@
       <Project>{72e591d6-8f83-4d8c-8f67-9c325e623234}</Project>
       <Name>Xceed.Wpf.Toolkit</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="TextFile1.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

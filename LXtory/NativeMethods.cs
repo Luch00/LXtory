@@ -16,6 +16,9 @@ namespace LXtory
         [DllImport("user32.dll")]
         internal static extern IntPtr GetForegroundWindow();
 
+        [DllImport("USER32.DLL")]
+        internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
         [DllImport("user32.dll")]
         internal static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 

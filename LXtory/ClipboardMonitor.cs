@@ -35,17 +35,22 @@ namespace LXtory
         class ClipboardMonitorWindow : Window
         {
             private const int WM_CLIPBOARDUPDATE = 0x031D;
-            
+            private HwndSource source;
             public ClipboardMonitorWindow()
             {
+                this.Closing += ClipboardMonitorWindow_Closing;
                 var helper = new WindowInteropHelper(this).EnsureHandle();
-                //using (HwndSource source = HwndSource.FromHwnd(helper))
-                //{
-                HwndSource source = HwndSource.FromHwnd(helper);
-                    source.AddHook(new HwndSourceHook(WndProc));
-                    NativeMethods.AddClipboardFormatListener(source.Handle);
-                //}
+                source = HwndSource.FromHwnd(helper);
+                source.AddHook(new HwndSourceHook(WndProc));
+                NativeMethods.AddClipboardFormatListener(source.Handle);
             }
+
+            private void ClipboardMonitorWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+            {
+                DisableMonitor();
+                source.Dispose();
+            }
+
             private static IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
             {
                 if (msg == WM_CLIPBOARDUPDATE)

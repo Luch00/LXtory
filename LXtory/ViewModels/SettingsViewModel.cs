@@ -661,7 +661,6 @@ namespace LXtory.ViewModels
                 {
                     UploadEnabled = true;
                 }
-                //OnPropertyChanged("LocalEnabled");
                 RaisePropertyChanged("LocalEnabled");
             }
         }
@@ -676,7 +675,6 @@ namespace LXtory.ViewModels
                 {
                     LocalEnabled = true;
                 }
-                //OnPropertyChanged("UploadEnabled");
                 RaisePropertyChanged("UploadEnabled");
             }
         }
@@ -1042,7 +1040,8 @@ namespace LXtory.ViewModels
             settings.ftpMethod = FTPMethod;
             settings.ftpProtocol = FTPProtocol;
             settings.dropboxPath = DropboxPath;
-            settings.filePath = Directory.Exists(TextFilepath) ? TextFilepath : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            //settings.filePath = Directory.Exists(TextFilepath) ? TextFilepath : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            settings.filePath = GetFilePath(TextFilepath);
 
             if (ContextMenuEnabled != settings.shellExtActive || FileUploadEnabled != settings.fileUploadEnabled)
             {
@@ -1068,6 +1067,34 @@ namespace LXtory.ViewModels
                 this.notification.Confirmed = true;
             }
             this.FinishInteraction();
+        }
+
+        private static string GetFilePath(string path)
+        {
+            if (settings.filePath == path)
+            {
+                // same as before, no change
+                return settings.filePath;
+            }
+            else if (string.IsNullOrWhiteSpace(path))
+            {
+                // Empty, exe directory
+                return AppDomain.CurrentDomain.BaseDirectory;
+            }
+            else
+            {
+                try
+                {
+                    // New, create and go
+                    Directory.CreateDirectory(path);
+                    return path;
+                }
+                catch (Exception)
+                {
+                    // Couldn't create, set to documents/pictures
+                    return Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                }
+            }
         }
 
         private static void SetStartUp(bool s)

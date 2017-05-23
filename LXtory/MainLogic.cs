@@ -23,7 +23,6 @@ using Prism.Commands;
 using Renci.SshNet;
 using Newtonsoft.Json;
 using System.Dynamic;
-using System.Configuration;
 
 namespace LXtory
 {
@@ -34,10 +33,6 @@ namespace LXtory
         private static readonly BlockingCollection<XImage> queue = new BlockingCollection<XImage>();
 
         private static readonly Properties.Settings settings = Properties.Settings.Default;
-
-        // For selecting window to capture
-        private MouseKeyHook mHook;
-        private readonly Action<bool> mouseAction;
 
         protected Thread clipboardThread;
 
@@ -73,7 +68,6 @@ namespace LXtory
             windows8 = CheckIfWin8OrHigher();
             uiContext = SynchronizationContext.Current;
             //addXImageToList = AddXimageToList;
-            mouseAction = HookMouseAction;
             Uploader.ProgressBarUpdate = ProgressAndIconChange;
             ClipboardMonitor.ClipboardEvent += new EventHandler(ClipboardChanged);
             BalloonMessage.ClipboardNotificationClicked += new EventHandler(ClipboardUpload);
@@ -87,9 +81,9 @@ namespace LXtory
             Ximages = ReadXML(historyXMLPath);
             CancelEnabled = false;
             ToggleClipboardMonitor();
-            if (settings.filePath == "")
+            if (string.IsNullOrWhiteSpace(settings.filePath))
             {
-                SetDefaults();
+                SetDefaultPath();
             }
             StartUploads();
         }
@@ -167,8 +161,6 @@ namespace LXtory
                         enc.Interlace = PngInterlaceOption.Off;
                         BitmapFrame frame = DIBHelper.ImageFromClipboardDib(dib_stream);
                         enc.Frames.Add(frame);
-                        //enc.Frames.Add(DIBHelper.ImageFromClipboardDib(dib_stream));
-                        //var mem = new MemoryStream();
                         enc.Save(ms);
                         DIBHelper.Cleanup();
                         return Image.FromStream(ms);
@@ -312,7 +304,6 @@ namespace LXtory
                     }
                 default:
                     return true;
-
             }
         }
 
@@ -531,15 +522,10 @@ namespace LXtory
             }
         }
 
-        // Set some default settings values
-        private static void SetDefaults()
+        // Set some default path for images
+        private static void SetDefaultPath()
         {
             settings.filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            /*settings.hkFullscreen = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F2));
-            settings.hkCurrentwindow = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F3));
-            settings.hkSelectedarea = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F4));
-            settings.hkGifcapture = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F5));
-            settings.hkD3DCap = new HotKey(true, false, false, KeyInterop.VirtualKeyFromKey(Key.F6));*/
             settings.Save();
         }
 
@@ -614,16 +600,6 @@ namespace LXtory
             }
         }
 
-        private void HookMouseAction(bool b)
-        {
-            if (b)
-            {
-                NativeMethods.GetCursorPos(out NativeMethods.POINT p);
-                CapWindowFromPoint(p.X, p.Y);
-            }
-            MouseKeyHook.Unhook();
-        }
-
         public void D3DCapPrimaryScreen()
         {
             if (!windows8)
@@ -650,17 +626,17 @@ namespace LXtory
         }
 
         // Capture whole (virtual)screen area
-        public void CapFullscreen()
+        public void CaptureFullscreen()
         {
             var top = SystemParameters.VirtualScreenTop;
             var left = SystemParameters.VirtualScreenLeft;
             var w = SystemParameters.VirtualScreenWidth;
             var h = SystemParameters.VirtualScreenHeight;
-            ImageManager(EncodeImage(ScreenCap((int)w, (int)h, (int)left, (int)top)), "fullscreen");
+            ImageManager(EncodeImage(ScreenCapture.CaptureArea((int)w, (int)h, (int)left, (int)top, false)), "fullscreen");
         }
 
         // Capture current selected window
-        public void CapWindow()
+        public void CaptureWindow()
         {
             if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
@@ -676,10 +652,10 @@ namespace LXtory
             int height = rect.Bottom - rect.Top;
 
             var title = GetActiveWindowTitle();
-            ImageManager(EncodeImage(ScreenCap(width, height, rect.Left, rect.Top)), title);
+            ImageManager(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
         }
 
-        public void CapWindowFromPoint(int x, int y)
+        public void CaptureWindowFromPoint(int x, int y)
         {
             if (settings.d3dAutoDetect && NotificationState() == NativeMethods.USERNOTIFICATIONSTATE.QUNS_RUNNING_D3D_FULL_SCREEN)
             {
@@ -702,14 +678,15 @@ namespace LXtory
                 title = buff.ToString();
             }
 
-            ImageManager(EncodeImage(ScreenCap(width, height, rect.Left, rect.Top)), title);
+            ImageManager(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
         }
 
         // Create an overlay, draw a rectangle on the overlay to cap that area
-        public void CapArea()
+        public void CaptureArea()
         {
             if (!overlay_created)
             {
+                var foregroundWindow = NativeMethods.GetForegroundWindow();
                 overlay_created = true;
                 OverlayNotification notification = new OverlayNotification()
                 {
@@ -726,13 +703,15 @@ namespace LXtory
                         {
                             // get dpi multiplier
                             Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
-                            
+                            var works = NativeMethods.SetForegroundWindow(foregroundWindow);
+                            Console.WriteLine(works);
                             ImageManager(
                                 EncodeImage(
-                                    ScreenCap(Convert.ToInt32(notification.Rect.Width * m.M22), 
+                                    ScreenCapture.CaptureArea(Convert.ToInt32(notification.Rect.Width * m.M22), 
                                     Convert.ToInt32(notification.Rect.Height * m.M11),
                                     Convert.ToInt32(notification.Rect.X * m.M11), 
-                                    Convert.ToInt32(notification.Rect.Y * m.M22))
+                                    Convert.ToInt32(notification.Rect.Y * m.M22),
+                                    false)
                                     ), 
                                 "areacapture");
                         }
@@ -741,7 +720,7 @@ namespace LXtory
             }
         }
 
-        public async void CapGif()
+        public async void CaptureGif()
         {
             if (gifCapturing)
                 return;
@@ -816,32 +795,6 @@ namespace LXtory
             gifCapturing = false;
         }
 
-        // Capture an area of the screen, save as PNG
-        private static Image ScreenCap(int width, int height, int rX, int rY)
-        {
-            // minimum size 1 pixel
-            if (width < 1)
-            {
-                width = 1;
-            }
-            if (height < 1)
-            {
-                height = 1;
-            }
-
-            Image image = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            using (var gfx = Graphics.FromImage(image))
-            {
-                gfx.CopyFromScreen(rX,
-                    rY,
-                    0,
-                    0,
-                    new System.Drawing.Size(width, height),
-                    CopyPixelOperation.SourceCopy);
-            }
-            return image;
-        }
-
         // Get active window title to be used in filenames
         private static string GetActiveWindowTitle()
         {
@@ -882,20 +835,7 @@ namespace LXtory
         {
             int i = 1;
             filename = MakeValidFileName(filename);
-
-            // Create directory if doesnt exist yet
-            if (!Directory.Exists(settings.filePath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(settings.filePath);
-                }
-                catch (Exception e)
-                {
-                    StatusText = e.Message;
-                    return string.Empty;
-                }
-            }
+            
             string file = $"{filename}.png";
             string target = Path.Combine(settings.filePath, file);
             // if file with same name exists append a number to it
@@ -1065,13 +1005,6 @@ namespace LXtory
         // Write history xml
         private static void WriteXML(ObservableCollection<XImage> ximages, string filePath)
         {
-            //string f = Path.Combine((Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), @"Luch\LxTory\images.xml");
-            //var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath;
-            //var historyXml = Path.Combine(filePath, "images.xml");
-            //if (!Directory.Exists(Path.Combine((Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), @"Luch\LxTory")))
-            //{
-            //    Directory.CreateDirectory(Path.Combine((Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), @"Luch\LxTory"));
-            //}
             XmlSerializer s = new XmlSerializer(typeof(ObservableCollection<XImage>));
             TextWriter w = new StreamWriter(filePath);
             s.Serialize(w, ximages);
@@ -1081,10 +1014,6 @@ namespace LXtory
         // Read the history xml
         private static ObservableCollection<XImage> ReadXML(string filePath)
         {
-            //string f = Path.Combine((Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), @"Luch\LxTory\images.xml");
-            //var config = PortableSettingsProvider.GetAppSettingsPath();
-            //string f = Path.Combine(PortableSettingsProvider.GetAppSettingsPath(), "images.xml");
-            //var historyXml = Path.Combine(filePath, "images.xml");
             XmlSerializer s = new XmlSerializer(typeof(ObservableCollection<XImage>));
             if (File.Exists(filePath))
             {

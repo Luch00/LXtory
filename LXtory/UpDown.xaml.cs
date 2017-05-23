@@ -40,11 +40,10 @@ namespace LXtory
         private void valueText_TextChanged(object sender, TextChangedEventArgs e)
         {
             var tb = (TextBox)sender;
-            //if (!_numMatch.IsMatch(tb.Text)) ResetText(tb);
-            //TextValue = tb.Text;
+            if (!_numMatch.IsMatch(tb.Text)) ResetText(tb);
             Value = Convert.ToInt32(tb.Text);
-            //if (Value < Minimum) Value = Minimum;
-            //if (Value > Maximum) Value = Maximum;
+            if (Value < Minimum) Value = Minimum;
+            if (Value > Maximum) Value = Maximum;
             RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
         }
 
@@ -66,43 +65,6 @@ namespace LXtory
             }
         }
 
-        //public string TextValue
-        //{
-        //    get
-        //    {
-        //        //return "";
-        //        return GetValue(ValueProperty).ToString();
-        //    }
-        //    set
-        //    {
-        //        SetActualValue(Convert.ToInt32(value));
-        //        valueText.Text = value;
-        //    }
-        //}
-
-        private void SetActualValue(int value)
-        {
-            Value = value;
-            if (value < Minimum) Value = Minimum;
-            if (value > Maximum) Value = Maximum;
-            RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
-        }
-        //private int realValue;
-        public int RealValue
-        {
-            get
-            {
-                //return realValue;
-                return (int)GetValue(RealValueProperty);
-            }
-            set
-            {
-                if (value < Minimum) RealValue = Minimum;
-                if (value > Maximum) RealValue = Maximum;
-                SetValue(RealValueProperty, value);
-            }
-        }
-
         public int Value
         {
             get
@@ -111,8 +73,7 @@ namespace LXtory
             }
             set
             {
-                //valueText.Text = value.ToString();
-                RealValue = value;
+                valueText.Text = value.ToString();
                 SetValue(ValueProperty, value);
             }
         }
@@ -120,15 +81,6 @@ namespace LXtory
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register("Value", typeof(int), typeof(UpDown),
               new PropertyMetadata(0, new PropertyChangedCallback(OnSomeValuePropertyChanged)));
-
-        public static readonly DependencyProperty RealValueProperty =
-            DependencyProperty.Register("RealValue", typeof(int), typeof(UpDown),
-                new PropertyMetadata(0, new PropertyChangedCallback(OnRealValueChanged)));
-
-        private static void OnRealValueChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
-        {
-            //
-        }
 
         private static void OnSomeValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {

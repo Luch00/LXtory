@@ -4,12 +4,9 @@ using System.Configuration;
 using System.Collections.Specialized;
 using System.Xml;
 using System.IO;
-using System.Windows;
-
 
 public class PortableSettingsProvider : SettingsProvider
 {
-
     const string SETTINGSROOT = "Settings";
     //XML Root Node
 
@@ -58,26 +55,21 @@ public class PortableSettingsProvider : SettingsProvider
     //public virtual string GetAppSettingsPath()
     public static string GetAppSettingsPath()
     {
-        if (!isPortable)
-        {
-            // Get appdata path for settings
-            if (!Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Luch\LXtory")))
-            {
-                try
-                {
-                    Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Luch\LXtory"));
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Failed to create settings folder.\nSettings may not save!");
-                }
-            }
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Luch\LXtory"); 
-        }
-        else
+        // Portable mode, save settings to exe directory
+        if (isPortable)
         {
             var location = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
             return Path.GetDirectoryName(location);
+        }
+        // Get appdata path for settings
+        try
+        {
+            return Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Luch\LXtory")).FullName;
+        }
+        catch (Exception)
+        {
+            //MessageBox.Show("Failed to create settings folder.\nSettings may not save!");
+            return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         }
     }
 

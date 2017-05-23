@@ -13,18 +13,10 @@ namespace LXtory
 
     public partial class MainWindow
     {
-
-        //private MainViewModel mainview;
-
         public MainWindow()
         {   
             InitializeComponent();
         }
-
-        /*public bool ReadCommandLineArgs(IList<string> args)
-        {
-            return mainview.PassCommandLineArgs(args);
-        }*/
 
         private void Startup_Minimize()
         {

@@ -33,26 +33,9 @@ namespace LXtory
             SetIcon("Default");
         }
 
-        private static readonly Icon defaulticon = new Icon(App.GetResourceStream(new Uri($"pack://application:,,,/Resources/Hoshimemo5.ico", UriKind.Absolute)).Stream, 48, 48);
+        private static readonly Icon defaulticon = new Icon(App.GetResourceStream(new Uri($"pack://application:,,,/Resources/main.ico", UriKind.Absolute)).Stream, 48, 48);
         public static EventHandler ClipboardNotificationClicked;
         private static bool isClipboard = false;
-
-        //public enum TrayIcon
-        //{
-        //    Default,
-        //    Finished,
-        //    Error,
-        //    Refresh,
-        //    P10,
-        //    P20,
-        //    P30,
-        //    P40,
-        //    P50,
-        //    P60,
-        //    P70,
-        //    P80,
-        //    P90
-        //}
 
         public static void SetIcon(string s)
         {

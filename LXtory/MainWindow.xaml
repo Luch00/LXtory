@@ -6,13 +6,13 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:views="clr-namespace:LXtory.Views"
         xmlns:p="clr-namespace:LXtory.Properties"
-        Title="LXtory 0.961" 
+        Title="LXtory 0.97" 
         Height="{Binding Source={x:Static p:Settings.Default}, Path=windowHeight, Mode=TwoWay}" 
         Width="{Binding Source={x:Static p:Settings.Default}, Path=windowWidth, Mode=TwoWay}"
         Top="{Binding Source={x:Static p:Settings.Default}, Path=windowTop, Mode=TwoWay}"
         Left="{Binding Source={x:Static p:Settings.Default}, Path=windowLeft, Mode=TwoWay}"
         MinWidth="380" 
         MinHeight="500"
-        Closing="Window_Closing" StateChanged="UI_StateChanged" Loaded="UI_Loaded" Margin="0" Padding="0" Closed="UI_Closed" Icon="Resources/Hoshimemo5.ico">
+        Closing="Window_Closing" StateChanged="UI_StateChanged" Loaded="UI_Loaded" Margin="0" Padding="0" Closed="UI_Closed" Icon="Resources/main.ico" WindowState="{Binding ElementName=MainView, Path=DataContext.CurrentWindowState, Mode=TwoWay}">
     <views:MainView x:Name="MainView" Loaded="MainView_Loaded"/>
 </Window>

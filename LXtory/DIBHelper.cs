@@ -66,15 +66,12 @@ namespace LXtory
 
                 byte[] fileHeaderBytes =
                     BinaryStructConverter.ToByteArray<BITMAPFILEHEADER>(fileHeader);
-
-                //using (MemoryStream msBitmap = new MemoryStream())
-                //{
+                
                 msBitmap = new MemoryStream();
                 msBitmap.Write(fileHeaderBytes, 0, fileHeaderSize);
                 msBitmap.Write(dibBuffer, 0, dibBuffer.Length);
                 msBitmap.Seek(0, SeekOrigin.Begin);
                 return BitmapFrame.Create(msBitmap);
-                //}
             }
             return null;
         }

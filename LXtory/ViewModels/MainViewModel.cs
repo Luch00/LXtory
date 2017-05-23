@@ -10,7 +10,6 @@ using Prism.Mvvm;
 using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
 using LXtory.Notifications;
-using System.Windows.Media;
 
 namespace LXtory.ViewModels
 {
@@ -23,7 +22,6 @@ namespace LXtory.ViewModels
         private bool gifButtonEnabled;
         
         private IntPtr windowHandle;
-        private HwndSource _source;
         
         public MainLogic Main { get; private set; }
 
@@ -54,7 +52,6 @@ namespace LXtory.ViewModels
         public MainViewModel()
         {
             Main = new MainLogic();
-            //GetContent();
             
             areaButtonText = "Select Area";
             windowButtonText = "Select Window";
@@ -99,11 +96,17 @@ namespace LXtory.ViewModels
         {
             Main.RemoveXImage(selectedItem);
         }
+        private WindowState viewVisibility;
+        public WindowState CurrentWindowState
+        {
+            get { return viewVisibility; }
+            set { SetProperty(ref viewVisibility, value); }
+        }
 
         private void CaptureGif()
         {
             GifButtonEnabled = false;
-            Main.CapGif();
+            Main.CaptureGif();
             GifButtonEnabled = true;
         }
 
@@ -114,7 +117,7 @@ namespace LXtory.ViewModels
 
         private void CaptureFullscreen()
         {
-            Main.CapFullscreen();
+            Main.CaptureFullscreen();
         }
 
         private void CaptureWindow()
@@ -130,7 +133,7 @@ namespace LXtory.ViewModels
             if (b)
             {
                 NativeMethods.GetCursorPos(out NativeMethods.POINT p);
-                Main.CapWindowFromPoint(p.X, p.Y);
+                Main.CaptureWindowFromPoint(p.X, p.Y);
             }
             MouseKeyHook.Unhook();
             WindowButtonText = "Select Window";
@@ -139,7 +142,7 @@ namespace LXtory.ViewModels
         private void CaptureArea()
         {
             AreaButtonText = "Esc to cancel..";
-            Main.CapArea();
+            Main.CaptureArea();
             AreaButtonText = "Select Area";
         }
         
@@ -191,7 +194,6 @@ namespace LXtory.ViewModels
             {
                 selectedItem = value;
                 GetPicture(selectedItem);
-                //OnPropertyChanged("SelectedItem");
                 RaisePropertyChanged("SelectedItem");
             }
         }
@@ -282,16 +284,6 @@ namespace LXtory.ViewModels
             }
         }
 
-        //private void GetContent()
-        //{
-        //    Main.ReadXML();
-        //}
-
-        /*public bool PassCommandLineArgs(IList<string> args)
-        {
-            return Main.ReadCommandLineArgs(args);
-        }*/
-
         private void RegisterHotkeys()
         {
             UnregisterHotKey();
@@ -322,7 +314,7 @@ namespace LXtory.ViewModels
                 }
                 if (!NativeMethods.RegisterHotKey(WindowHandle, hotkey_id, MOD_KEY, VK_KEY))
                 {
-                    Console.WriteLine(@"ERROR");
+                    BalloonMessage.ShowMessage("Hotkey failed to register", Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Warning);
                 } 
             }
             Console.WriteLine(@"Registered");
@@ -343,51 +335,43 @@ namespace LXtory.ViewModels
 
         private void InitializeHotkeys()
         {
-            _source = HwndSource.FromHwnd(WindowHandle);
-            _source.AddHook(HwndHook);
+            ComponentDispatcher.ThreadPreprocessMessage += ComponentDispatcher_ThreadPreprocessMessage;
             RegisterHotkeys();
         }
 
-        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private void ComponentDispatcher_ThreadPreprocessMessage(ref MSG msg, ref bool handled)
         {
             const int WM_HOTKEY = 0x0312;
-            switch (msg)
+            if (msg.message == WM_HOTKEY)
             {
-                case WM_HOTKEY:
-                    switch (wParam.ToInt32())
-                    {
-                        case HOTKEY_1:
-                            Main.CapFullscreen();
-                            handled = true;
-                            break;
-
-                        case HOTKEY_2:
-                            Main.CapWindow();
-                            handled = true;
-                            break;
-
-                        case HOTKEY_3:
-                            Main.CapArea();
-                            handled = true;
-                            break;
-                       case HOTKEY_4:
-                            Main.D3DCapPrimaryScreen();
-                            handled = true;
-                            break;
-                        case HOTKEY_5:
-                            Main.CapGif();
-                            handled = true;
-                            break;
-                    }
-                    break;
+                switch (msg.wParam.ToInt32())
+                {
+                    case HOTKEY_1:
+                        Main.CaptureFullscreen();
+                        handled = true;
+                        break;
+                    case HOTKEY_2:
+                        Main.CaptureWindow();
+                        handled = true;
+                        break;
+                    case HOTKEY_3:
+                        Main.CaptureArea();
+                        handled = true;
+                        break;
+                    case HOTKEY_4:
+                        Main.D3DCapPrimaryScreen();
+                        handled = true;
+                        break;
+                    case HOTKEY_5:
+                        Main.CaptureGif();
+                        handled = true;
+                        break;
+                }
             }
-            return IntPtr.Zero;
         }
 
         public void OnWindowClosed(object sender, EventArgs e)
         {
-            _source.RemoveHook(HwndHook);
-            _source = null;
             MainLogic.SetAsComplete();
             UnregisterHotKey();
         }
