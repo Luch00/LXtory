@@ -154,7 +154,8 @@ namespace LXtory.ViewModels
 
         private void OpenImageFolder()
         {
-            Process.Start(Properties.Settings.Default.filePath);
+            //Process.Start(Properties.Settings.Default.filePath);
+            Process.Start(MainLogic.GetImageSavePath());
         }
 
         public string WindowButtonText

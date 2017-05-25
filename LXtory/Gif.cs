@@ -30,11 +30,16 @@ namespace LXtory
         private readonly string cachedir;
         private readonly ObservableCollection<GifFrame> frames;
         private int encodingProgress;
-        private readonly string datePattern;
+        //private readonly string datePattern;
+        private readonly string filepath;
+        private readonly string filename;
 
-        public Gif(int framerate, int duration, int w, int h, int x, int y, string datePattern)
+        //public Gif(int framerate, int duration, int w, int h, int x, int y, string datePattern)
+        public Gif(int framerate, int duration, int w, int h, int x, int y, string filepath, string filename)
         {
-            this.datePattern = datePattern;
+            //this.datePattern = datePattern;
+            this.filepath = filepath;
+            this.filename = filename;
             this.width = w;
             this.height = h;
             this.posX = x;
@@ -43,7 +48,8 @@ namespace LXtory
             this.delay = 1000 / framerate;
             this.fileindex = 0;
             this.encodingProgress = 0;
-            this.cachedir = Path.Combine(Properties.Settings.Default.filePath, "gif_frames");
+            //this.cachedir = Path.Combine(Properties.Settings.Default.filePath, "gif_frames");
+            this.cachedir = Path.Combine(filepath, "gif_frames");
             this.frames = new ObservableCollection<GifFrame>();
             ImageBuffer = new BlockingCollection<Image>();
         }
@@ -171,20 +177,21 @@ namespace LXtory
             });
         }
 
-        public Task<string> EncodeGif(GifProgressNotification gpn)
+        //public Task<string> EncodeGif(GifProgressNotification gpn)
+        public Task<bool> EncodeGif(GifProgressNotification gpn)
         {
             return Task.Run(() =>
             {
-                string date = DateTime.Now.ToString(datePattern);
-                int count = 1;
-                string gifname = $"gif_{date}.gif";
+                //string date = DateTime.Now.ToString(datePattern);
+                //int count = 1;
+                //string gifname = $"gif_{date}.gif";
 
-                while (File.Exists(Path.Combine(Properties.Settings.Default.filePath, gifname)))
-                {
-                    gifname = $"gif_{date}({count}).gif";
-                    count++;
-                }
-
+                //while (File.Exists(Path.Combine(Properties.Settings.Default.filePath, gifname)))
+                //{
+                //    gifname = $"gif_{date}({count}).gif";
+                //    count++;
+                //}
+                bool success = true;
                 List<string> filePaths = new List<string>();
                 foreach (GifFrame frame in frames)
                 {
@@ -196,12 +203,13 @@ namespace LXtory
 
                 try
                 {
-                    using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
+                    //using (var gif = File.OpenWrite(Path.Combine(Properties.Settings.Default.filePath, gifname)))
+                    using (var gif = File.OpenWrite(Path.Combine(this.filepath, this.filename)))
                     {
                         using (var encoder = new GifEncoder(gif))
                         {
                             var quantizer = new WuQuantizer();
-                            var histogram = new Histogram();
+                            //var histogram = new Histogram();
                             
                             for (int i = 0; i < filePaths.Count; i++)
                             {
@@ -209,19 +217,21 @@ namespace LXtory
                                 {
                                     break;
                                 }
-                                
-                                using (var image = new Bitmap(Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i])))))
+
                                 //using (var image = Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i]))))
+                                using (var image = new Bitmap(Image.FromStream(new MemoryStream(File.ReadAllBytes(filePaths[i])))))
                                 {
-                                    //using (var quantImage = quantizer.QuantizeImage(image))
-                                    using (var quantImage = quantizer.QuantizeImage(image, 10, 70, histogram, 256))
+
+                                    //using (var quantImage = quantizer.QuantizeImage(image, 10, 70, histogram, 256))
                                     //using (var quantImage = quantizer.QuantizeImage(new Bitmap(image)))
+                                    using (var quantImage = quantizer.QuantizeImage(image))
                                     {
                                         encoder.AddFrame(quantImage, 0, 0, new TimeSpan(0, 0, 0, 0, delay));
                                     }
                                 }
                                 EncodingProgress = (int)(((i + 1.0) / filePaths.Count) * 100.0);
                             }
+                            quantizer = null;
                             filePaths.Clear();
                         }
                     }
@@ -234,10 +244,12 @@ namespace LXtory
 
                 if (gpn.Cancelled)
                 {
-                    File.Delete(Path.Combine(Properties.Settings.Default.filePath, gifname));
-                    gifname = string.Empty;
+                    File.Delete(Path.Combine(this.filepath, this.filename));
+                    //gifname = string.Empty;
+                    success = false;
                 }
-                return gifname;
+                //return gifname;
+                return success;
             });
         }
     }

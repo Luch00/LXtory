@@ -41,6 +41,27 @@ namespace LXtory
             return responseString;
         }
 
+        public static bool TokenNeedsRefresh(UploadSite site)
+        {
+            switch (site)
+            {
+                case UploadSite.Imgur:
+                    {
+                        TimeSpan diff = DateTime.Now.Subtract(Properties.Settings.Default.lastRefreshTime);
+                        //return diff.TotalSeconds >= settings.imgurTokenExpire;
+                        return diff.TotalSeconds >= 3600; // BECAUSE IMGUR FAILS
+                    }
+
+                case UploadSite.GoogleDrive:
+                    {
+                        TimeSpan diff = DateTime.Now.Subtract(Properties.Settings.Default.gdriveRefreshTime);
+                        return diff.TotalSeconds >= Properties.Settings.Default.gdriveTokenExpire;
+                    }
+                default:
+                    return true;
+            }
+        }
+
         public static async Task GetImgurToken(string code)
         {
             try

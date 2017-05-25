@@ -184,6 +184,11 @@ namespace LXtory.ViewModels
             {
                 if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(settings.accessToken))
                 {
+                    if (OAuthHelpers.TokenNeedsRefresh(UploadSite.Imgur))
+                    {
+                        StatusLabelText = "Refreshing login..";
+                        await OAuthHelpers.RefreshImgurToken();
+                    }
                     ImgurAlbums.Clear();
                     ImgurAlbums.Add(new Album { Title = "(none)", Id = "" });
                     var albumsJsonString = await Uploader.GetImgurAlbums();
@@ -192,7 +197,7 @@ namespace LXtory.ViewModels
                     {
                         ImgurAlbums.Add(new Album { Title = album.title, Id = album.id });
                     }
-                    //this.RaisePropertyChanged(nameof(this.ImgurAlbums));
+                    StatusLabelText = "Got albums";
                 }
                 else
                 {
@@ -1076,10 +1081,10 @@ namespace LXtory.ViewModels
                 // same as before, no change
                 return settings.filePath;
             }
-            else if (string.IsNullOrWhiteSpace(path))
+            else if (string.IsNullOrWhiteSpace(path) || path == "%exedir%")
             {
                 // Empty, exe directory
-                return AppDomain.CurrentDomain.BaseDirectory;
+                return "%exedir%";
             }
             else
             {

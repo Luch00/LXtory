@@ -286,27 +286,6 @@ namespace LXtory
             }
         }
 
-        private static bool TokenNeedsRefresh(UploadSite site)
-        {
-            switch (site)
-            {
-                case UploadSite.Imgur:
-                    {
-                        TimeSpan diff = DateTime.Now.Subtract(settings.lastRefreshTime);
-                        //return diff.TotalSeconds >= settings.imgurTokenExpire;
-                        return diff.TotalSeconds >= 3600; // BECAUSE IMGUR FAILS
-                    }
-                    
-                case UploadSite.GoogleDrive:
-                    {
-                        TimeSpan diff = DateTime.Now.Subtract(settings.gdriveRefreshTime);
-                        return diff.TotalSeconds >= settings.gdriveTokenExpire;
-                    }
-                default:
-                    return true;
-            }
-        }
-
         private static bool CheckFileSizeLimit(long fileSize, int maxMB)
         {
             return ((fileSize / 1024L) / 1024L) > maxMB;
@@ -347,7 +326,7 @@ namespace LXtory
                                 }
 
                                 // refresh imgur token if using account
-                                if (TokenNeedsRefresh(UploadSite.Imgur) && settings.anonUpload == false)
+                                if (OAuthHelpers.TokenNeedsRefresh(UploadSite.Imgur) && settings.anonUpload == false)
                                 {
                                     SetStatusBarText("Refreshing Imgur login..");
                                     BalloonMessage.SetIcon("R");
@@ -454,7 +433,7 @@ namespace LXtory
                                     continue;
                                 }
 
-                                if (TokenNeedsRefresh(UploadSite.GoogleDrive))
+                                if (OAuthHelpers.TokenNeedsRefresh(UploadSite.GoogleDrive))
                                 {
                                     SetStatusBarText("Refreshing GDrive login..");
                                     BalloonMessage.SetIcon("R");
@@ -612,11 +591,11 @@ namespace LXtory
             {
                 if (!settings.d3dAllScreens)
                 {
-                    ImageManager(DesktopDuplication.DuplicatePrimaryScreen(), title);
+                    SaveAndUploadImage(DesktopDuplication.DuplicatePrimaryScreen(), title);
                 }
                 else
                 {
-                    ImageManager(DesktopDuplication.DuplicateAllScreens(), title);
+                    SaveAndUploadImage(DesktopDuplication.DuplicateAllScreens(), title);
                 }
             }
             catch (Exception e)
@@ -632,7 +611,7 @@ namespace LXtory
             var left = SystemParameters.VirtualScreenLeft;
             var w = SystemParameters.VirtualScreenWidth;
             var h = SystemParameters.VirtualScreenHeight;
-            ImageManager(EncodeImage(ScreenCapture.CaptureArea((int)w, (int)h, (int)left, (int)top, false)), "fullscreen");
+            SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea((int)w, (int)h, (int)left, (int)top, false)), "fullscreen");
         }
 
         // Capture current selected window
@@ -652,7 +631,7 @@ namespace LXtory
             int height = rect.Bottom - rect.Top;
 
             var title = GetActiveWindowTitle();
-            ImageManager(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
+            SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
         }
 
         public void CaptureWindowFromPoint(int x, int y)
@@ -678,7 +657,7 @@ namespace LXtory
                 title = buff.ToString();
             }
 
-            ImageManager(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
+            SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
         }
 
         // Create an overlay, draw a rectangle on the overlay to cap that area
@@ -705,7 +684,7 @@ namespace LXtory
                             Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
                             var works = NativeMethods.SetForegroundWindow(foregroundWindow);
                             Console.WriteLine(works);
-                            ImageManager(
+                            SaveAndUploadImage(
                                 EncodeImage(
                                     ScreenCapture.CaptureArea(Convert.ToInt32(notification.Rect.Width * m.M22), 
                                     Convert.ToInt32(notification.Rect.Height * m.M11),
@@ -740,7 +719,10 @@ namespace LXtory
                 int f = notification.GifFramerate;
                 int d = notification.GifDuration;
                 string datePattern = string.Empty != settings.dateTimeString ? settings.dateTimeString : defaultDateTimePattern;
-                Gif gif = new Gif(f, d, w, h, x, y, datePattern);
+                string path = GetImageSavePath();
+                string filename = FilenameExistsCheck(path, $"gif_{DateTime.Now.ToString(datePattern)}", ".gif");
+                //Gif gif = new Gif(f, d, w, h, x, y, datePattern);
+                Gif gif = new Gif(f, d, w, h, x, y, path, filename);
                 if (!notification.LoadCache)
                 {
                     await gif.StartCapture();
@@ -775,22 +757,23 @@ namespace LXtory
                         this.GifProgressRequest.Raise(gpn);
                         if (gpn != null && gpn.Confirmed)
                         {
-                            var filename = gpn.Name;
-                            if (filename != string.Empty)
+                            //var filename = gpn.Name;
+                            //if (filename != string.Empty)
+                            //{
+                            var img = CreateXImage(filename, Path.Combine(path, filename));
+                            if (settings.gifUpload)
                             {
-                                var img = CreateXImage(filename, Path.Combine(settings.filePath, filename));
-                                if (settings.gifUpload)
-                                {
-                                    AddToQueue(img);
-                                }
-                                else
-                                {
-                                    AddXimageToList(img, "", "");
-                                }
+                                AddToQueue(img);
                             }
+                            else
+                            {
+                                AddXimageToList(img, "", "");
+                            }
+                            //}
                         }
                     }
                 }
+                gif = null;
             }
             gifCapturing = false;
         }
@@ -831,20 +814,49 @@ namespace LXtory
             return builder.ToString();
         }
 
+        // Get folder for saving images
+        public static string GetImageSavePath()
+        {
+            if (settings.filePath == "%exedir%")
+            {
+                return AppDomain.CurrentDomain.BaseDirectory;
+            }
+            return settings.filePath;
+        }
+
+        // Check if file of filename exists in path. If true append a number to the filename
+        private static string FilenameExistsCheck(string path, string filename, string extension)
+        {
+            int i = 1;
+            string file = $"{filename}{extension}";
+            string target = Path.Combine(path, file);
+            while (File.Exists(target))
+            {
+                i++;
+                file = $"{filename}({i}){extension}";
+                target = Path.Combine(path, file);
+            }
+
+            return file;
+        }
+
         private string SaveImageToDisk(byte[] bmp, string filename)
         {
             int i = 1;
             filename = MakeValidFileName(filename);
-            
-            string file = $"{filename}.png";
-            string target = Path.Combine(settings.filePath, file);
+
+            //string file = $"{filename}.png";
+            string path = GetImageSavePath();
+            string file = FilenameExistsCheck(path, filename, ".png");
+            string target = Path.Combine(path, file);
+            //string target = Path.Combine(settings.filePath, file);
             // if file with same name exists append a number to it
-            while (File.Exists(target))
-            {
-                i++;
-                file = $"{filename}({i}).png";
-                target = Path.Combine(settings.filePath, file);
-            }
+            //while (File.Exists(target))
+            //{
+            //    i++;
+            //    file = $"{filename}({i}).png";
+            //    target = Path.Combine(settings.filePath, file);
+            //}
 
             try
             {
@@ -892,7 +904,7 @@ namespace LXtory
             return x;
         }
 
-        private void ImageManager(byte[] image, string filename)
+        private void SaveAndUploadImage(byte[] image, string filename)
         {
             var x = CreateXImage(image, filename);
             if (settings.saveLocal)

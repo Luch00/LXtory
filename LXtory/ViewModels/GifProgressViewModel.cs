@@ -40,16 +40,17 @@ namespace LXtory.ViewModels
 
         private async void StartEncode()
         {
-            string name = await this.notification.Gif.EncodeGif(this.notification);
-            if (name != String.Empty)
-            {
-                this.notification.Name = name;
-                this.notification.Confirmed = true;
-            }
-            else
-            {
-                this.notification.Confirmed = false;
-            }
+            bool success = await this.notification.Gif.EncodeGif(this.notification);
+            //if (name != String.Empty)
+            //{
+            //    this.notification.Name = name;
+            //    this.notification.Confirmed = true;
+            //}
+            //else
+            //{
+            //    this.notification.Confirmed = false;
+            //}
+            this.notification.Confirmed = success;
             this.FinishInteraction();
         }
 
