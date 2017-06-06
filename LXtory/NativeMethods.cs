@@ -36,6 +36,12 @@ namespace LXtory
         [DllImport("shell32.dll")]
         internal static extern int SHQueryUserNotificationState(out USERNOTIFICATIONSTATE pquns);
 
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll")]
+        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
         [DllImport("User32.dll")]
         internal static extern bool RegisterHotKey(
             [In] IntPtr hWnd,
@@ -110,5 +116,8 @@ namespace LXtory
 
         internal const Int32 CURSOR_SHOWING = 0x0001;
         internal const Int32 DI_NORMAL = 0x0003;
+
+        internal const int GWL_EXSTYLE = -20;
+        internal const int WS_EX_NOACTIVATE = 0x08000000;
     }
 }

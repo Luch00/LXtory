@@ -171,6 +171,7 @@
     <Compile Include="Notifications\SettingsNotification.cs" />
     <Compile Include="OAuthHelpers.cs" />
     <Compile Include="ScreenCapture.cs" />
+    <Compile Include="SoundPlayer.cs" />
     <Compile Include="UpDown.xaml.cs">
       <DependentUpon>UpDown.xaml</DependentUpon>
     </Compile>
@@ -318,6 +319,9 @@
       <Project>{72e591d6-8f83-4d8c-8f67-9c325e623234}</Project>
       <Name>Xceed.Wpf.Toolkit</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pop.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

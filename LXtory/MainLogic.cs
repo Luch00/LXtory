@@ -81,6 +81,7 @@ namespace LXtory
             Ximages = ReadXML(historyXMLPath);
             CancelEnabled = false;
             ToggleClipboardMonitor();
+            SoundPlayer.Init("custom.wav");
             if (string.IsNullOrWhiteSpace(settings.filePath))
             {
                 SetDefaultPath();
@@ -597,6 +598,7 @@ namespace LXtory
                 {
                     SaveAndUploadImage(DesktopDuplication.DuplicateAllScreens(), title);
                 }
+                SoundPlayer.PlaySound();
             }
             catch (Exception e)
             {
@@ -612,6 +614,7 @@ namespace LXtory
             var w = SystemParameters.VirtualScreenWidth;
             var h = SystemParameters.VirtualScreenHeight;
             SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea((int)w, (int)h, (int)left, (int)top, false)), "fullscreen");
+            SoundPlayer.PlaySound();
         }
 
         // Capture current selected window
@@ -632,6 +635,7 @@ namespace LXtory
 
             var title = GetActiveWindowTitle();
             SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
+            SoundPlayer.PlaySound();
         }
 
         public void CaptureWindowFromPoint(int x, int y)
@@ -658,6 +662,7 @@ namespace LXtory
             }
 
             SaveAndUploadImage(EncodeImage(ScreenCapture.CaptureArea(width, height, rect.Left, rect.Top, false)), title);
+            SoundPlayer.PlaySound();
         }
 
         // Create an overlay, draw a rectangle on the overlay to cap that area
@@ -665,7 +670,7 @@ namespace LXtory
         {
             if (!overlay_created)
             {
-                var foregroundWindow = NativeMethods.GetForegroundWindow();
+                //var foregroundWindow = NativeMethods.GetForegroundWindow();
                 overlay_created = true;
                 OverlayNotification notification = new OverlayNotification()
                 {
@@ -682,8 +687,8 @@ namespace LXtory
                         {
                             // get dpi multiplier
                             Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
-                            var works = NativeMethods.SetForegroundWindow(foregroundWindow);
-                            Console.WriteLine(works);
+                            //var works = NativeMethods.SetForegroundWindow(foregroundWindow);
+                            //Console.WriteLine(works);
                             SaveAndUploadImage(
                                 EncodeImage(
                                     ScreenCapture.CaptureArea(Convert.ToInt32(notification.Rect.Width * m.M22), 
@@ -693,6 +698,7 @@ namespace LXtory
                                     false)
                                     ), 
                                 "areacapture");
+                            SoundPlayer.PlaySound();
                         }
                         overlay_created = false;
                     });
